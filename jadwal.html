@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal & Rotasi Personel Rapat</title>
+    <!-- Menggunakan Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🗓️ Modul Jadwal & Rotasi Pemimpin Rapat</span>
+            <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- Konten Utama -->
+    <div class="container my-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
+                <p class="text-muted">Daftar penugasan Pemimpin Rapat dan Notulis yang berotasi secara otomatis setiap minggu.</p>
+            </div>
+        </div>
+
+        <!-- Tabel Jadwal -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Periode / Minggu</th>
+                                <th>Tanggal Rapat</th>
+                                <th>Pemimpin Rapat (Leader)</th>
+                                <th>Petugas Notulen</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Minggu ke-1</td>
+                                <td>03 September 2026</td>
+                                <td><span class="fw-bold text-primary">Onesimus Suryadi</span></td>
+                                <td>Elizabeth Nani Ekawati</td>
+                                <td><span class="badge bg-success">Selesai</span></td>
+                            </tr>
+                            <tr>
+                                <td>Minggu ke-2</td>
+                                <td>10 September 2026</td>
+                                <td><span class="fw-bold text-primary">Andi Pratama</span></td>
+                                <td>Siti Rahma</td>
+                                <td><span class="badge bg-warning text-dark">Berjalan</span></td>
+                            </tr>
+                            <tr>
+                                <td>Minggu ke-3</td>
+                                <td>17 September 2026</td>
+                                <td><span class="fw-bold text-primary">Budi Santoso</span></td>
+                                <td>Onesimus Suryadi</td>
+                                <td><span class="badge bg-secondary">Akan Datang</span></td>
+                            </tr>
+                            <tr>
+                                <td>Minggu ke-4</td>
+                                <td>24 September 2026</td>
+                                <td><span class="fw-bold text-primary">Siti Rahma</span></td>
+                                <td>Andi Pratama</td>
+                                <td><span class="badge bg-secondary">Akan Datang</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bagian Master Data Personel -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel Rapat</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Onesimus Suryadi <span class="badge bg-primary rounded-pill">Leader / Notulis</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Andi Pratama <span class="badge bg-primary rounded-pill">Leader / Notulis</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Siti Rahma <span class="badge bg-primary rounded-pill">Leader / Notulis</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Budi Santoso <span class="badge bg-primary rounded-pill">Leader / Notulis</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-secondary mb-3">⚙️ Pengaturan Rotasi</h5>
+                        <p class="card-text text-muted">Sistem rotasi diatur secara berkala tiap hari Rabu setiap minggunya untuk memastikan keadilan beban tugas operasional.</p>
+                        <button class="btn btn-outline-primary" onclick="alert('Fitur tambah personel & ubah jadwal akan disinkronkan dengan database.')">Tambah Personel Baru</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-muted">
+        <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Jadwal</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

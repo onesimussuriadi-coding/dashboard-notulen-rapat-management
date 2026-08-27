@@ -38,7 +38,7 @@
                             <tr>
                                 <th>Periode / Minggu</th>
                                 <th>Tanggal & Waktu Rapat</th>
-                                <th>Pemimpin & Notulis (beserta Jabatan)</th>
+                                <th>Pemimpin & Notulis (Horizontal)</th>
                                 <th>Status / Keterangan</th>
                                 <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
@@ -47,7 +47,7 @@
                             <tr>
                                 <td><strong>Minggu ke-1</strong></td>
                                 <td>03 Sep 2026<br><small class="text-muted">Mulai: 09:00 | Selesai: 10:30</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span> <small class="text-muted">(Project Support)</small><br>Notulis: Elizabeth Nani E. <small class="text-muted">(Admin Operasional)</small></td>
+                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span> <span class="text-muted">— Manager General Services</span><br>Notulis: Elizabeth Nani Ekawati <span class="text-muted">— Admin Operasional</span></td>
                                 <td><span class="badge bg-success">Selesai</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
@@ -57,7 +57,7 @@
                             <tr>
                                 <td><strong>Minggu ke-2</strong></td>
                                 <td>10 Sep 2026<br><small class="text-muted">Mulai: 10:00 | Selesai: (Berjalan)</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span> <small class="text-muted">(Contract Admin)</small><br>Notulis: Siti Rahma <small class="text-muted">(Staff Logistik)</small></td>
+                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span> <span class="text-muted">— Contract Admin</span><br>Notulis: Surini <span class="text-muted">— Manager Keuangan</span></td>
                                 <td><span class="badge bg-warning text-dark">Berjalan</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
@@ -77,16 +77,28 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div><strong>Onesimus Suryadi</strong> <br><small class="text-muted">Project Support</small></div>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Ferry Tatimu</strong> <span class="text-muted">— Direktur</span></div>
                                 <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div><strong>Elizabeth Nani Ekawati</strong> <br><small class="text-muted">Admin Operasional</small></div>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Prayogo Sudana</strong> <span class="text-muted">— General Manager</span></div>
                                 <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div><strong>Andi Pratama</strong> <br><small class="text-muted">Contract Admin</small></div>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Gianne Tatimu</strong> <span class="text-muted">— Wakil General Manager</span></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Wahyu Suryono</strong> <span class="text-muted">— Manager Representative</span></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Surini</strong> <span class="text-muted">— Manager Keuangan</span></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div><strong>Onesimus Suryadi</strong> <span class="text-muted">— Manager General Services</span></div>
                                 <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
                         </ul>
@@ -154,7 +166,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jabatan Leader</label>
-                            <input type="text" id="valJabatanLeader" class="form-control" placeholder="Contoh: Project Support">
+                            <input type="text" id="valJabatanLeader" class="form-control" placeholder="Jabatan Leader">
                         </div>
                     </div>
                     <div class="row">
@@ -164,7 +176,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jabatan Notulis</label>
-                            <input type="text" id="valJabatanNotulen" class="form-control" placeholder="Contoh: Admin">
+                            <input type="text" id="valJabatanNotulen" class="form-control" placeholder="Jabatan Notulis">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -211,9 +223,9 @@
 
             const list = document.getElementById('listPersonel');
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
             li.innerHTML = `
-                <div><strong>${nama}</strong> <br><small class="text-muted">${jabatan || 'Staff'}</small></div>
+                <div><strong>${nama}</strong> <span class="text-muted">— ${jabatan || 'Staff'}</span></div>
                 <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
             `;
             list.appendChild(li);
@@ -263,15 +275,6 @@
         function editBaris(button) {
             barisYangDiedit = button.closest('tr');
             document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
-
-            const cols = barisYangDiedit.querySelectorAll('td');
-            const periodeText = cols[0].innerText.trim();
-            const tanggalFull = cols[1].innerHTML;
-            const personelText = cols[2].innerHTML;
-
-            document.getElementById('valPeriode').value = periodeText.replace('Minggu ke-', ''); // Ambil nomor atau teks
-            // Ekstrak data sederhana untuk demo edit
-            document.getElementById('valTanggal').value = tanggalFull.split('<br>')[0].trim();
             
             const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
             myModal.show();
@@ -301,7 +304,7 @@
             const kontenBaris = `
                 <td><strong>${periode.includes('Minggu') ? periode : 'Minggu ke-' + periode}</strong></td>
                 <td>${tanggal}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
-                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <small class="text-muted">(${jabatanLeader || 'Staff'})</small><br>Notulis: ${notulen} <small class="text-muted">(${jabatanNotulen || 'Staff'})</small></td>
+                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <span class="text-muted">— ${jabatanLeader || 'Staff'}</span><br>Notulis: ${notulen} <span class="text-muted">— ${jabatanNotulen || 'Staff'}</span></td>
                 <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>

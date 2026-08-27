@@ -26,7 +26,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Pencatatan Hasil Rapat & Action Items</h3>
-                <p class="text-muted">Kelola status Open, Info, Closing, serta filter histori berdasarkan Periode, Tahun, dan Bulan secara real-time.</p>
+                <p class="text-muted">Kelola topik pembahasan, tindak lanjut penyelesaian, PIC, deadline, dan status secara real-time.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-danger" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
@@ -89,14 +89,14 @@
                             <tr>
                                 <th>Periode & Tanggal</th>
                                 <th>Topik Pembahasan & Arahan</th>
-                                <th>PIC / Penanggung Jawab</th>
-                                <th>Deadline</th>
-                                <th>Status Tindak Lanjut</th>
+                                <th>Tindak Lanjut & Penyelesaian</th>
+                                <th>PIC & Deadline</th>
+                                <th>Status</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="bodyTabelNotulen">
-                            <!-- Data dimuat otomatis dari localStorage jadwal -->
+                            <!-- Data dimuat otomatis dari localStorage -->
                         </tbody>
                     </table>
                 </div>
@@ -132,7 +132,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Topik Pembahasan & Arahan</label>
-                        <textarea id="notulenTopik" class="form-control" rows="3" placeholder="Tuliskan hasil diskusi atau arahan pemimpin rapat..."></textarea>
+                        <textarea id="notulenTopik" class="form-control" rows="2" placeholder="Tuliskan topik pembahasan atau arahan pimpinan rapat..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tindak Lanjut & Penyelesaian</label>
+                        <textarea id="notulenTindakLanjut" class="form-control" rows="2" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -169,7 +173,7 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Notulen Terintegrasi Jadwal -->
+    <!-- JavaScript Logika Notulen Terintegrasi -->
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
@@ -196,7 +200,6 @@
             const j = dataJadwal[idx];
             document.getElementById('notulenPeriode').value = j.periode;
             document.getElementById('notulenTanggal').value = j.tanggal;
-            // Otomatis masukkan Leader sebagai referensi PIC awal jika kosong
             document.getElementById('notulenPic').value = `${j.leader} (${j.jabatanLeader})`;
         }
 
@@ -220,7 +223,6 @@
                 else if(filterStatus === 'Info') matchStatus = (n.status === 'Info');
                 else if(filterStatus === 'Closing') matchStatus = (n.status === 'Closing');
                 else {
-                    // Default 'ALL': Sembunyikan 'Closing' agar tidak muncul lagi di rapat aktif berikutnya
                     matchStatus = (n.status !== 'Closing');
                 }
 
@@ -255,8 +257,8 @@
                 tr.innerHTML = `
                     <td><strong>${n.periode}</strong><br><small class="text-muted">${tglFormatted}</small></td>
                     <td>${n.topik}</td>
-                    <td><span class="fw-bold">${n.pic}</span></td>
-                    <td><span class="text-danger small">${deadFormatted}</span></td>
+                    <td><span class="text-secondary">${n.tindakLanjut || '-'}</span></td>
+                    <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
                     <td><span class="badge ${badgeClass}">${n.status}</span></td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEditNotulen(${originalIndex})">Edit</button>
@@ -276,6 +278,7 @@
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = '';
             document.getElementById('notulenTopik').value = '';
+            document.getElementById('notulenTindakLanjut').value = '';
             document.getElementById('notulenPic').value = '';
             document.getElementById('notulenDeadline').value = '';
             document.getElementById('notulenStatus').value = 'Open';
@@ -293,6 +296,7 @@
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;
             document.getElementById('notulenTopik').value = n.topik;
+            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
             document.getElementById('notulenPic').value = n.pic;
             document.getElementById('notulenDeadline').value = n.deadline;
             document.getElementById('notulenStatus').value = n.status;
@@ -305,6 +309,7 @@
             const periode = document.getElementById('notulenPeriode').value.trim();
             const tanggal = document.getElementById('notulenTanggal').value;
             const topik = document.getElementById('notulenTopik').value.trim();
+            const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             const pic = document.getElementById('notulenPic').value.trim();
             const deadline = document.getElementById('notulenDeadline').value;
             const status = document.getElementById('notulenStatus').value;
@@ -314,7 +319,7 @@
                 return;
             }
 
-            const dataBaru = { periode, tanggal, topik, pic, deadline, status };
+            const dataBaru = { periode, tanggal, topik, tindakLanjut, pic, deadline, status };
 
             if(index === -1) {
                 dataNotulen.unshift(dataBaru);

@@ -7,6 +7,14 @@
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Tema Warna Toska / Teal Sejuk */
+        .bg-teal-custom { background-color: #134e4a !important; }
+        .bg-teal-header { background-color: #0f766e !important; }
+        .btn-teal { background-color: #0d9488; color: white; border: none; }
+        .btn-teal:hover { background-color: #0f766e; color: white; }
+        .btn-outline-teal { color: #0d9488; border-color: #0d9488; }
+        .btn-outline-teal:hover { background-color: #0d9488; color: white; }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; }
@@ -17,7 +25,7 @@
 <body class="bg-light" onload="muatDataNotulen()">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-danger shadow-sm no-print">
+    <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
         <div class="container">
             <span class="navbar-brand mb-0 h1">📁 Modul Notulen & Tindak Lanjut Rapat</span>
             <div>
@@ -37,7 +45,7 @@
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
-                <button class="btn btn-danger" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
+                <button class="btn btn-teal" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
             </div>
         </div>
 
@@ -109,7 +117,7 @@
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
+                <div class="modal-header bg-teal-custom text-white">
                     <h5 class="modal-title" id="modalTitleNotulen">Form Notulen & Tindak Lanjut Rapat</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -169,7 +177,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" onclick="simpanNotulen()">Simpan Notulen</button>
+                    <button type="button" class="btn btn-teal" onclick="simpanNotulen()">Simpan Notulen</button>
                 </div>
             </div>
         </div>
@@ -256,7 +264,7 @@
                     matchStatus = (n.status !== 'Closing');
                 }
 
-                n.originalIndex = idx; // Simpan indeks asli untuk edit/hapus
+                n.originalIndex = idx;
                 return matchTahun && matchBulan && matchStatus;
             });
 
@@ -265,7 +273,6 @@
                 return;
             }
 
-            // Kelompokkan data berdasarkan Periode + Tanggal
             let grouped = {};
             filteredData.forEach(item => {
                 let key = item.periode + '||' + item.tanggal;
@@ -281,14 +288,13 @@
                     tglFormatted = new Date(p1[0], p1[1]-1, p1[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                 } catch(e) {}
 
-                // Buat Header Kartu per Rapat
                 let cardDiv = document.createElement('div');
                 cardDiv.className = 'card mb-4 shadow-sm border-0';
 
                 let headerHtml = `
-                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center py-2">
+                    <div class="card-header bg-teal-header text-white d-flex justify-content-between align-items-center py-2">
                         <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal Rapat: ${tglFormatted}</h5>
-                        <span class="badge bg-light text-danger">${grouped[key].length} Topik Pembahasan</span>
+                        <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">

@@ -7,7 +7,7 @@
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light" onload="inisialisasiMasterPersonel()">
+<body class="bg-light" onload="muatDataAwal()">
 
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-primary shadow-sm">
@@ -43,17 +43,8 @@
                                 <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Minggu ke-1</strong></td>
-                                <td>03 Sep 2026<br><small class="text-muted">Mulai: 09:00 | Selesai: 10:30</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span> <span class="text-muted">— Manager General Services</span><br>Notulis: Elizabeth Nani Ekawati <span class="text-muted">— Admin Operasional</span></td>
-                                <td><span class="badge bg-success">Selesai</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
-                                </td>
-                            </tr>
+                        <tbody id="bodyTabelJadwal">
+                            <!-- Data akan dimuat otomatis dari localStorage -->
                         </tbody>
                     </table>
                 </div>
@@ -67,22 +58,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Ferry Tatimu" data-jabatan="Direktur">
-                                <div><strong>Ferry Tatimu</strong> <span class="text-muted">— Direktur</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Prayogo Sudana" data-jabatan="General Manager">
-                                <div><strong>Prayogo Sudana</strong> <span class="text-muted">— General Manager</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Onesimus Suryadi" data-jabatan="Manager General Services">
-                                <div><strong>Onesimus Suryadi</strong> <span class="text-muted">— Manager General Services</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Elizabeth Nani Ekawati" data-jabatan="Admin Operasional">
-                                <div><strong>Elizabeth Nani Ekawati</strong> <span class="text-muted">— Admin Operasional</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
-                            </li>
+                            <!-- Data akan dimuat otomatis dari localStorage -->
                         </ul>
                         
                         <!-- Form Tambah Personel & Jabatan -->
@@ -101,11 +77,11 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Sistem Otomatis</h5>
+                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Penyimpanan Otomatis</h5>
                         <ul class="text-muted small ps-3">
-                            <li><strong>Tanggal Kalender:</strong> Klik ikon kalender untuk memilih tanggal rapat secara presisi.</li>
-                            <li><strong>Dropdown Otomatis:</strong> Nama dan Jabatan Leader/Notulis otomatis tersinkronisasi dari Master Personel.</li>
-                            <li><strong>Jam Real-Time:</strong> Status "Berjalan" & "Selesai" mencatat jam sistem secara otomatis.</li>
+                            <li><strong>Penyimpanan Permanen (LocalStorage):</strong> Seluruh data personel dan jadwal rapat yang Anda input akan tersimpan otomatis di browser.</li>
+                            <li><strong>Dropdown Sinkron:</strong> Pilihan Leader dan Notulis bersumber langsung dari Master Personel.</li>
+                            <li><strong>Edit & Hapus:</strong> Anda dapat memperbarui jadwal sewaktu-waktu sesuai kondisi real-time.</li>
                         </ul>
                     </div>
                 </div>
@@ -122,6 +98,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" id="editIndex" value="-1">
                     <div class="mb-3">
                         <label class="form-label">Periode / Minggu</label>
                         <input type="text" id="valPeriode" class="form-control" placeholder="Contoh: Minggu ke-3">
@@ -190,58 +167,50 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Lengkap -->
+    <!-- JavaScript Logika Penyimpanan Permanen (LocalStorage) -->
     <script>
-        let barisYangDiedit = null;
+        // Data Default Awal jika penyimpanan masih kosong
+        let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
+            { nama: "Ferry Tatimu", jabatan: "Direktur" },
+            { nama: "Prayogo Sudana", jabatan: "General Manager" },
+            { nama: "Onesimus Suryadi", jabatan: "Manager General Services" },
+            { nama: "Elizabeth Nani Ekawati", jabatan: "Admin Operasional" }
+        ];
 
-        function inisialisasiMasterPersonel() {
-            // Fungsi untuk memastikan dropdown terisi saat halaman dimuat
-            updateDropdownPersonel();
+        let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [
+            {
+                periode: "Minggu ke-1",
+                tanggal: "2026-09-03",
+                jamMulai: "09:00",
+                jamSelesai: "10:30",
+                leader: "Onesimus Suryadi",
+                jabatanLeader: "Manager General Services",
+                notulen: "Elizabeth Nani Ekawati",
+                jabatanNotulen: "Admin Operasional",
+                status: "Selesai"
+            }
+        ];
+
+        function muatDataAwal() {
+            renderPersonel();
+            renderJadwal();
         }
 
-        function updateDropdownPersonel() {
-            const listItems = document.querySelectorAll('#listPersonel li');
-            const selectLeader = document.getElementById('valLeader');
-            const selectNotulen = document.getElementById('valNotulen');
-
-            // Simpan pilihan sebelumnya jika ada
-            let currentLeader = selectLeader.value;
-            let currentNotulen = selectNotulen.value;
-
-            selectLeader.innerHTML = '<option value="">-- Pilih Leader --</option>';
-            selectNotulen.innerHTML = '<option value="">-- Pilih Notulis --</option>';
-
-            listItems.forEach(li => {
-                const nama = li.getAttribute('data-nama');
-                const jabatan = li.getAttribute('data-jabatan');
-
-                let opt1 = document.createElement('option');
-                opt1.value = nama;
-                opt1.setAttribute('data-jabatan', jabatan);
-                opt1.textContent = nama + ' (' + jabatan + ')';
-                selectLeader.appendChild(opt1);
-
-                let opt2 = document.createElement('option');
-                opt2.value = nama;
-                opt2.setAttribute('data-jabatan', jabatan);
-                opt2.textContent = nama + ' (' + jabatan + ')';
-                selectNotulen.appendChild(opt2);
+        // --- MANAJEMEN MASTER PERSONEL ---
+        function renderPersonel() {
+            const list = document.getElementById('listPersonel');
+            list.innerHTML = '';
+            dataPersonel.forEach((p, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
+                li.innerHTML = `
+                    <div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonel(${index})">Hapus</button>
+                `;
+                list.appendChild(li);
             });
-
-            selectLeader.value = currentLeader;
-            selectNotulen.value = currentNotulen;
-        }
-
-        function pilihLeader(select) {
-            const selectedOption = select.options[select.selectedIndex];
-            const jabatan = selectedOption.getAttribute('data-jabatan') || '';
-            document.getElementById('valJabatanLeader').value = jabatan;
-        }
-
-        function pilihNotulen(select) {
-            const selectedOption = select.options[select.selectedIndex];
-            const jabatan = selectedOption.getAttribute('data-jabatan') || '';
-            document.getElementById('valJabatanNotulen').value = jabatan;
+            localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+            updateDropdownPersonel();
         }
 
         function tambahPersonel() {
@@ -256,42 +225,96 @@
                 return;
             }
 
-            const list = document.getElementById('listPersonel');
-            const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
-            li.setAttribute('data-nama', nama);
-            li.setAttribute('data-jabatan', jabatan);
-            li.innerHTML = `
-                <div><strong>${nama}</strong> <span class="text-muted">— ${jabatan}</span></div>
-                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
-            `;
-            list.appendChild(li);
-            
+            dataPersonel.push({ nama: nama, jabatan: jabatan });
             inputNama.value = '';
             inputJabatan.value = '';
-
-            updateDropdownPersonel();
+            renderPersonel();
         }
 
-        function hapusPersonelMaster(button) {
-            button.closest('li').remove();
-            updateDropdownPersonel();
-        }
-
-        function hapusBaris(button) {
-            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-                button.closest('tr').remove();
+        function hapusPersonel(index) {
+            if(confirm('Hapus personel ini dari master?')) {
+                dataPersonel.splice(index, 1);
+                renderPersonel();
             }
+        }
+
+        function updateDropdownPersonel() {
+            const selectLeader = document.getElementById('valLeader');
+            const selectNotulen = document.getElementById('valNotulen');
+
+            let curLeader = selectLeader.value;
+            let curNotulen = selectNotulen.value;
+
+            selectLeader.innerHTML = '<option value="">-- Pilih Leader --</option>';
+            selectNotulen.innerHTML = '<option value="">-- Pilih Notulis --</option>';
+
+            dataPersonel.forEach(p => {
+                let opt1 = document.createElement('option');
+                opt1.value = p.nama;
+                opt1.setAttribute('data-jabatan', p.jabatan);
+                opt1.textContent = `${p.nama} (${p.jabatan})`;
+                selectLeader.appendChild(opt1);
+
+                let opt2 = document.createElement('option');
+                opt2.value = p.nama;
+                opt2.setAttribute('data-jabatan', p.jabatan);
+                opt2.textContent = `${p.nama} (${p.jabatan})`;
+                selectNotulen.appendChild(opt2);
+            });
+
+            selectLeader.value = curLeader;
+            selectNotulen.value = curNotulen;
+        }
+
+        function pilihLeader(select) {
+            const opt = select.options[select.selectedIndex];
+            document.getElementById('valJabatanLeader').value = opt.getAttribute('data-jabatan') || '';
+        }
+
+        function pilihNotulen(select) {
+            const opt = select.options[select.selectedIndex];
+            document.getElementById('valJabatanNotulen').value = opt.getAttribute('data-jabatan') || '';
+        }
+
+        // --- MANAJEMEN JADWAL RAPAT ---
+        function renderJadwal() {
+            const tbody = document.getElementById('bodyTabelJadwal');
+            tbody.innerHTML = '';
+
+            dataJadwal.forEach((j, index) => {
+                let tanggalFormatted = j.tanggal;
+                try {
+                    const parts = j.tanggal.split('-');
+                    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                    tanggalFormatted = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {}
+
+                let badgeClass = 'bg-secondary';
+                if(j.status === 'Selesai') badgeClass = 'bg-success';
+                else if(j.status === 'Berjalan') badgeClass = 'bg-warning text-dark';
+                else if(j.status === 'Tidak Dilakukan Rapat') badgeClass = 'bg-danger';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${j.periode}</strong></td>
+                    <td>${tanggalFormatted}<br><small class="text-muted">Mulai: ${j.jamMulai} | Selesai: ${j.jamSelesai}</small></td>
+                    <td>Leader: <span class="text-primary fw-bold">${j.leader}</span> <span class="text-muted">— ${j.jabatanLeader}</span><br>Notulis: ${j.notulen} <span class="text-muted">— ${j.jabatanNotulen}</span></td>
+                    <td><span class="badge ${badgeClass}">${j.status}</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEdit(${index})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="hapusJadwal(${index})">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
         }
 
         function bukaModalTambah() {
             document.getElementById('modalTitle').innerText = 'Tambah Jadwal Rapat Baru';
+            document.getElementById('editIndex').value = '-1';
             document.getElementById('valPeriode').value = '';
-            
-            // Set tanggal default ke hari ini (format YYYY-MM-DD untuk input date)
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('valTanggal').value = today;
-
+            document.getElementById('valTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('valJamMulai').value = '';
             document.getElementById('valJamSelesai').value = '';
             document.getElementById('valLeader').value = '';
@@ -299,11 +322,29 @@
             document.getElementById('valNotulen').value = '';
             document.getElementById('valJabatanNotulen').value = '';
             document.getElementById('valStatus').value = 'Akan Datang';
-            barisYangDiedit = null;
+
+            updateDropdownPersonel();
+            new bootstrap.Modal(document.getElementById('modalJadwal')).show();
+        }
+
+        function bukaModalEdit(index) {
+            document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
+            document.getElementById('editIndex').value = index;
+
+            const j = dataJadwal[index];
+            document.getElementById('valPeriode').value = j.periode;
+            document.getElementById('valTanggal').value = j.tanggal;
+            document.getElementById('valJamMulai').value = j.jamMulai;
+            document.getElementById('valJamSelesai').value = j.jamSelesai;
             
             updateDropdownPersonel();
-            const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
-            myModal.show();
+            document.getElementById('valLeader').value = j.leader;
+            document.getElementById('valJabatanLeader').value = j.jabatanLeader;
+            document.getElementById('valNotulen').value = j.notulen;
+            document.getElementById('valJabatanNotulen').value = j.jabatanNotulen;
+            document.getElementById('valStatus').value = j.status;
+
+            new bootstrap.Modal(document.getElementById('modalJadwal')).show();
         }
 
         function cekStatusWaktu() {
@@ -321,18 +362,10 @@
             }
         }
 
-        function editBaris(button) {
-            barisYangDiedit = button.closest('tr');
-            document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
-            
-            updateDropdownPersonel();
-            const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
-            myModal.show();
-        }
-
         function simpanJadwalRapat() {
-            const periode = document.getElementById('valPeriode').value;
-            const tanggalInput = document.getElementById('valTanggal').value;
+            const index = parseInt(document.getElementById('editIndex').value);
+            const periode = document.getElementById('valPeriode').value.trim();
+            const tanggal = document.getElementById('valTanggal').value;
             const jamMulai = document.getElementById('valJamMulai').value || '-';
             const jamSelesai = document.getElementById('valJamSelesai').value || '-';
             const leader = document.getElementById('valLeader').value;
@@ -341,46 +374,40 @@
             const jabatanNotulen = document.getElementById('valJabatanNotulen').value;
             const status = document.getElementById('valStatus').value;
 
-            if(!periode || !tanggalInput || !leader || !notulen) {
+            if(!periode || !tanggal || !leader || !notulen) {
                 alert('Kolom Periode, Tanggal, Leader, dan Notulis wajib diisi!');
                 return;
             }
 
-            // Format tanggal agar mudah dibaca (YYYY-MM-DD menjadi format lokal)
-            let tanggalFormatted = tanggalInput;
-            try {
-                const parts = tanggalInput.split('-');
-                const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                tanggalFormatted = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            } catch(e) {}
+            const dataBaru = {
+                periode: periode,
+                tanggal: tanggal,
+                jamMulai: jamMulai,
+                jamSelesai: jamSelesai,
+                leader: leader,
+                jabatanLeader: jabatanLeader,
+                notulen: notulen,
+                jabatanNotulen: jabatanNotulen,
+                status: status
+            };
 
-            let badgeClass = 'bg-secondary';
-            if(status === 'Selesai') badgeClass = 'bg-success';
-            else if(status === 'Berjalan') badgeClass = 'bg-warning text-dark';
-            else if(status === 'Tidak Dilakukan Rapat') badgeClass = 'bg-danger';
-
-            const kontenBaris = `
-                <td><strong>${periode.includes('Minggu') ? periode : 'Minggu ke-' + periode}</strong></td>
-                <td>${tanggalFormatted}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
-                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <span class="text-muted">— ${jabatanLeader}</span><br>Notulis: ${notulen} <span class="text-muted">— ${jabatanNotulen}</span></td>
-                <td><span class="badge ${badgeClass}">${status}</span></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
-                </td>
-            `;
-
-            if(barisYangDiedit) {
-                barisYangDiedit.innerHTML = kontenBaris;
+            if(index === -1) {
+                dataJadwal.push(dataBaru);
             } else {
-                const table = document.getElementById('tabelJadwal').getElementsByTagName('tbody')[0];
-                const newRow = table.insertRow();
-                newRow.innerHTML = kontenBaris;
+                dataJadwal[index] = dataBaru;
             }
 
+            renderJadwal();
+
             const modalEl = document.getElementById('modalJadwal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            modalInstance.hide();
+            bootstrap.Modal.getInstance(modalEl).hide();
+        }
+
+        function hapusJadwal(index) {
+            if(confirm('Apakah Anda yakin ingin menghapus jadwal rapat ini?')) {
+                dataJadwal.splice(index, 1);
+                renderJadwal();
+            }
         }
     </script>
 </body>

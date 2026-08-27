@@ -145,8 +145,13 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">PIC / Penanggung Jawab</label>
-                            <input type="text" id="notulenPic" class="form-control" placeholder="Nama & Jabatan PIC...">
+                            <label class="form-label">PIC / Penanggung Jawab (Pilih atau Ketik Manual)</label>
+                            <div class="input-group">
+                                <select id="notulenSelectPic" class="form-select" onchange="pilihPicMaster(this)">
+                                    <option value="">-- Pilih dari Master Personel --</option>
+                                </select>
+                            </div>
+                            <input type="text" id="notulenPic" class="form-control mt-2" placeholder="Atau ketik manual nama & jabatan PIC...">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Deadline Penyelesaian</label>
@@ -182,10 +187,12 @@
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
+        let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
         function muatDataNotulen() {
             renderNotulen();
             isiDropdownJadwal();
+            isiDropdownMasterPic();
         }
 
         function isiDropdownJadwal() {
@@ -199,6 +206,17 @@
             });
         }
 
+        function isiDropdownMasterPic() {
+            const select = document.getElementById('notulenSelectPic');
+            select.innerHTML = '<option value="">-- Pilih dari Master Personel --</option>';
+            dataPersonel.forEach(p => {
+                let opt = document.createElement('option');
+                opt.value = `${p.nama} (${p.jabatan})`;
+                opt.textContent = `${p.nama} — ${p.jabatan}`;
+                select.appendChild(opt);
+            });
+        }
+
         function pilihJadwalOtomatis(select) {
             const idx = select.value;
             if(idx === "") return;
@@ -206,6 +224,13 @@
             document.getElementById('notulenPeriode').value = j.periode;
             document.getElementById('notulenTanggal').value = j.tanggal;
             document.getElementById('notulenPic').value = `${j.leader} (${j.jabatanLeader})`;
+            document.getElementById('notulenSelectPic').value = `${j.leader} (${j.jabatanLeader})`;
+        }
+
+        function pilihPicMaster(select) {
+            if(select.value !== "") {
+                document.getElementById('notulenPic').value = select.value;
+            }
         }
 
         function renderNotulen() {
@@ -286,11 +311,13 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
+            document.getElementById('notulenSelectPic').value = '';
             document.getElementById('notulenPic').value = '';
             document.getElementById('notulenDeadline').value = '';
             document.getElementById('notulenStatus').value = 'Open';
 
             isiDropdownJadwal();
+            isiDropdownMasterPic();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -299,6 +326,7 @@
             document.getElementById('editIndexNotulen').value = index;
 
             isiDropdownJadwal();
+            isiDropdownMasterPic();
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;

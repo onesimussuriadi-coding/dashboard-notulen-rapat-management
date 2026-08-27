@@ -6,11 +6,18 @@
     <title>Modul Notulen & Tindak Lanjut Rapat</title>
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .card { border: none !important; box-shadow: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-light" onload="muatDataNotulen()">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-danger shadow-sm">
+    <nav class="navbar navbar-dark bg-danger shadow-sm no-print">
         <div class="container">
             <span class="navbar-brand mb-0 h1">📁 Modul Notulen & Tindak Lanjut Rapat</span>
             <div>
@@ -23,18 +30,19 @@
 
     <!-- Konten Utama -->
     <div class="container my-5">
-        <div class="row mb-4 align-items-center">
+        <div class="row mb-4 align-items-center no-print">
             <div class="col">
                 <h3>Pencatatan Hasil Rapat & Action Items</h3>
-                <p class="text-muted">Kelola topik utama, pembahasan, tindak lanjut, PIC, deadline, dan status secara real-time.</p>
+                <p class="text-muted">Pengelompokan per periode rapat, cetak dokumen, simpan PDF, dan manajemen status secara real-time.</p>
             </div>
             <div class="col-auto">
+                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
                 <button class="btn btn-danger" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
             </div>
         </div>
 
         <!-- Panel Filter Histori Rapat -->
-        <div class="card shadow-sm mb-4 bg-white border-0">
+        <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body">
                 <h6 class="text-secondary mb-3">🔍 Filter Histori Notulen & Tindak Lanjut</h6>
                 <div class="row g-3">
@@ -80,26 +88,18 @@
             </div>
         </div>
 
+        <!-- Kop Dokumen untuk Cetak / PDF -->
+        <div class="text-center mb-4 d-none d-print-block">
+            <h3>PT BANGGAI SENTRAL SULAWESI</h3>
+            <h5>LOKASI RAPAT MANAJEMEN & NOTULEN</h5>
+            <hr>
+        </div>
+
         <!-- Tabel Daftar Notulen & Action Items -->
-        <div class="card shadow-sm mb-5">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="tabelNotulen">
-                        <thead class="table-danger">
-                            <tr>
-                                <th>Periode & Tanggal</th>
-                                <th>Topik Utama</th>
-                                <th>Pembahasan & Arahan</th>
-                                <th>Tindak Lanjut & Penyelesaian</th>
-                                <th>PIC & Deadline</th>
-                                <th>Status</th>
-                                <th class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyTabelNotulen">
-                            <!-- Data dimuat otomatis dari localStorage -->
-                        </tbody>
-                    </table>
+        <div class="card shadow-sm mb-5 border-0">
+            <div class="card-body p-0">
+                <div id="containerNotulen">
+                    <!-- Konten akan dirender berkelompok berdasarkan Periode Rapat -->
                 </div>
             </div>
         </div>
@@ -116,7 +116,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     <div class="mb-3">
-                        <label class="form-label">Pilih Jadwal / Periode Rapat</label>
+                        <label class="form-label">Pilih Jadwal / Periode Rapat (Menentukan Tanggal Otomatis)</label>
                         <select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)">
                             <option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>
                         </select>
@@ -133,7 +133,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Topik Utama</label>
-                        <input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Penjualan Unit Alat Berat / Logistik Project...">
+                        <input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Crane Sany / Pengadaan Unit...">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Pembahasan & Arahan</label>
@@ -145,13 +145,13 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">PIC / Penanggung Jawab (Pilih atau Ketik Manual)</label>
-                            <div class="input-group">
+                            <label class="form-label">PIC / Penanggung Jawab</label>
+                            <div class="input-group mb-2">
                                 <select id="notulenSelectPic" class="form-select" onchange="pilihPicMaster(this)">
                                     <option value="">-- Pilih dari Master Personel --</option>
                                 </select>
                             </div>
-                            <input type="text" id="notulenPic" class="form-control mt-2" placeholder="Atau ketik manual nama & jabatan PIC...">
+                            <input type="text" id="notulenPic" class="form-control" placeholder="Atau ketik manual nama & jabatan PIC...">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Deadline Penyelesaian</label>
@@ -176,14 +176,14 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-center py-4 text-muted">
+    <footer class="text-center py-4 text-muted no-print">
         <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Notulen Rapat</small>
     </footer>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Notulen Terintegrasi -->
+    <!-- JavaScript Logika Notulen Berkelompok -->
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
@@ -234,14 +234,14 @@
         }
 
         function renderNotulen() {
-            const tbody = document.getElementById('bodyTabelNotulen');
-            tbody.innerHTML = '';
+            const container = document.getElementById('containerNotulen');
+            container.innerHTML = '';
 
             const filterTahun = document.getElementById('filterTahun').value;
             const filterBulan = document.getElementById('filterBulan').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
-            let filteredData = dataNotulen.filter(n => {
+            let filteredData = dataNotulen.filter((n, idx) => {
                 if(!n.tanggal) return false;
                 let [thn, bln, tgl] = n.tanggal.split('-');
                 
@@ -256,48 +256,95 @@
                     matchStatus = (n.status !== 'Closing');
                 }
 
+                n.originalIndex = idx; // Simpan indeks asli untuk edit/hapus
                 return matchTahun && matchBulan && matchStatus;
             });
 
             if(filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data notulen atau action items yang sesuai dengan filter.</td></tr>`;
+                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen atau action items yang sesuai dengan filter.</div>`;
                 return;
             }
 
-            filteredData.forEach((n, index) => {
-                let badgeClass = 'bg-primary';
-                if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
-                else if(n.status === 'Closing') badgeClass = 'bg-success';
-                else if(n.status === 'Info') badgeClass = 'bg-info text-dark';
+            // Kelompokkan data berdasarkan Periode + Tanggal
+            let grouped = {};
+            filteredData.forEach(item => {
+                let key = item.periode + '||' + item.tanggal;
+                if(!grouped[key]) grouped[key] = [];
+                grouped[key].push(item);
+            });
 
-                let tglFormatted = n.tanggal;
-                let deadFormatted = n.deadline || '-';
+            for(let key in grouped) {
+                let [periode, tanggal] = key.split('||');
+                let tglFormatted = tanggal;
                 try {
-                    let p1 = n.tanggal.split('-');
+                    let p1 = tanggal.split('-');
                     tglFormatted = new Date(p1[0], p1[1]-1, p1[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                    if(n.deadline) {
-                        let p2 = n.deadline.split('-');
-                        deadFormatted = new Date(p2[0], p2[1]-1, p2[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                    }
                 } catch(e) {}
 
-                const originalIndex = dataNotulen.findIndex(item => item === n);
+                // Buat Header Kartu per Rapat
+                let cardDiv = document.createElement('div');
+                cardDiv.className = 'card mb-4 shadow-sm border-0';
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${n.periode}</strong><br><small class="text-muted">${tglFormatted}</small></td>
-                    <td><strong>${n.topikUtama || '-'}</strong></td>
-                    <td>${n.pembahasan || '-'}</td>
-                    <td><span class="text-secondary">${n.tindakLanjut || '-'}</span></td>
-                    <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
-                    <td><span class="badge ${badgeClass}">${n.status}</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEditNotulen(${originalIndex})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="hapusNotulen(${originalIndex})">Hapus</button>
-                    </td>
+                let headerHtml = `
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center py-2">
+                        <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal Rapat: ${tglFormatted}</h5>
+                        <span class="badge bg-light text-danger">${grouped[key].length} Topik Pembahasan</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 20%;">Topik Utama</th>
+                                        <th style="width: 25%;">Pembahasan & Arahan</th>
+                                        <th style="width: 25%;">Tindak Lanjut & Penyelesaian</th>
+                                        <th style="width: 15%;">PIC & Deadline</th>
+                                        <th style="width: 10%;">Status</th>
+                                        <th style="width: 5%;" class="text-center no-print">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                 `;
-                tbody.appendChild(tr);
-            });
+
+                grouped[key].forEach(n => {
+                    let badgeClass = 'bg-primary';
+                    if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
+                    else if(n.status === 'Closing') badgeClass = 'bg-success';
+                    else if(n.status === 'Info') badgeClass = 'bg-info text-dark';
+
+                    let deadFormatted = n.deadline || '-';
+                    try {
+                        if(n.deadline) {
+                            let p2 = n.deadline.split('-');
+                            deadFormatted = new Date(p2[0], p2[1]-1, p2[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                        }
+                    } catch(e) {}
+
+                    headerHtml += `
+                        <tr>
+                            <td><strong>${n.topikUtama || '-'}</strong></td>
+                            <td>${n.pembahasan || '-'}</td>
+                            <td><span class="text-secondary">${n.tindakLanjut || '-'}</span></td>
+                            <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
+                            <td><span class="badge ${badgeClass}">${n.status}</span></td>
+                            <td class="text-center no-print">
+                                <button class="btn btn-sm btn-outline-warning mb-1" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                headerHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                cardDiv.innerHTML = headerHtml;
+                container.appendChild(cardDiv);
+            }
 
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
         }

@@ -25,7 +25,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
-                <p class="text-muted">Pilih nama personel, jabatan terisi otomatis, klik OK untuk merekam kehadiran secara real-time.</p>
+                <p class="text-muted">Pilih nama personel, jabatan otomatis, status, dan keterangan izin/tugas luar secara real-time.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen Kehadiran</button>
@@ -41,7 +41,7 @@
                             <tr>
                                 <th>Waktu Check-in</th>
                                 <th>Nama Peserta & Jabatan</th>
-                                <th>Status Kehadiran</th>
+                                <th>Status & Keterangan</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -75,11 +75,16 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Status Kehadiran</label>
-                        <select id="absenStatus" class="form-select">
+                        <select id="absenStatus" class="form-select" onchange="cekStatusAbsen(this)">
                             <option value="Hadir">Hadir</option>
-                            <option value="Izin">Izin</option>
+                            <option value="Izin">Izin (Keperluan Keluarga / Lainnya)</option>
                             <option value="Sakit">Sakit</option>
+                            <option value="Tugas Luar">Tugas Luar / Tugas Proyek</option>
                         </select>
+                    </div>
+                    <div class="mb-3" id="divKeterangan" style="display: none;">
+                        <label class="form-label">Keterangan / Alasan Spesifik</label>
+                        <input type="text" id="absenKeterangan" class="form-control" placeholder="Contoh: Tugas luar memantau unit, Izin keluarga, dll.">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -130,6 +135,17 @@
             document.getElementById('absenJabatan').value = opt.getAttribute('data-jabatan') || '';
         }
 
+        function cekStatusAbsen(select) {
+            const val = select.value;
+            const divKet = document.getElementById('divKeterangan');
+            if(val === 'Hadir') {
+                divKet.style.display = 'none';
+                document.getElementById('absenKeterangan').value = '';
+            } else {
+                divKet.style.display = 'block';
+            }
+        }
+
         function renderAbsen() {
             const tbody = document.getElementById('bodyTabelAbsen');
             tbody.innerHTML = '';
@@ -143,12 +159,15 @@
                 let badgeClass = 'bg-success';
                 if(a.status === 'Izin') badgeClass = 'bg-warning text-dark';
                 else if(a.status === 'Sakit') badgeClass = 'bg-danger';
+                else if(a.status === 'Tugas Luar') badgeClass = 'bg-info text-dark';
+
+                let ketHtml = a.keterangan ? `<br><small class="text-muted">Ket: ${a.keterangan}</small>` : '';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${a.waktu}</strong></td>
                     <td><span class="fw-bold text-success">${a.nama}</span> <span class="text-muted">— ${a.jabatan}</span></td>
-                    <td><span class="badge ${badgeClass}">${a.status}</span></td>
+                    <td><span class="badge ${badgeClass}">${a.status}</span>${ketHtml}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>
                     </td>
@@ -162,6 +181,7 @@
             const nama = document.getElementById('absenNama').value;
             const jabatan = document.getElementById('absenJabatan').value;
             const status = document.getElementById('absenStatus').value;
+            const keterangan = document.getElementById('absenKeterangan').value.trim();
 
             if(!nama) {
                 alert('Silakan pilih nama peserta terlebih dahulu!');
@@ -175,10 +195,18 @@
                 waktu: waktuString,
                 nama: nama,
                 jabatan: jabatan,
-                status: status
+                status: status,
+                keterangan: keterangan
             });
 
             renderAbsen();
+
+            // Reset modal form
+            document.getElementById('absenNama').value = '';
+            document.getElementById('absenJabatan').value = '';
+            document.getElementById('absenStatus').value = 'Hadir';
+            document.getElementById('divKeterangan').style.display = 'none';
+            document.getElementById('absenKeterangan').value = '';
 
             const modalEl = document.getElementById('modalAbsen');
             bootstrap.Modal.getInstance(modalEl).hide();

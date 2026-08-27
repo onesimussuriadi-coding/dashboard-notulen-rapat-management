@@ -22,7 +22,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, waktu real-time, dan status pelaksanaan rapat.</p>
+                <p class="text-muted">Kelola penugasan, jabatan, waktu real-time, dan status pelaksanaan rapat.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-primary" onclick="bukaModalTambah()">+ Tambah Jadwal Rapat</button>
@@ -38,7 +38,7 @@
                             <tr>
                                 <th>Periode / Minggu</th>
                                 <th>Tanggal & Waktu Rapat</th>
-                                <th>Pemimpin & Notulis</th>
+                                <th>Pemimpin & Notulis (beserta Jabatan)</th>
                                 <th>Status / Keterangan</th>
                                 <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
@@ -47,7 +47,7 @@
                             <tr>
                                 <td><strong>Minggu ke-1</strong></td>
                                 <td>03 Sep 2026<br><small class="text-muted">Mulai: 09:00 | Selesai: 10:30</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span><br>Notulis: Elizabeth Nani E.</td>
+                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span> <small class="text-muted">(Project Support)</small><br>Notulis: Elizabeth Nani E. <small class="text-muted">(Admin Operasional)</small></td>
                                 <td><span class="badge bg-success">Selesai</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
@@ -57,7 +57,7 @@
                             <tr>
                                 <td><strong>Minggu ke-2</strong></td>
                                 <td>10 Sep 2026<br><small class="text-muted">Mulai: 10:00 | Selesai: (Berjalan)</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span><br>Notulis: Siti Rahma</td>
+                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span> <small class="text-muted">(Contract Admin)</small><br>Notulis: Siti Rahma <small class="text-muted">(Staff Logistik)</small></td>
                                 <td><span class="badge bg-warning text-dark">Berjalan</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
@@ -70,26 +70,36 @@
             </div>
         </div>
 
-        <!-- Bagian Master Data Personel -->
+        <!-- Bagian Master Data Personel & Jabatan -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel Rapat</h5>
+                        <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Onesimus Suryadi <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>
+                                <div><strong>Onesimus Suryadi</strong> <br><small class="text-muted">Project Support</small></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Elizabeth Nani Ekawati <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>
+                                <div><strong>Elizabeth Nani Ekawati</strong> <br><small class="text-muted">Admin Operasional</small></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Andi Pratama <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>
+                                <div><strong>Andi Pratama</strong> <br><small class="text-muted">Contract Admin</small></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
                             </li>
                         </ul>
-                        <div class="input-group">
-                            <input type="text" id="inputNamaBaru" class="form-control" placeholder="Nama Personel Baru...">
-                            <button class="btn btn-outline-primary" type="button" onclick="tambahPersonel()">Tambah Personel</button>
+                        
+                        <!-- Form Tambah Personel & Jabatan -->
+                        <div class="p-3 bg-light border rounded">
+                            <div class="mb-2">
+                                <input type="text" id="inputNamaBaru" class="form-control form-control-sm" placeholder="Nama Lengkap Personel...">
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" id="inputJabatanBaru" class="form-control form-control-sm" placeholder="Jabatan / Divisi...">
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm w-100" type="button" onclick="tambahPersonel()">+ Tambah ke Master Personel</button>
                         </div>
                     </div>
                 </div>
@@ -119,7 +129,6 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="editIndex" value="">
                     <div class="mb-3">
                         <label class="form-label">Periode / Minggu</label>
                         <input type="text" id="valPeriode" class="form-control" placeholder="Contoh: Minggu ke-3">
@@ -138,13 +147,25 @@
                             <input type="time" id="valJamSelesai" class="form-control">
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Pemimpin Rapat (Leader)</label>
-                        <input type="text" id="valLeader" class="form-control" placeholder="Nama Pemimpin Rapat">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pemimpin Rapat (Leader)</label>
+                            <input type="text" id="valLeader" class="form-control" placeholder="Nama Pemimpin">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jabatan Leader</label>
+                            <input type="text" id="valJabatanLeader" class="form-control" placeholder="Contoh: Project Support">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Petugas Notulen</label>
-                        <input type="text" id="valNotulen" class="form-control" placeholder="Nama Petugas Notulen">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Petugas Notulen</label>
+                            <input type="text" id="valNotulen" class="form-control" placeholder="Nama Notulis">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jabatan Notulis</label>
+                            <input type="text" id="valJabatanNotulen" class="form-control" placeholder="Contoh: Admin">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Status / Keterangan Rapat</label>
@@ -177,19 +198,28 @@
         let barisYangDiedit = null;
 
         function tambahPersonel() {
-            const input = document.getElementById('inputNamaBaru');
-            const nama = input.value.trim();
+            const inputNama = document.getElementById('inputNamaBaru');
+            const inputJabatan = document.getElementById('inputJabatanBaru');
+            const nama = inputNama.value.trim();
+            const jabatan = inputJabatan.value.trim();
+
             if(nama === '') {
                 alert('Nama personel tidak boleh kosong!');
-                input.focus();
+                inputNama.focus();
                 return;
             }
+
             const list = document.getElementById('listPersonel');
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
-            li.innerHTML = `${nama} <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>`;
+            li.innerHTML = `
+                <div><strong>${nama}</strong> <br><small class="text-muted">${jabatan || 'Staff'}</small></div>
+                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+            `;
             list.appendChild(li);
-            input.value = '';
+            
+            inputNama.value = '';
+            inputJabatan.value = '';
         }
 
         function hapusBaris(button) {
@@ -200,13 +230,14 @@
 
         function bukaModalTambah() {
             document.getElementById('modalTitle').innerText = 'Tambah Jadwal Rapat Baru';
-            document.getElementById('editIndex').value = '';
             document.getElementById('valPeriode').value = '';
             document.getElementById('valTanggal').value = '';
             document.getElementById('valJamMulai').value = '';
             document.getElementById('valJamSelesai').value = '';
             document.getElementById('valLeader').value = '';
+            document.getElementById('valJabatanLeader').value = '';
             document.getElementById('valNotulen').value = '';
+            document.getElementById('valJabatanNotulen').value = '';
             document.getElementById('valStatus').value = 'Akan Datang';
             barisYangDiedit = null;
             
@@ -233,16 +264,15 @@
             barisYangDiedit = button.closest('tr');
             document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
 
-            // Ambil data dari baris tabel
             const cols = barisYangDiedit.querySelectorAll('td');
             const periodeText = cols[0].innerText.trim();
             const tanggalFull = cols[1].innerHTML;
-            
-            // Ekstrak data teks sederhana
-            document.getElementById('valPeriode').value = periodeText;
+            const personelText = cols[2].innerHTML;
+
+            document.getElementById('valPeriode').value = periodeText.replace('Minggu ke-', ''); // Ambil nomor atau teks
+            // Ekstrak data sederhana untuk demo edit
             document.getElementById('valTanggal').value = tanggalFull.split('<br>')[0].trim();
             
-            // Buka modal
             const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
             myModal.show();
         }
@@ -253,7 +283,9 @@
             const jamMulai = document.getElementById('valJamMulai').value || '-';
             const jamSelesai = document.getElementById('valJamSelesai').value || '-';
             const leader = document.getElementById('valLeader').value;
+            const jabatanLeader = document.getElementById('valJabatanLeader').value;
             const notulen = document.getElementById('valNotulen').value;
+            const jabatanNotulen = document.getElementById('valJabatanNotulen').value;
             const status = document.getElementById('valStatus').value;
 
             if(!periode || !tanggal || !leader || !notulen) {
@@ -267,9 +299,9 @@
             else if(status === 'Tidak Dilakukan Rapat') badgeClass = 'bg-danger';
 
             const kontenBaris = `
-                <td><strong>${periode}</strong></td>
+                <td><strong>${periode.includes('Minggu') ? periode : 'Minggu ke-' + periode}</strong></td>
                 <td>${tanggal}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
-                <td>Leader: <span class="text-primary fw-bold">${leader}</span><br>Notulis: ${notulen}</td>
+                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <small class="text-muted">(${jabatanLeader || 'Staff'})</small><br>Notulis: ${notulen} <small class="text-muted">(${jabatanNotulen || 'Staff'})</small></td>
                 <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
@@ -285,7 +317,6 @@
                 newRow.innerHTML = kontenBaris;
             }
 
-            // Tutup modal
             const modalEl = document.getElementById('modalJadwal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             modalInstance.hide();

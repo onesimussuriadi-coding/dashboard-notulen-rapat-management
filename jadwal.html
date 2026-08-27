@@ -13,7 +13,10 @@
     <nav class="navbar navbar-dark bg-primary shadow-sm">
         <div class="container">
             <span class="navbar-brand mb-0 h1">🗓️ Modul Jadwal & Rotasi Pemimpin Rapat</span>
-            <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
+            <div>
+                <a href="http://bit.ly/bss-meeting" target="_blank" class="btn btn-warning btn-sm fw-bold me-2">🎥 Buka Link Meeting Jitsi</a>
+                <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
+            </div>
         </div>
     </nav>
 
@@ -22,7 +25,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, jabatan otomatis, kalender interaktif, dan status pelaksanaan rapat.</p>
+                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-primary" onclick="bukaModalTambah()">+ Tambah Jadwal Rapat</button>
@@ -38,13 +41,14 @@
                             <tr>
                                 <th>Periode / Minggu</th>
                                 <th>Tanggal & Waktu Rapat</th>
-                                <th>Pemimpin & Notulis (Horizontal)</th>
-                                <th>Status / Keterangan</th>
+                                <th>Pemimpin & Notulis</th>
+                                <th>Akses Ruang Rapat</th>
+                                <th>Status</th>
                                 <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
                         </thead>
                         <tbody id="bodyTabelJadwal">
-                            <!-- Data akan dimuat otomatis dari localStorage -->
+                            <!-- Data dimuat otomatis dari localStorage -->
                         </tbody>
                     </table>
                 </div>
@@ -58,7 +62,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <!-- Data akan dimuat otomatis dari localStorage -->
+                            <!-- Data dimuat otomatis dari localStorage -->
                         </ul>
                         
                         <!-- Form Tambah Personel & Jabatan -->
@@ -77,11 +81,11 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Penyimpanan Otomatis</h5>
+                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Akses Online</h5>
                         <ul class="text-muted small ps-3">
-                            <li><strong>Penyimpanan Permanen (LocalStorage):</strong> Seluruh data personel dan jadwal rapat yang Anda input akan tersimpan otomatis di browser.</li>
-                            <li><strong>Dropdown Sinkron:</strong> Pilihan Leader dan Notulis bersumber langsung dari Master Personel.</li>
-                            <li><strong>Edit & Hapus:</strong> Anda dapat memperbarui jadwal sewaktu-waktu sesuai kondisi real-time.</li>
+                            <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar (`http://bit.ly/bss-meeting`).</li>
+                            <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal kini dilengkapi tombol langsung menuju ruang Jitsi.</li>
+                            <li><strong>Penyimpanan Otomatis:</strong> Data jadwal dan personel tetap tersimpan aman di browser Anda.</li>
                         </ul>
                     </div>
                 </div>
@@ -167,9 +171,8 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Penyimpanan Permanen (LocalStorage) -->
+    <!-- JavaScript Logika Lengkap -->
     <script>
-        // Data Default Awal jika penyimpanan masih kosong
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
             { nama: "Prayogo Sudana", jabatan: "General Manager" },
@@ -181,12 +184,12 @@
             {
                 periode: "Minggu ke-1",
                 tanggal: "2026-09-03",
-                jamMulai: "09:00",
-                jamSelesai: "10:30",
-                leader: "Onesimus Suryadi",
-                jabatanLeader: "Manager General Services",
-                notulen: "Elizabeth Nani Ekawati",
-                jabatanNotulen: "Admin Operasional",
+                jamMulai: "13:30",
+                jamSelesai: "15:30",
+                leader: "I Made Vridianto",
+                jabatanLeader: "Manager HSE",
+                notulen: "Ruwaeda Magga",
+                jabatanNotulen: "Supervisor Akuntansi dan Keuangan",
                 status: "Selesai"
             }
         ];
@@ -196,7 +199,6 @@
             renderJadwal();
         }
 
-        // --- MANAJEMEN MASTER PERSONEL ---
         function renderPersonel() {
             const list = document.getElementById('listPersonel');
             list.innerHTML = '';
@@ -276,7 +278,6 @@
             document.getElementById('valJabatanNotulen').value = opt.getAttribute('data-jabatan') || '';
         }
 
-        // --- MANAJEMEN JADWAL RAPAT ---
         function renderJadwal() {
             const tbody = document.getElementById('bodyTabelJadwal');
             tbody.innerHTML = '';
@@ -299,6 +300,7 @@
                     <td><strong>${j.periode}</strong></td>
                     <td>${tanggalFormatted}<br><small class="text-muted">Mulai: ${j.jamMulai} | Selesai: ${j.jamSelesai}</small></td>
                     <td>Leader: <span class="text-primary fw-bold">${j.leader}</span> <span class="text-muted">— ${j.jabatanLeader}</span><br>Notulis: ${j.notulen} <span class="text-muted">— ${j.jabatanNotulen}</span></td>
+                    <td><a href="http://bit.ly/bss-meeting" target="_blank" class="btn btn-sm btn-outline-primary">🔗 Join Meeting</a></td>
                     <td><span class="badge ${badgeClass}">${j.status}</span></td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEdit(${index})">Edit</button>

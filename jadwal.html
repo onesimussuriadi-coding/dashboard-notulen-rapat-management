@@ -22,10 +22,10 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan Pemimpin Rapat dan Notulis secara berkala.</p>
+                <p class="text-muted">Kelola penugasan, waktu real-time, dan status pelaksanaan rapat.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalJadwal">+ Tambah Jadwal Rapat</button>
+                <button class="btn btn-primary" onclick="bukaModalTambah()">+ Tambah Jadwal Rapat</button>
             </div>
         </div>
 
@@ -37,31 +37,30 @@
                         <thead class="table-primary">
                             <tr>
                                 <th>Periode / Minggu</th>
-                                <th>Tanggal Rapat</th>
-                                <th>Pemimpin Rapat (Leader)</th>
-                                <th>Petugas Notulen</th>
-                                <th>Status</th>
-                                <th class="text-center">Aksi</th>
+                                <th>Tanggal & Waktu Rapat</th>
+                                <th>Pemimpin & Notulis</th>
+                                <th>Status / Keterangan</th>
+                                <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Minggu ke-1</td>
-                                <td>03 September 2026</td>
-                                <td><span class="fw-bold text-primary">Onesimus Suryadi</span></td>
-                                <td>Elizabeth Nani Ekawati</td>
+                                <td><strong>Minggu ke-1</strong></td>
+                                <td>03 Sep 2026<br><small class="text-muted">Mulai: 09:00 | Selesai: 10:30</small></td>
+                                <td>Leader: <span class="text-primary fw-bold">Onesimus Suryadi</span><br>Notulis: Elizabeth Nani E.</td>
                                 <td><span class="badge bg-success">Selesai</span></td>
                                 <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
                                     <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Minggu ke-2</td>
-                                <td>10 September 2026</td>
-                                <td><span class="fw-bold text-primary">Andi Pratama</span></td>
-                                <td>Siti Rahma</td>
+                                <td><strong>Minggu ke-2</strong></td>
+                                <td>10 Sep 2026<br><small class="text-muted">Mulai: 10:00 | Selesai: (Berjalan)</small></td>
+                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span><br>Notulis: Siti Rahma</td>
                                 <td><span class="badge bg-warning text-dark">Berjalan</span></td>
                                 <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
                                     <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
                                 </td>
                             </tr>
@@ -87,9 +86,6 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 Andi Pratama <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Siti Rahma <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">Hapus</button>
-                            </li>
                         </ul>
                         <div class="input-group">
                             <input type="text" id="inputNamaBaru" class="form-control" placeholder="Nama Personel Baru...">
@@ -101,23 +97,29 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title text-secondary mb-3">⚙️ Informasi Sistem Rotasi</h5>
-                        <p class="card-text text-muted">Gunakan tombol <strong>+ Tambah Jadwal Rapat</strong> di atas untuk memasukkan jadwal baru. Anda juga dapat langsung menghapus baris jadwal atau nama personel yang sudah tidak aktif.</p>
+                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Status Rapat</h5>
+                        <ul class="text-muted small ps-3">
+                            <li><strong>Akan Datang:</strong> Jadwal telah ditetapkan.</li>
+                            <li><strong>Berjalan:</strong> Rapat sedang aktif (mencatat jam mulai otomatis).</li>
+                            <li><strong>Selesai:</strong> Rapat ditutup (mencatat jam selesai otomatis).</li>
+                            <li><strong>Tidak Dilakukan Rapat:</strong> Jadwal dibatalkan/geser ke minggu lain.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form Tambah Jadwal -->
+    <!-- Modal Form Tambah / Edit Jadwal -->
     <div class="modal fade" id="modalJadwal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Tambah Jadwal Rapat Baru</h5>
+                    <h5 class="modal-title" id="modalTitle">Form Jadwal Rapat</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" id="editIndex" value="">
                     <div class="mb-3">
                         <label class="form-label">Periode / Minggu</label>
                         <input type="text" id="valPeriode" class="form-control" placeholder="Contoh: Minggu ke-3">
@@ -125,6 +127,16 @@
                     <div class="mb-3">
                         <label class="form-label">Tanggal Rapat</label>
                         <input type="text" id="valTanggal" class="form-control" placeholder="Contoh: 17 September 2026">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jam Mulai</label>
+                            <input type="time" id="valJamMulai" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jam Selesai</label>
+                            <input type="time" id="valJamSelesai" class="form-control">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Pemimpin Rapat (Leader)</label>
@@ -135,17 +147,18 @@
                         <input type="text" id="valNotulen" class="form-control" placeholder="Nama Petugas Notulen">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select id="valStatus" class="form-select">
+                        <label class="form-label">Status / Keterangan Rapat</label>
+                        <select id="valStatus" class="form-select" onchange="cekStatusWaktu()">
                             <option value="Akan Datang">Akan Datang</option>
-                            <option value="Berjalan">Berjalan</option>
-                            <option value="Selesai">Selesai</option>
+                            <option value="Berjalan">Berjalan (Otomatis Catat Jam Mulai)</option>
+                            <option value="Selesai">Selesai (Otomatis Catat Jam Selesai)</option>
+                            <option value="Tidak Dilakukan Rapat">Tidak Dilakukan Rapat (Kosong/Geser)</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="tambahJadwalRapat()">Simpan Jadwal</button>
+                    <button type="button" class="btn btn-primary" onclick="simpanJadwalRapat()">Simpan Perubahan</button>
                 </div>
             </div>
         </div>
@@ -159,13 +172,16 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Interaktif -->
+    <!-- JavaScript Logika Lengkap -->
     <script>
+        let barisYangDiedit = null;
+
         function tambahPersonel() {
             const input = document.getElementById('inputNamaBaru');
             const nama = input.value.trim();
             if(nama === '') {
                 alert('Nama personel tidak boleh kosong!');
+                input.focus();
                 return;
             }
             const list = document.getElementById('listPersonel');
@@ -177,46 +193,99 @@
         }
 
         function hapusBaris(button) {
-            const row = button.closest('tr');
-            row.remove();
+            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+                button.closest('tr').remove();
+            }
         }
 
-        function tambahJadwalRapat() {
+        function bukaModalTambah() {
+            document.getElementById('modalTitle').innerText = 'Tambah Jadwal Rapat Baru';
+            document.getElementById('editIndex').value = '';
+            document.getElementById('valPeriode').value = '';
+            document.getElementById('valTanggal').value = '';
+            document.getElementById('valJamMulai').value = '';
+            document.getElementById('valJamSelesai').value = '';
+            document.getElementById('valLeader').value = '';
+            document.getElementById('valNotulen').value = '';
+            document.getElementById('valStatus').value = 'Akan Datang';
+            barisYangDiedit = null;
+            
+            const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
+            myModal.show();
+        }
+
+        function cekStatusWaktu() {
+            const status = document.getElementById('valStatus').value;
+            const now = new Date();
+            const jamSekarang = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            if(status === 'Berjalan') {
+                document.getElementById('valJamMulai').value = jamSekarang;
+            } else if(status === 'Selesai') {
+                if(!document.getElementById('valJamMulai').value) {
+                    document.getElementById('valJamMulai').value = jamSekarang;
+                }
+                document.getElementById('valJamSelesai').value = jamSekarang;
+            }
+        }
+
+        function editBaris(button) {
+            barisYangDiedit = button.closest('tr');
+            document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
+
+            // Ambil data dari baris tabel
+            const cols = barisYangDiedit.querySelectorAll('td');
+            const periodeText = cols[0].innerText.trim();
+            const tanggalFull = cols[1].innerHTML;
+            
+            // Ekstrak data teks sederhana
+            document.getElementById('valPeriode').value = periodeText;
+            document.getElementById('valTanggal').value = tanggalFull.split('<br>')[0].trim();
+            
+            // Buka modal
+            const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
+            myModal.show();
+        }
+
+        function simpanJadwalRapat() {
             const periode = document.getElementById('valPeriode').value;
             const tanggal = document.getElementById('valTanggal').value;
+            const jamMulai = document.getElementById('valJamMulai').value || '-';
+            const jamSelesai = document.getElementById('valJamSelesai').value || '-';
             const leader = document.getElementById('valLeader').value;
             const notulen = document.getElementById('valNotulen').value;
             const status = document.getElementById('valStatus').value;
 
             if(!periode || !tanggal || !leader || !notulen) {
-                alert('Semua kolom wajib diisi!');
+                alert('Kolom Periode, Tanggal, Leader, dan Notulis wajib diisi!');
                 return;
             }
 
             let badgeClass = 'bg-secondary';
             if(status === 'Selesai') badgeClass = 'bg-success';
             else if(status === 'Berjalan') badgeClass = 'bg-warning text-dark';
+            else if(status === 'Tidak Dilakukan Rapat') badgeClass = 'bg-danger';
 
-            const table = document.getElementById('tabelJadwal').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-
-            newRow.innerHTML = `
-                <td>${periode}</td>
-                <td>${tanggal}</td>
-                <td><span class="fw-bold text-primary">${leader}</span></td>
-                <td>${notulen}</td>
+            const kontenBaris = `
+                <td><strong>${periode}</strong></td>
+                <td>${tanggal}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
+                <td>Leader: <span class="text-primary fw-bold">${leader}</span><br>Notulis: ${notulen}</td>
                 <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td class="text-center">
+                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
                 </td>
             `;
 
-            // Reset Form Modal dan Tutup Modal
-            document.getElementById('valPeriode').value = '';
-            document.getElementById('valTanggal').value = '';
-            document.getElementById('valLeader').value = '';
-            document.getElementById('valNotulen').value = '';
-            
+            if(barisYangDiedit) {
+                barisYangDiedit.innerHTML = kontenBaris;
+            } else {
+                const table = document.getElementById('tabelJadwal').getElementsByTagName('tbody')[0];
+                const newRow = table.insertRow();
+                newRow.innerHTML = kontenBaris;
+            }
+
+            // Tutup modal
             const modalEl = document.getElementById('modalJadwal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             modalInstance.hide();

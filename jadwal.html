@@ -7,7 +7,7 @@
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="bg-light" onload="inisialisasiMasterPersonel()">
 
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-primary shadow-sm">
@@ -22,7 +22,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, jabatan, waktu real-time, dan status pelaksanaan rapat.</p>
+                <p class="text-muted">Kelola penugasan, jabatan otomatis, kalender interaktif, dan status pelaksanaan rapat.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-primary" onclick="bukaModalTambah()">+ Tambah Jadwal Rapat</button>
@@ -54,16 +54,6 @@
                                     <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
                                 </td>
                             </tr>
-                            <tr>
-                                <td><strong>Minggu ke-2</strong></td>
-                                <td>10 Sep 2026<br><small class="text-muted">Mulai: 10:00 | Selesai: (Berjalan)</small></td>
-                                <td>Leader: <span class="text-primary fw-bold">Andi Pratama</span> <span class="text-muted">— Contract Admin</span><br>Notulis: Surini <span class="text-muted">— Manager Keuangan</span></td>
-                                <td><span class="badge bg-warning text-dark">Berjalan</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">Hapus</button>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -77,29 +67,21 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Ferry Tatimu" data-jabatan="Direktur">
                                 <div><strong>Ferry Tatimu</strong> <span class="text-muted">— Direktur</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Prayogo Sudana" data-jabatan="General Manager">
                                 <div><strong>Prayogo Sudana</strong> <span class="text-muted">— General Manager</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <div><strong>Gianne Tatimu</strong> <span class="text-muted">— Wakil General Manager</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <div><strong>Wahyu Suryono</strong> <span class="text-muted">— Manager Representative</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <div><strong>Surini</strong> <span class="text-muted">— Manager Keuangan</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Onesimus Suryadi" data-jabatan="Manager General Services">
                                 <div><strong>Onesimus Suryadi</strong> <span class="text-muted">— Manager General Services</span></div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2" data-nama="Elizabeth Nani Ekawati" data-jabatan="Admin Operasional">
+                                <div><strong>Elizabeth Nani Ekawati</strong> <span class="text-muted">— Admin Operasional</span></div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
                             </li>
                         </ul>
                         
@@ -119,12 +101,11 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Status Rapat</h5>
+                        <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Sistem Otomatis</h5>
                         <ul class="text-muted small ps-3">
-                            <li><strong>Akan Datang:</strong> Jadwal telah ditetapkan.</li>
-                            <li><strong>Berjalan:</strong> Rapat sedang aktif (mencatat jam mulai otomatis).</li>
-                            <li><strong>Selesai:</strong> Rapat ditutup (mencatat jam selesai otomatis).</li>
-                            <li><strong>Tidak Dilakukan Rapat:</strong> Jadwal dibatalkan/geser ke minggu lain.</li>
+                            <li><strong>Tanggal Kalender:</strong> Klik ikon kalender untuk memilih tanggal rapat secara presisi.</li>
+                            <li><strong>Dropdown Otomatis:</strong> Nama dan Jabatan Leader/Notulis otomatis tersinkronisasi dari Master Personel.</li>
+                            <li><strong>Jam Real-Time:</strong> Status "Berjalan" & "Selesai" mencatat jam sistem secara otomatis.</li>
                         </ul>
                     </div>
                 </div>
@@ -147,7 +128,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tanggal Rapat</label>
-                        <input type="text" id="valTanggal" class="form-control" placeholder="Contoh: 17 September 2026">
+                        <input type="date" id="valTanggal" class="form-control">
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -162,21 +143,25 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Pemimpin Rapat (Leader)</label>
-                            <input type="text" id="valLeader" class="form-control" placeholder="Nama Pemimpin">
+                            <select id="valLeader" class="form-select" onchange="pilihLeader(this)">
+                                <option value="">-- Pilih Leader --</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jabatan Leader</label>
-                            <input type="text" id="valJabatanLeader" class="form-control" placeholder="Jabatan Leader">
+                            <input type="text" id="valJabatanLeader" class="form-control" readonly placeholder="Otomatis terisi">
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Petugas Notulen</label>
-                            <input type="text" id="valNotulen" class="form-control" placeholder="Nama Notulis">
+                            <select id="valNotulen" class="form-select" onchange="pilihNotulen(this)">
+                                <option value="">-- Pilih Notulis --</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jabatan Notulis</label>
-                            <input type="text" id="valJabatanNotulen" class="form-control" placeholder="Jabatan Notulis">
+                            <input type="text" id="valJabatanNotulen" class="form-control" readonly placeholder="Otomatis terisi">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -209,11 +194,61 @@
     <script>
         let barisYangDiedit = null;
 
+        function inisialisasiMasterPersonel() {
+            // Fungsi untuk memastikan dropdown terisi saat halaman dimuat
+            updateDropdownPersonel();
+        }
+
+        function updateDropdownPersonel() {
+            const listItems = document.querySelectorAll('#listPersonel li');
+            const selectLeader = document.getElementById('valLeader');
+            const selectNotulen = document.getElementById('valNotulen');
+
+            // Simpan pilihan sebelumnya jika ada
+            let currentLeader = selectLeader.value;
+            let currentNotulen = selectNotulen.value;
+
+            selectLeader.innerHTML = '<option value="">-- Pilih Leader --</option>';
+            selectNotulen.innerHTML = '<option value="">-- Pilih Notulis --</option>';
+
+            listItems.forEach(li => {
+                const nama = li.getAttribute('data-nama');
+                const jabatan = li.getAttribute('data-jabatan');
+
+                let opt1 = document.createElement('option');
+                opt1.value = nama;
+                opt1.setAttribute('data-jabatan', jabatan);
+                opt1.textContent = nama + ' (' + jabatan + ')';
+                selectLeader.appendChild(opt1);
+
+                let opt2 = document.createElement('option');
+                opt2.value = nama;
+                opt2.setAttribute('data-jabatan', jabatan);
+                opt2.textContent = nama + ' (' + jabatan + ')';
+                selectNotulen.appendChild(opt2);
+            });
+
+            selectLeader.value = currentLeader;
+            selectNotulen.value = currentNotulen;
+        }
+
+        function pilihLeader(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            const jabatan = selectedOption.getAttribute('data-jabatan') || '';
+            document.getElementById('valJabatanLeader').value = jabatan;
+        }
+
+        function pilihNotulen(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            const jabatan = selectedOption.getAttribute('data-jabatan') || '';
+            document.getElementById('valJabatanNotulen').value = jabatan;
+        }
+
         function tambahPersonel() {
             const inputNama = document.getElementById('inputNamaBaru');
             const inputJabatan = document.getElementById('inputJabatanBaru');
             const nama = inputNama.value.trim();
-            const jabatan = inputJabatan.value.trim();
+            const jabatan = inputJabatan.value.trim() || 'Staff';
 
             if(nama === '') {
                 alert('Nama personel tidak boleh kosong!');
@@ -224,14 +259,23 @@
             const list = document.getElementById('listPersonel');
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
+            li.setAttribute('data-nama', nama);
+            li.setAttribute('data-jabatan', jabatan);
             li.innerHTML = `
-                <div><strong>${nama}</strong> <span class="text-muted">— ${jabatan || 'Staff'}</span></div>
-                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('li').remove()">Hapus</button>
+                <div><strong>${nama}</strong> <span class="text-muted">— ${jabatan}</span></div>
+                <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonelMaster(this)">Hapus</button>
             `;
             list.appendChild(li);
             
             inputNama.value = '';
             inputJabatan.value = '';
+
+            updateDropdownPersonel();
+        }
+
+        function hapusPersonelMaster(button) {
+            button.closest('li').remove();
+            updateDropdownPersonel();
         }
 
         function hapusBaris(button) {
@@ -243,7 +287,11 @@
         function bukaModalTambah() {
             document.getElementById('modalTitle').innerText = 'Tambah Jadwal Rapat Baru';
             document.getElementById('valPeriode').value = '';
-            document.getElementById('valTanggal').value = '';
+            
+            // Set tanggal default ke hari ini (format YYYY-MM-DD untuk input date)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('valTanggal').value = today;
+
             document.getElementById('valJamMulai').value = '';
             document.getElementById('valJamSelesai').value = '';
             document.getElementById('valLeader').value = '';
@@ -253,6 +301,7 @@
             document.getElementById('valStatus').value = 'Akan Datang';
             barisYangDiedit = null;
             
+            updateDropdownPersonel();
             const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
             myModal.show();
         }
@@ -276,13 +325,14 @@
             barisYangDiedit = button.closest('tr');
             document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
             
+            updateDropdownPersonel();
             const myModal = new bootstrap.Modal(document.getElementById('modalJadwal'));
             myModal.show();
         }
 
         function simpanJadwalRapat() {
             const periode = document.getElementById('valPeriode').value;
-            const tanggal = document.getElementById('valTanggal').value;
+            const tanggalInput = document.getElementById('valTanggal').value;
             const jamMulai = document.getElementById('valJamMulai').value || '-';
             const jamSelesai = document.getElementById('valJamSelesai').value || '-';
             const leader = document.getElementById('valLeader').value;
@@ -291,10 +341,18 @@
             const jabatanNotulen = document.getElementById('valJabatanNotulen').value;
             const status = document.getElementById('valStatus').value;
 
-            if(!periode || !tanggal || !leader || !notulen) {
+            if(!periode || !tanggalInput || !leader || !notulen) {
                 alert('Kolom Periode, Tanggal, Leader, dan Notulis wajib diisi!');
                 return;
             }
+
+            // Format tanggal agar mudah dibaca (YYYY-MM-DD menjadi format lokal)
+            let tanggalFormatted = tanggalInput;
+            try {
+                const parts = tanggalInput.split('-');
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                tanggalFormatted = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch(e) {}
 
             let badgeClass = 'bg-secondary';
             if(status === 'Selesai') badgeClass = 'bg-success';
@@ -303,8 +361,8 @@
 
             const kontenBaris = `
                 <td><strong>${periode.includes('Minggu') ? periode : 'Minggu ke-' + periode}</strong></td>
-                <td>${tanggal}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
-                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <span class="text-muted">— ${jabatanLeader || 'Staff'}</span><br>Notulis: ${notulen} <span class="text-muted">— ${jabatanNotulen || 'Staff'}</span></td>
+                <td>${tanggalFormatted}<br><small class="text-muted">Mulai: ${jamMulai} | Selesai: ${jamSelesai}</small></td>
+                <td>Leader: <span class="text-primary fw-bold">${leader}</span> <span class="text-muted">— ${jabatanLeader}</span><br>Notulis: ${notulen} <span class="text-muted">— ${jabatanNotulen}</span></td>
                 <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-warning me-1" onclick="editBaris(this)">Edit</button>

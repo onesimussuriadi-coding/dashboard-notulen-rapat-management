@@ -6,11 +6,18 @@
     <title>Daftar Absen & Kehadiran Rapat</title>
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .card { border: none !important; box-shadow: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-light" onload="muatDataAbsen()">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-success shadow-sm">
+    <nav class="navbar navbar-dark bg-success shadow-sm no-print">
         <div class="container">
             <span class="navbar-brand mb-0 h1">📝 Modul Daftar Absen & Kehadiran Rapat</span>
             <div>
@@ -27,9 +34,19 @@
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
                 <p class="text-muted">Pilih nama personel, jabatan otomatis, status, dan keterangan izin/tugas luar secara real-time.</p>
             </div>
-            <div class="col-auto">
+            <div class="col-auto no-print">
+                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
+                <button class="btn btn-success me-2" onclick="downloadAbsenExcel()">📊 Download Excel</button>
+                <button class="btn btn-primary me-2" onclick="downloadAbsenWord()">📄 Download Word</button>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen Kehadiran</button>
             </div>
+        </div>
+
+        <!-- Kop Dokumen Resmi untuk Cetak / PDF -->
+        <div class="text-center mb-4 d-none d-print-block">
+            <h3>PT BANGGAI SENTRAL SULAWESI</h3>
+            <h5>DAFTAR HADIR PESERTA RAPAT MANAJEMEN</h5>
+            <hr>
         </div>
 
         <!-- Tabel Rekap Absen -->
@@ -42,7 +59,7 @@
                                 <th>Waktu Check-in</th>
                                 <th>Nama Peserta & Jabatan</th>
                                 <th>Status & Keterangan</th>
-                                <th class="text-center">Aksi</th>
+                                <th class="text-center no-print">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="bodyTabelAbsen">
@@ -96,14 +113,14 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-center py-4 text-muted">
+    <footer class="text-center py-4 text-muted no-print">
         <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Absensi</small>
     </footer>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Absen -->
+    <!-- JavaScript Logika Absen & Download Eviden -->
     <script>
         let dataAbsen = JSON.parse(localStorage.getItem('bss_absen')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
@@ -168,7 +185,7 @@
                     <td><strong>${a.waktu}</strong></td>
                     <td><span class="fw-bold text-success">${a.nama}</span> <span class="text-muted">— ${a.jabatan}</span></td>
                     <td><span class="badge ${badgeClass}">${a.status}</span>${ketHtml}</td>
-                    <td class="text-center">
+                    <td class="text-center no-print">
                         <button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>
                     </td>
                 `;
@@ -201,7 +218,6 @@
 
             renderAbsen();
 
-            // Reset modal form
             document.getElementById('absenNama').value = '';
             document.getElementById('absenJabatan').value = '';
             document.getElementById('absenStatus').value = 'Hadir';
@@ -217,6 +233,92 @@
                 dataAbsen.splice(index, 1);
                 renderAbsen();
             }
+        }
+
+        // Fungsi Download Rekap Absen ke Excel (.xls)
+        function downloadAbsenExcel() {
+            if (dataAbsen.length === 0) {
+                alert('Belum ada data kehadiran untuk diunduh.');
+                return;
+            }
+
+            let htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="utf-8"><title>Rekap Kehadiran Rapat BSS</title></head>
+                <body>
+                    <table border="1">
+                        <tr><th colspan="4" style="background-color:#198754; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP KEHADIRAN RAPAT</th></tr>
+                        <tr style="background-color:#f2f2f2;">
+                            <th>Waktu Check-in</th><th>Nama Peserta</th><th>Jabatan</th><th>Status & Keterangan</th>
+                        </tr>
+            `;
+
+            dataAbsen.forEach(item => {
+                htmlContent += `
+                    <tr>
+                        <td>${item.waktu}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.jabatan}</td>
+                        <td>${item.status} ${item.keterangan ? '('+item.keterangan+')' : ''}</td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `</table></body></html>`;
+
+            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `Rekap_Absen_BSS.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Fungsi Download Rekap Absen ke Word (.doc)
+        function downloadAbsenWord() {
+            if (dataAbsen.length === 0) {
+                alert('Belum ada data kehadiran untuk diunduh.');
+                return;
+            }
+
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Daftar Hadir Rapat</title></head>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <h2 style="color: #198754; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>
+                    <h3 style="text-align: center; margin-top: 5px;">DAFTAR HADIR PESERTA RAPAT MANAJEMEN</h3>
+                    <hr style="border: 1px solid #198754;">
+                    <table border="1" cellspacing="0" cellpadding="8" style="width:100%; border-collapse:collapse; margin-top:20px;">
+                        <thead>
+                            <tr style="background-color:#198754; color:white;">
+                                <th>Waktu Check-in</th><th>Nama Peserta & Jabatan</th><th>Status Kehadiran</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            dataAbsen.forEach(item => {
+                htmlContent += `
+                    <tr>
+                        <td>${item.waktu}</td>
+                        <td><strong>${item.nama}</strong> (${item.jabatan})</td>
+                        <td>${item.status} ${item.keterangan ? '- Ket: '+item.keterangan : ''}</td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `</tbody></table></body></html>`;
+
+            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `Daftar_Hadir_BSS.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>

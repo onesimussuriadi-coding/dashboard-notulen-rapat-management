@@ -25,9 +25,10 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan.</p>
+                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan (Terhubung ke Cloud Google Sheets).</p>
             </div>
             <div class="col-auto">
+                <button class="btn btn-success me-2" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
                 <button class="btn btn-primary" onclick="bukaModalTambah()">+ Tambah Jadwal Rapat</button>
             </div>
         </div>
@@ -48,7 +49,7 @@
                             </tr>
                         </thead>
                         <tbody id="bodyTabelJadwal">
-                            <!-- Data dimuat otomatis dari localStorage -->
+                            <!-- Data dimuat otomatis dari localStorage / Cloud -->
                         </tbody>
                     </table>
                 </div>
@@ -62,7 +63,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
                         <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <!-- Data dimuat otomatis dari localStorage -->
+                            <!-- Data dimuat otomatis -->
                         </ul>
                         
                         <!-- Form Tambah Personel & Jabatan -->
@@ -85,7 +86,7 @@
                         <ul class="text-muted small ps-3">
                             <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar (`http://bit.ly/bss-meeting`).</li>
                             <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal kini dilengkapi tombol langsung menuju ruang Jitsi.</li>
-                            <li><strong>Penyimpanan Otomatis:</strong> Data jadwal dan personel tetap tersimpan aman di browser Anda.</li>
+                            <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Google Sheets perusahaan.</li>
                         </ul>
                     </div>
                 </div>
@@ -171,8 +172,10 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Lengkap -->
+    <!-- JavaScript Logika Lengkap dengan API Google Sheets -->
     <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
+
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
             { nama: "Prayogo Sudana", jabatan: "General Manager" },
@@ -195,8 +198,53 @@
         ];
 
         function muatDataAwal() {
-            renderPersonel();
-            renderJadwal();
+            fetchDataFromCloud(() => {
+                renderPersonel();
+                renderJadwal();
+            });
+        }
+
+        function fetchDataFromCloud(callback) {
+            fetch(WEB_APP_URL + "?action=load")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.personel && data.personel.length > 0) {
+                        dataPersonel = data.personel;
+                        localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+                    }
+                    if (data.jadwal && data.jadwal.length > 0) {
+                        dataJadwal = data.jadwal;
+                        localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
+                    }
+                    if(callback) callback();
+                })
+                .catch(err => {
+                    console.log('Menggunakan data lokal offline.');
+                    if(callback) callback();
+                });
+        }
+
+        function syncDataToCloud() {
+            alert('Menyinkronkan data ke Google Sheets...');
+            const payload = {
+                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "save", payload: payload })
+            })
+            .then(() => {
+                alert('Sinkronisasi ke Cloud Google Sheets berhasil!');
+            })
+            .catch(err => {
+                alert('Gagal menyinkronkan: ' + err);
+            });
         }
 
         function renderPersonel() {
@@ -231,12 +279,14 @@
             inputNama.value = '';
             inputJabatan.value = '';
             renderPersonel();
+            syncDataToCloud();
         }
 
         function hapusPersonel(index) {
             if(confirm('Hapus personel ini dari master?')) {
                 dataPersonel.splice(index, 1);
                 renderPersonel();
+                syncDataToCloud();
             }
         }
 
@@ -400,6 +450,7 @@
             }
 
             renderJadwal();
+            syncDataToCloud();
 
             const modalEl = document.getElementById('modalJadwal');
             bootstrap.Modal.getInstance(modalEl).hide();
@@ -409,6 +460,7 @@
             if(confirm('Apakah Anda yakin ingin menghapus jadwal rapat ini?')) {
                 dataJadwal.splice(index, 1);
                 renderJadwal();
+                syncDataToCloud();
             }
         }
     </script>

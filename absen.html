@@ -32,13 +32,14 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
-                <p class="text-muted">Pilih nama personel, jabatan otomatis, status, dan keterangan izin/tugas luar secara real-time.</p>
+                <p class="text-muted">Pilih nama personel, jabatan otomatis, status, dan keterangan izin/tugas luar secara real-time (Cloud Connected).</p>
             </div>
             <div class="col-auto no-print">
-                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
-                <button class="btn btn-success me-2" onclick="downloadAbsenExcel()">📊 Download Excel</button>
-                <button class="btn btn-primary me-2" onclick="downloadAbsenWord()">📄 Download Word</button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen Kehadiran</button>
+                <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
+                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / PDF</button>
+                <button class="btn btn-success me-2" onclick="downloadAbsenExcel()">📊 Excel</button>
+                <button class="btn btn-primary me-2" onclick="downloadAbsenWord()">📄 Word</button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen</button>
             </div>
         </div>
 
@@ -63,7 +64,7 @@
                             </tr>
                         </thead>
                         <tbody id="bodyTabelAbsen">
-                            <!-- Data dimuat otomatis dari localStorage -->
+                            <!-- Data dimuat otomatis -->
                         </tbody>
                     </table>
                 </div>
@@ -120,8 +121,10 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Absen & Download Eviden -->
+    <!-- JavaScript Logika Absen dengan API Google Sheets -->
     <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
+
         let dataAbsen = JSON.parse(localStorage.getItem('bss_absen')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
@@ -131,8 +134,53 @@
         ];
 
         function muatDataAbsen() {
-            renderAbsen();
-            isiDropdownMaster();
+            fetchDataFromCloud(() => {
+                renderAbsen();
+                isiDropdownMaster();
+            });
+        }
+
+        function fetchDataFromCloud(callback) {
+            fetch(WEB_APP_URL + "?action=load")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.personel && data.personel.length > 0) {
+                        dataPersonel = data.personel;
+                        localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+                    }
+                    if (data.absen && data.absen.length > 0) {
+                        dataAbsen = data.absen;
+                        localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
+                    }
+                    if(callback) callback();
+                })
+                .catch(err => {
+                    console.log('Menggunakan data lokal offline.');
+                    if(callback) callback();
+                });
+        }
+
+        function syncDataToCloud() {
+            alert('Menyinkronkan data ke Google Sheets...');
+            const payload = {
+                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "save", payload: payload })
+            })
+            .then(() => {
+                alert('Sinkronisasi ke Cloud Google Sheets berhasil!');
+            })
+            .catch(err => {
+                alert('Gagal menyinkronkan: ' + err);
+            });
         }
 
         function isiDropdownMaster() {
@@ -217,6 +265,7 @@
             });
 
             renderAbsen();
+            syncDataToCloud();
 
             document.getElementById('absenNama').value = '';
             document.getElementById('absenJabatan').value = '';
@@ -232,10 +281,10 @@
             if(confirm('Hapus data kehadiran ini?')) {
                 dataAbsen.splice(index, 1);
                 renderAbsen();
+                syncDataToCloud();
             }
         }
 
-        // Fungsi Download Rekap Absen ke Excel (.xls)
         function downloadAbsenExcel() {
             if (dataAbsen.length === 0) {
                 alert('Belum ada data kehadiran untuk diunduh.');
@@ -276,7 +325,6 @@
             document.body.removeChild(a);
         }
 
-        // Fungsi Download Rekap Absen ke Word (.doc)
         function downloadAbsenWord() {
             if (dataAbsen.length === 0) {
                 alert('Belum ada data kehadiran untuk diunduh.');

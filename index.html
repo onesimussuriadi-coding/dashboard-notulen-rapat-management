@@ -61,10 +61,11 @@
             <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
                 <div class="text-center text-md-start mb-2 mb-md-0">
                     <span class="navbar-brand mb-0 h1 fw-bold fs-4">🏢 PT Banggai Sentral Sulawesi</span>
-                    <div class="text-light small opacity-75">Dashboard Rapat Manajemen & Operasional (Protected)</div>
+                    <div class="text-light small opacity-75">Dashboard Rapat Manajemen & Operasional (Cloud Connected)</div>
                 </div>
                 <div>
                     <button class="btn btn-danger btn-sm fw-bold me-2" onclick="logoutSystem()">🔒 Keluar / Lock</button>
+                    <button class="btn btn-info btn-sm fw-bold me-2 text-white" onclick="syncToCloudSheet()">☁️ Sinkron ke Cloud</button>
                     <button class="btn btn-light btn-sm fw-bold me-2" onclick="backupCloudData()">📥 Backup</button>
                     <label class="btn btn-warning btn-sm fw-bold mb-0" style="cursor: pointer;">
                         📤 Restore <input type="file" id="fileRestore" accept=".json" onchange="restoreCloudData(event)" hidden>
@@ -121,13 +122,15 @@
 
     <!-- Script Logika Login & Cloud Sync -->
     <script>
-        const PASSWORD_RAHASIA = "bss2026"; // Anda bisa ubah password ini sesuai keinginan
+        const PASSWORD_RAHASIA = "bss2026"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
 
         function cekAutentikasi() {
             let statusLogin = sessionStorage.getItem('bss_logged_in');
             if (statusLogin === 'true') {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+                fetchDataFromCloud();
             } else {
                 document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('mainContent').style.display = 'none';
@@ -141,6 +144,7 @@
                 sessionStorage.setItem('bss_logged_in', 'true');
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+                fetchDataFromCloud();
             } else {
                 let err = document.getElementById('errorMsg');
                 err.classList.remove('d-none');
@@ -160,6 +164,43 @@
                 sessionStorage.removeItem('bss_logged_in');
                 location.reload();
             }
+        }
+
+        // Ambil data otomatis dari Google Sheets saat login berhasil
+        function fetchDataFromCloud() {
+            fetch(WEB_APP_URL + "?action=load")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.personel && data.personel.length > 0) localStorage.setItem('bss_personel', JSON.stringify(data.personel));
+                    if (data.jadwal && data.jadwal.length > 0) localStorage.setItem('bss_jadwal', JSON.stringify(data.jadwal));
+                    if (data.absen && data.absen.length > 0) localStorage.setItem('bss_absen', JSON.stringify(data.absen));
+                    if (data.notulen && data.notulen.length > 0) localStorage.setItem('bss_notulen', JSON.stringify(data.notulen));
+                })
+                .catch(err => console.log('Mode offline / gagal memuat dari cloud.'));
+        }
+
+        // Kirim data lokal ke Google Sheets pusat
+        function syncToCloudSheet() {
+            alert('Menyinkronkan data ke Google Sheets...');
+            const payload = {
+                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "save", payload: payload })
+            })
+            .then(() => {
+                alert('Sinkronisasi ke Cloud Google Sheets berhasil!');
+            })
+            .catch(err => {
+                alert('Gagal menyinkronkan: ' + err);
+            });
         }
 
         function backupCloudData() {

@@ -149,11 +149,14 @@
                         </div>
                     </div>
 
-                    <!-- Tambahan Lokasi & Media Rapat -->
+                    <!-- Lokasi dengan Datalist Otomatis & Media Peserta -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
-                            <input type="text" id="notulenLokasi" class="form-control" placeholder="Contoh: Ruang Meeting Utama / Kantor Senoro">
+                            <input type="text" id="notulenLokasi" class="form-control" list="listLokasiRapat" placeholder="Ketik atau pilih lokasi...">
+                            <datalist id="listLokasiRapat">
+                                <!-- Daftar lokasi tersimpan otomatis akan muncul di sini -->
+                            </datalist>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">💻 Media Peserta Rapat (Bisa Centang Dua-duanya)</label>
@@ -233,6 +236,7 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownRapatLalu();
+            updateDatalistLokasi();
         }
 
         function isiDropdownJadwal() {
@@ -254,6 +258,26 @@
                 opt.value = `${p.nama} (${p.jabatan})`;
                 opt.textContent = `${p.nama} — ${p.jabatan}`;
                 select.appendChild(opt);
+            });
+        }
+
+        // Mengumpulkan semua lokasi unik yang pernah diketik untuk dimasukkan ke datalist
+        function updateDatalistLokasi() {
+            const datalist = document.getElementById('listLokasiRapat');
+            datalist.innerHTML = '';
+            
+            // Lokasi default bawaan
+            let lokasiSet = new Set(["Ruang Meeting Utama", "Kantor Senoro", "Site Office BSS", "Meeting Room Online"]);
+            
+            // Ambil dari data notulen yang sudah pernah disimpan
+            dataNotulen.forEach(n => {
+                if(n.lokasi) lokasiSet.add(n.lokasi);
+            });
+
+            lokasiSet.forEach(loc => {
+                let opt = document.createElement('option');
+                opt.value = loc;
+                datalist.appendChild(opt);
             });
         }
 
@@ -279,7 +303,6 @@
             document.getElementById('notulenDeadline').value = n.deadline || '';
             document.getElementById('notulenLokasi').value = n.lokasi || '';
             
-            // Set checkbox media
             let mediaArr = n.media ? n.media.split(', ') : [];
             document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
             document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
@@ -422,6 +445,7 @@
 
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
             isiDropdownRapatLalu();
+            updateDatalistLokasi();
         }
 
         function bukaModalNotulen() {
@@ -445,6 +469,7 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownRapatLalu();
+            updateDatalistLokasi();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -455,6 +480,7 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownRapatLalu();
+            updateDatalistLokasi();
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;

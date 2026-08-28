@@ -124,12 +124,16 @@
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     
-                    <!-- Fitur Panggil Ulang Rapat Sebelumnya / Carry Over -->
-                    <div class="alert alert-warning p-2 mb-3 no-print">
-                        <label class="form-label small fw-bold mb-1">🔄 Panggil Ulang Topik Rapat Sebelumnya (Carry Over Status Open):</label>
-                        <select id="selectRapatLalu" class="form-select form-select-sm" onchange="tarikDataRapatLalu(this)">
-                            <option value="">-- Pilih dari riwayat rapat sebelumnya untuk ditarik ke rapat ini --</option>
-                        </select>
+                    <!-- FITUR PANGGIL ULANG SELURUH RAPAT SEBELUMNYA (CARRY OVER BERDASARKAN TANGGAL) -->
+                    <div class="alert alert-warning p-3 mb-3 no-print border-warning">
+                        <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
+                        <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
+                        <div class="input-group input-group-sm">
+                            <select id="selectTanggalLalu" class="form-select">
+                                <option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>
+                            </select>
+                            <button class="btn btn-dark fw-bold px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses Panggil Ulang</button>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -144,22 +148,20 @@
                             <input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Rapat</label>
+                            <label class="form-label">Tanggal Rapat Baru</label>
                             <input type="date" id="notulenTanggal" class="form-control">
                         </div>
                     </div>
 
-                    <!-- Lokasi dengan Datalist Otomatis & Media Peserta -->
+                    <!-- Lokasi & Media Peserta -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
                             <input type="text" id="notulenLokasi" class="form-control" list="listLokasiRapat" placeholder="Ketik atau pilih lokasi...">
-                            <datalist id="listLokasiRapat">
-                                <!-- Daftar lokasi tersimpan otomatis akan muncul di sini -->
-                            </datalist>
+                            <datalist id="listLokasiRapat"></datalist>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">💻 Media Peserta Rapat (Bisa Centang Dua-duanya)</label>
+                            <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
                             <div class="d-flex gap-4 mt-2">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
@@ -235,7 +237,7 @@
             renderNotulen();
             isiDropdownJadwal();
             isiDropdownMasterPic();
-            isiDropdownRapatLalu();
+            isiDropdownTanggalLalu();
             updateDatalistLokasi();
         }
 
@@ -261,54 +263,74 @@
             });
         }
 
-        // Mengumpulkan semua lokasi unik yang pernah diketik untuk dimasukkan ke datalist
+        function isiDropdownTanggalLalu() {
+            const select = document.getElementById('selectTanggalLalu');
+            select.innerHTML = '<option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>';
+            
+            let tglSet = [...new Set(dataNotulen.map(n => n.tanggal))].filter(Boolean);
+            tglSet.sort().reverse();
+
+            tglSet.forEach(tgl => {
+                let countOpen = dataNotulen.filter(n => n.tanggal === tgl && n.status === 'Open').length;
+                let opt = document.createElement('option');
+                opt.value = tgl;
+                opt.textContent = `Tanggal Rapat: ${tgl} (${countOpen} topik berstatus Open)`;
+                select.appendChild(opt);
+            });
+        }
+
+        function tarikSemuaTopikTanggalLalu() {
+            const tglTarget = document.getElementById('selectTanggalLalu').value;
+            const tglBaru = document.getElementById('notulenTanggal').value;
+            const periodeBaru = document.getElementById('notulenPeriode').value;
+
+            if(!tglTarget) {
+                alert('Silakan pilih tanggal rapat sebelumnya terlebih dahulu!');
+                return;
+            }
+            if(!tglBaru || !periodeBaru) {
+                alert('Silakan tentukan Periode dan Tanggal Rapat Baru terlebih dahulu!');
+                return;
+            }
+
+            let topikLalu = dataNotulen.filter(n => n.tanggal === tglTarget && n.status === 'Open');
+
+            if(topikLalu.length === 0) {
+                alert('Tidak ditemukan topik berstatus Open pada tanggal tersebut.');
+                return;
+            }
+
+            topikLalu.forEach(item => {
+                let duplikat = {
+                    periode: periodeBaru,
+                    tanggal: tglBaru,
+                    lokasi: item.lokasi || 'Kantor Utama BSS',
+                    media: item.media || 'Offline',
+                    topikUtama: item.topikUtama,
+                    pembahasan: item.pembahasan,
+                    tindakLanjut: item.tindakLanjut,
+                    pic: item.pic,
+                    deadline: item.deadline,
+                    status: 'Open'
+                };
+                dataNotulen.unshift(duplikat);
+            });
+
+            renderNotulen();
+            bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
+            alert(`Berhasil menarik ${topikLalu.length} topik dari tanggal ${tglTarget} ke rapat tanggal ${tglBaru}!`);
+        }
+
         function updateDatalistLokasi() {
             const datalist = document.getElementById('listLokasiRapat');
             datalist.innerHTML = '';
-            
-            // Lokasi default bawaan
             let lokasiSet = new Set(["Ruang Meeting Utama", "Kantor Senoro", "Site Office BSS", "Meeting Room Online"]);
-            
-            // Ambil dari data notulen yang sudah pernah disimpan
-            dataNotulen.forEach(n => {
-                if(n.lokasi) lokasiSet.add(n.lokasi);
-            });
-
+            dataNotulen.forEach(n => { if(n.lokasi) lokasiSet.add(n.lokasi); });
             lokasiSet.forEach(loc => {
                 let opt = document.createElement('option');
                 opt.value = loc;
                 datalist.appendChild(opt);
             });
-        }
-
-        function isiDropdownRapatLalu() {
-            const select = document.getElementById('selectRapatLalu');
-            select.innerHTML = '<option value="">-- Pilih dari riwayat rapat sebelumnya untuk ditarik ke rapat ini --</option>';
-            dataNotulen.forEach((n, idx) => {
-                let opt = document.createElement('option');
-                opt.value = idx;
-                opt.textContent = `[${n.periode} - ${n.tanggal}] ${n.topikUtama} (Status: ${n.status}) - PIC: ${n.pic}`;
-                select.appendChild(opt);
-            });
-        }
-
-        function tarikDataRapatLalu(select) {
-            const idx = select.value;
-            if(idx === "") return;
-            const n = dataNotulen[idx];
-            document.getElementById('notulenTopikUtama').value = n.topikUtama + ' (Lanjutan)';
-            document.getElementById('notulenPembahasan').value = n.pembahasan || '';
-            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
-            document.getElementById('notulenPic').value = n.pic || '';
-            document.getElementById('notulenDeadline').value = n.deadline || '';
-            document.getElementById('notulenLokasi').value = n.lokasi || '';
-            
-            let mediaArr = n.media ? n.media.split(', ') : [];
-            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
-            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
-
-            document.getElementById('notulenStatus').value = n.status;
-            alert('Data rapat sebelumnya berhasil ditarik! Sesuaikan periode, tanggal, lokasi, dan media, lalu klik Simpan.');
         }
 
         function pilihJadwalOtomatis(select) {
@@ -444,17 +466,17 @@
             }
 
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
-            isiDropdownRapatLalu();
+            isiDropdownTanggalLalu();
             updateDatalistLokasi();
         }
 
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('selectRapatLalu').value = '';
+            document.getElementById('selectTanggalLalu').value = '';
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
-            document.getElementById('notulenTanggal').value = '';
+            document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('notulenLokasi').value = '';
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
@@ -468,7 +490,7 @@
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
-            isiDropdownRapatLalu();
+            isiDropdownTanggalLalu();
             updateDatalistLokasi();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
@@ -479,7 +501,7 @@
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
-            isiDropdownRapatLalu();
+            isiDropdownTanggalLalu();
             updateDatalistLokasi();
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;

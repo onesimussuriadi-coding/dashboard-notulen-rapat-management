@@ -191,7 +191,7 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Notulen Berkelompok -->
+    <!-- JavaScript Logika Notulen Berkelompok & Download Dokumen -->
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
@@ -301,12 +301,12 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 20%;">Topik Utama</th>
-                                        <th style="width: 25%;">Pembahasan & Arahan</th>
-                                        <th style="width: 25%;">Tindak Lanjut & Penyelesaian</th>
+                                        <th style="width: 18%;">Topik Utama</th>
+                                        <th style="width: 22%;">Pembahasan & Arahan</th>
+                                        <th style="width: 22%;">Tindak Lanjut & Penyelesaian</th>
                                         <th style="width: 15%;">PIC & Deadline</th>
                                         <th style="width: 10%;">Status</th>
-                                        <th style="width: 5%;" class="text-center no-print">Aksi</th>
+                                        <th style="width: 13%;" class="text-center no-print">Aksi Dokumen</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -334,8 +334,12 @@
                             <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
                             <td><span class="badge ${badgeClass}">${n.status}</span></td>
                             <td class="text-center no-print">
-                                <button class="btn btn-sm btn-outline-warning mb-1" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
+                                <button class="btn btn-sm btn-success mb-1 w-100 fw-bold" onclick="downloadExcelItem(${n.originalIndex})" title="Download format Excel">📊 Excel</button>
+                                <button class="btn btn-sm btn-primary mb-1 w-100 fw-bold" onclick="downloadWordItem(${n.originalIndex})" title="Download format Word">📄 Word</button>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <button class="btn btn-sm btn-outline-warning px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -426,6 +430,80 @@
                 dataNotulen.splice(index, 1);
                 renderNotulen();
             }
+        }
+
+        // Fungsi Download Dokumen ke Excel (.xls)
+        function downloadExcelItem(index) {
+            let item = dataNotulen[index];
+            if (!item) return;
+
+            let htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="utf-8"><title>Notulen Rapat BSS</title></head>
+                <body>
+                    <table border="1">
+                        <tr><th colspan="2" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - NOTULEN RAPAT</th></tr>
+                        <tr><td><b>Periode Rapat</b></td><td>${item.periode}</td></tr>
+                        <tr><td><b>Tanggal Rapat</b></td><td>${item.tanggal}</td></tr>
+                        <tr><td><b>Topik Utama</b></td><td>${item.topikUtama}</td></tr>
+                        <tr><td><b>Status</b></td><td>${item.status}</td></tr>
+                        <tr><td colspan="2"></td></tr>
+                        <tr><th style="background-color:#f2f2f2;">Pembahasan & Arahan</th><td>${item.pembahasan}</td></tr>
+                        <tr><th style="background-color:#f2f2f2;">Tindak Lanjut & Penyelesaian</th><td>${item.tindakLanjut}</td></tr>
+                        <tr><th style="background-color:#f2f2f2;">PIC / Penanggung Jawab</th><td>${item.pic}</td></tr>
+                        <tr><th style="background-color:#f2f2f2;">Deadline</th><td>${item.deadline}</td></tr>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `Notulen_${item.periode.replace(/[^a-zA-Z0-9]/g, '_')}_${item.topikUtama.replace(/[^a-zA-Z0-9]/g, '_')}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Fungsi Download Dokumen ke Word (.doc)
+        function downloadWordItem(index) {
+            let item = dataNotulen[index];
+            if (!item) return;
+
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Notulen Rapat</title></head>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>
+                    <h3 style="text-align: center; margin-top: 5px;">NOTULEN RAPAT MANAJEMEN & OPERASIONAL</h3>
+                    <hr style="border: 1px solid #0d9488;">
+                    <p><strong>Periode Rapat:</strong> ${item.periode}</p>
+                    <p><strong>Tanggal Rapat:</strong> ${item.tanggal}</p>
+                    <p><strong>Topik Utama:</strong> ${item.topikUtama}</p>
+                    <p><strong>Status:</strong> ${item.status}</p>
+                    <br>
+                    <h4 style="color: #0f766e; border-bottom: 1px solid #ddd; padding-bottom: 5px;">1. Pembahasan & Arahan</h4>
+                    <p style="background: #f9f9f9; padding: 12px; border-left: 4px solid #0d9488;">${item.pembahasan || '-'}</p>
+                    <br>
+                    <h4 style="color: #0f766e; border-bottom: 1px solid #ddd; padding-bottom: 5px;">2. Tindak Lanjut & Action Items</h4>
+                    <p style="background: #f9f9f9; padding: 12px; border-left: 4px solid #0d9488;">${item.tindakLanjut || '-'}</p>
+                    <br>
+                    <p><strong>PIC / Penanggung Jawab:</strong> ${item.pic}</p>
+                    <p><strong>Deadline Penyelesaian:</strong> ${item.deadline || '-'}</p>
+                </body>
+                </html>
+            `;
+
+            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `Notulen_${item.periode.replace(/[^a-zA-Z0-9]/g, '_')}_${item.topikUtama.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>

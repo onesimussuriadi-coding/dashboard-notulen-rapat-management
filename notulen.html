@@ -39,7 +39,7 @@
         <div class="row mb-4 align-items-center no-print">
             <div class="col">
                 <h3>Pencatatan Hasil Rapat & Action Items</h3>
-                <p class="text-muted">Pengelompokan per periode rapat, cetak dokumen, simpan PDF, dan manajemen status secara real-time.</p>
+                <p class="text-muted">Pengelompokan per periode rapat, lokasi, media online/offline, cetak dokumen, dan manajemen status.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
@@ -148,6 +148,28 @@
                             <input type="date" id="notulenTanggal" class="form-control">
                         </div>
                     </div>
+
+                    <!-- Tambahan Lokasi & Media Rapat -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
+                            <input type="text" id="notulenLokasi" class="form-control" placeholder="Contoh: Ruang Meeting Utama / Kantor Senoro">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">💻 Media Peserta Rapat (Bisa Centang Dua-duanya)</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
+                                    <label class="form-check-label fw-bold" for="mediaOffline">Offline (Tatap Muka)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="mediaOnline" value="Online">
+                                    <label class="form-check-label fw-bold" for="mediaOnline">Online (Virtual / Jitsi)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Topik Utama</label>
                         <input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Crane Sany / Pengadaan Unit...">
@@ -235,7 +257,6 @@
             });
         }
 
-        // Mengisi dropdown untuk panggil ulang data rapat lalu (Carry Over)
         function isiDropdownRapatLalu() {
             const select = document.getElementById('selectRapatLalu');
             select.innerHTML = '<option value="">-- Pilih dari riwayat rapat sebelumnya untuk ditarik ke rapat ini --</option>';
@@ -251,14 +272,20 @@
             const idx = select.value;
             if(idx === "") return;
             const n = dataNotulen[idx];
-            // Masukkan data lama ke form untuk diedit/disimpan sebagai rapat baru
             document.getElementById('notulenTopikUtama').value = n.topikUtama + ' (Lanjutan)';
-            document.getElementById('notulenPembahasan').value = n.pembahasan;
-            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
-            document.getElementById('notulenPic').value = n.pic;
+            document.getElementById('notulenPembahasan').value = n.pembahasan || '';
+            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
+            document.getElementById('notulenPic').value = n.pic || '';
             document.getElementById('notulenDeadline').value = n.deadline || '';
+            document.getElementById('notulenLokasi').value = n.lokasi || '';
+            
+            // Set checkbox media
+            let mediaArr = n.media ? n.media.split(', ') : [];
+            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
+            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
+
             document.getElementById('notulenStatus').value = n.status;
-            alert('Data rapat sebelumnya berhasil ditarik! Sesuaikan periode dan tanggal rapat baru, lalu klik Simpan.');
+            alert('Data rapat sebelumnya berhasil ditarik! Sesuaikan periode, tanggal, lokasi, dan media, lalu klik Simpan.');
         }
 
         function pilihJadwalOtomatis(select) {
@@ -311,13 +338,13 @@
 
             let grouped = {};
             filteredData.forEach(item => {
-                let key = item.periode + '||' + item.tanggal;
+                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-');
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
 
             for(let key in grouped) {
-                let [periode, tanggal] = key.split('||');
+                let [periode, tanggal, lokasi, media] = key.split('||');
                 let tglFormatted = tanggal;
                 try {
                     let p1 = tanggal.split('-');
@@ -328,9 +355,14 @@
                 cardDiv.className = 'card mb-4 shadow-sm border-0';
 
                 let headerHtml = `
-                    <div class="card-header bg-teal-header text-white d-flex justify-content-between align-items-center py-2">
-                        <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal Rapat: ${tglFormatted}</h5>
-                        <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
+                    <div class="card-header bg-teal-header text-white py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglFormatted}</h5>
+                            <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
+                        </div>
+                        <div class="small mt-1 text-light opacity-75">
+                            📍 <strong>Lokasi:</strong> ${lokasi} | 💻 <strong>Media Peserta:</strong> ${media}
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -399,6 +431,9 @@
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = '';
+            document.getElementById('notulenLokasi').value = '';
+            document.getElementById('mediaOffline').checked = false;
+            document.getElementById('mediaOnline').checked = false;
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
@@ -423,6 +458,12 @@
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;
+            document.getElementById('notulenLokasi').value = n.lokasi || '';
+            
+            let mediaArr = n.media ? n.media.split(', ') : [];
+            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
+            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
+
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
             document.getElementById('notulenPembahasan').value = n.pembahasan || '';
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
@@ -437,6 +478,13 @@
             const index = parseInt(document.getElementById('editIndexNotulen').value);
             const periode = document.getElementById('notulenPeriode').value.trim();
             const tanggal = document.getElementById('notulenTanggal').value;
+            const lokasi = document.getElementById('notulenLokasi').value.trim() || 'Kantor Utama BSS';
+            
+            let mediaList = [];
+            if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+            if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+            const media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
@@ -445,11 +493,11 @@
             const status = document.getElementById('notulenStatus').value;
 
             if(!periode || !tanggal || !topikUtama || !pic) {
-                alert('Silakan pilih jadwal rapat serta lengkapi Periode, Tanggal, Topik Utama dan PIC!');
+                alert('Silakan lengkapi Periode, Tanggal, Topik Utama dan PIC!');
                 return;
             }
 
-            const dataBaru = { periode, tanggal, topikUtama, pembahasan, tindakLanjut, pic, deadline, status };
+            const dataBaru = { periode, tanggal, lokasi, media, topikUtama, pembahasan, tindakLanjut, pic, deadline, status };
 
             if(index === -1) {
                 dataNotulen.unshift(dataBaru);
@@ -468,7 +516,6 @@
             }
         }
 
-        // Download Seluruh Rekap ke Excel (.xls)
         function downloadAllExcel() {
             if (dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');
@@ -480,9 +527,9 @@
                 <head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head>
                 <body>
                     <table border="1">
-                        <tr><th colspan="7" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>
+                        <tr><th colspan="9" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>
                         <tr style="background-color:#f2f2f2;">
-                            <th>Periode</th><th>Tanggal</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th>
+                            <th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th>
                         </tr>
             `;
 
@@ -491,6 +538,8 @@
                     <tr>
                         <td>${item.periode}</td>
                         <td>${item.tanggal}</td>
+                        <td>${item.lokasi || '-'}</td>
+                        <td>${item.media || '-'}</td>
                         <td>${item.topikUtama}</td>
                         <td>${item.pembahasan}</td>
                         <td>${item.tindakLanjut}</td>
@@ -512,7 +561,6 @@
             document.body.removeChild(a);
         }
 
-        // Download Seluruh Rekap ke Laporan Word (.doc)
         function downloadAllWord() {
             if (dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');
@@ -532,7 +580,8 @@
                 htmlContent += `
                     <div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
                         <h4>${idx + 1}. [${item.periode}] ${item.topikUtama}</h4>
-                        <p><strong>Tanggal Rapat:</strong> ${item.tanggal} | <strong>Status:</strong> ${item.status}</p>
+                        <p><strong>Tanggal:</strong> ${item.tanggal} | <strong>Lokasi:</strong> ${item.lokasi || '-'} | <strong>Media:</strong> ${item.media || '-'}</p>
+                        <p><strong>Status:</strong> ${item.status}</p>
                         <p><strong>Pembahasan:</strong> ${item.pembahasan || '-'}</p>
                         <p><strong>Tindak Lanjut:</strong> ${item.tindakLanjut || '-'}</p>
                         <p><strong>PIC:</strong> ${item.pic} | <strong>Deadline:</strong> ${item.deadline || '-'}</p>

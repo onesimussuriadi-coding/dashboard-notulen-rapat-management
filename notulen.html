@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modul Notulen & Tindak Lanjut Rapat</title>
-    <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Tema Warna Toska / Teal Sejuk */
         .bg-teal-custom { background-color: #134e4a !important; }
         .bg-teal-header { background-color: #0f766e !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
@@ -45,6 +43,8 @@
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / Simpan PDF</button>
+                <button class="btn btn-success me-2" onclick="downloadAllExcel()">📊 Download Rekap Excel</button>
+                <button class="btn btn-primary me-2" onclick="downloadAllWord()">📄 Download Laporan Word</button>
                 <button class="btn btn-teal" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
             </div>
         </div>
@@ -123,6 +123,15 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
+                    
+                    <!-- Fitur Panggil Ulang Rapat Sebelumnya / Carry Over -->
+                    <div class="alert alert-warning p-2 mb-3 no-print">
+                        <label class="form-label small fw-bold mb-1">🔄 Panggil Ulang Topik Rapat Sebelumnya (Carry Over Status Open):</label>
+                        <select id="selectRapatLalu" class="form-select form-select-sm" onchange="tarikDataRapatLalu(this)">
+                            <option value="">-- Pilih dari riwayat rapat sebelumnya untuk ditarik ke rapat ini --</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Pilih Jadwal / Periode Rapat (Menentukan Tanggal Otomatis)</label>
                         <select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)">
@@ -132,11 +141,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Periode Rapat</label>
-                            <input type="text" id="notulenPeriode" class="form-control" readonly placeholder="Otomatis terisi">
+                            <input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Tanggal Rapat</label>
-                            <input type="date" id="notulenTanggal" class="form-control" readonly>
+                            <input type="date" id="notulenTanggal" class="form-control">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -191,7 +200,7 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Notulen Berkelompok & Download Dokumen -->
+    <!-- JavaScript Logika Lengkap -->
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
@@ -201,6 +210,7 @@
             renderNotulen();
             isiDropdownJadwal();
             isiDropdownMasterPic();
+            isiDropdownRapatLalu();
         }
 
         function isiDropdownJadwal() {
@@ -223,6 +233,32 @@
                 opt.textContent = `${p.nama} — ${p.jabatan}`;
                 select.appendChild(opt);
             });
+        }
+
+        // Mengisi dropdown untuk panggil ulang data rapat lalu (Carry Over)
+        function isiDropdownRapatLalu() {
+            const select = document.getElementById('selectRapatLalu');
+            select.innerHTML = '<option value="">-- Pilih dari riwayat rapat sebelumnya untuk ditarik ke rapat ini --</option>';
+            dataNotulen.forEach((n, idx) => {
+                let opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `[${n.periode} - ${n.tanggal}] ${n.topikUtama} (Status: ${n.status}) - PIC: ${n.pic}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function tarikDataRapatLalu(select) {
+            const idx = select.value;
+            if(idx === "") return;
+            const n = dataNotulen[idx];
+            // Masukkan data lama ke form untuk diedit/disimpan sebagai rapat baru
+            document.getElementById('notulenTopikUtama').value = n.topikUtama + ' (Lanjutan)';
+            document.getElementById('notulenPembahasan').value = n.pembahasan;
+            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
+            document.getElementById('notulenPic').value = n.pic;
+            document.getElementById('notulenDeadline').value = n.deadline || '';
+            document.getElementById('notulenStatus').value = n.status;
+            alert('Data rapat sebelumnya berhasil ditarik! Sesuaikan periode dan tanggal rapat baru, lalu klik Simpan.');
         }
 
         function pilihJadwalOtomatis(select) {
@@ -301,12 +337,12 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 18%;">Topik Utama</th>
-                                        <th style="width: 22%;">Pembahasan & Arahan</th>
-                                        <th style="width: 22%;">Tindak Lanjut & Penyelesaian</th>
+                                        <th style="width: 20%;">Topik Utama</th>
+                                        <th style="width: 25%;">Pembahasan & Arahan</th>
+                                        <th style="width: 25%;">Tindak Lanjut & Penyelesaian</th>
                                         <th style="width: 15%;">PIC & Deadline</th>
                                         <th style="width: 10%;">Status</th>
-                                        <th style="width: 13%;" class="text-center no-print">Aksi Dokumen</th>
+                                        <th style="width: 5%;" class="text-center no-print">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -334,12 +370,8 @@
                             <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
                             <td><span class="badge ${badgeClass}">${n.status}</span></td>
                             <td class="text-center no-print">
-                                <button class="btn btn-sm btn-success mb-1 w-100 fw-bold" onclick="downloadExcelItem(${n.originalIndex})" title="Download format Excel">📊 Excel</button>
-                                <button class="btn btn-sm btn-primary mb-1 w-100 fw-bold" onclick="downloadWordItem(${n.originalIndex})" title="Download format Word">📄 Word</button>
-                                <div class="d-flex justify-content-between mt-1">
-                                    <button class="btn btn-sm btn-outline-warning px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
-                                    <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
-                                </div>
+                                <button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
                             </td>
                         </tr>
                     `;
@@ -357,11 +389,13 @@
             }
 
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
+            isiDropdownRapatLalu();
         }
 
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
             document.getElementById('editIndexNotulen').value = '-1';
+            document.getElementById('selectRapatLalu').value = '';
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = '';
@@ -375,6 +409,7 @@
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
+            isiDropdownRapatLalu();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -384,6 +419,7 @@
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
+            isiDropdownRapatLalu();
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;
@@ -409,7 +445,7 @@
             const status = document.getElementById('notulenStatus').value;
 
             if(!periode || !tanggal || !topikUtama || !pic) {
-                alert('Silakan pilih jadwal rapat serta lengkapi Topik Utama dan PIC!');
+                alert('Silakan pilih jadwal rapat serta lengkapi Periode, Tanggal, Topik Utama dan PIC!');
                 return;
             }
 
@@ -432,75 +468,85 @@
             }
         }
 
-        // Fungsi Download Dokumen ke Excel (.xls)
-        function downloadExcelItem(index) {
-            let item = dataNotulen[index];
-            if (!item) return;
+        // Download Seluruh Rekap ke Excel (.xls)
+        function downloadAllExcel() {
+            if (dataNotulen.length === 0) {
+                alert('Belum ada data notulen untuk diunduh.');
+                return;
+            }
 
             let htmlContent = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head><meta charset="utf-8"><title>Notulen Rapat BSS</title></head>
+                <head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head>
                 <body>
                     <table border="1">
-                        <tr><th colspan="2" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - NOTULEN RAPAT</th></tr>
-                        <tr><td><b>Periode Rapat</b></td><td>${item.periode}</td></tr>
-                        <tr><td><b>Tanggal Rapat</b></td><td>${item.tanggal}</td></tr>
-                        <tr><td><b>Topik Utama</b></td><td>${item.topikUtama}</td></tr>
-                        <tr><td><b>Status</b></td><td>${item.status}</td></tr>
-                        <tr><td colspan="2"></td></tr>
-                        <tr><th style="background-color:#f2f2f2;">Pembahasan & Arahan</th><td>${item.pembahasan}</td></tr>
-                        <tr><th style="background-color:#f2f2f2;">Tindak Lanjut & Penyelesaian</th><td>${item.tindakLanjut}</td></tr>
-                        <tr><th style="background-color:#f2f2f2;">PIC / Penanggung Jawab</th><td>${item.pic}</td></tr>
-                        <tr><th style="background-color:#f2f2f2;">Deadline</th><td>${item.deadline}</td></tr>
-                    </table>
-                </body>
-                </html>
+                        <tr><th colspan="7" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>
+                        <tr style="background-color:#f2f2f2;">
+                            <th>Periode</th><th>Tanggal</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th>
+                        </tr>
             `;
+
+            dataNotulen.forEach(item => {
+                htmlContent += `
+                    <tr>
+                        <td>${item.periode}</td>
+                        <td>${item.tanggal}</td>
+                        <td>${item.topikUtama}</td>
+                        <td>${item.pembahasan}</td>
+                        <td>${item.tindakLanjut}</td>
+                        <td>${item.pic} (Due: ${item.deadline || '-'})</td>
+                        <td>${item.status}</td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `</table></body></html>`;
 
             let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = `Notulen_${item.periode.replace(/[^a-zA-Z0-9]/g, '_')}_${item.topikUtama.replace(/[^a-zA-Z0-9]/g, '_')}.xls`;
+            a.download = `Rekap_Notulen_BSS.xls`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
-        // Fungsi Download Dokumen ke Word (.doc)
-        function downloadWordItem(index) {
-            let item = dataNotulen[index];
-            if (!item) return;
+        // Download Seluruh Rekap ke Laporan Word (.doc)
+        function downloadAllWord() {
+            if (dataNotulen.length === 0) {
+                alert('Belum ada data notulen untuk diunduh.');
+                return;
+            }
 
             let htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Notulen Rapat</title></head>
+                <head><meta charset='utf-8'><title>Laporan Notulen Rapat</title></head>
                 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                     <h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>
-                    <h3 style="text-align: center; margin-top: 5px;">NOTULEN RAPAT MANAJEMEN & OPERASIONAL</h3>
+                    <h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3>
                     <hr style="border: 1px solid #0d9488;">
-                    <p><strong>Periode Rapat:</strong> ${item.periode}</p>
-                    <p><strong>Tanggal Rapat:</strong> ${item.tanggal}</p>
-                    <p><strong>Topik Utama:</strong> ${item.topikUtama}</p>
-                    <p><strong>Status:</strong> ${item.status}</p>
-                    <br>
-                    <h4 style="color: #0f766e; border-bottom: 1px solid #ddd; padding-bottom: 5px;">1. Pembahasan & Arahan</h4>
-                    <p style="background: #f9f9f9; padding: 12px; border-left: 4px solid #0d9488;">${item.pembahasan || '-'}</p>
-                    <br>
-                    <h4 style="color: #0f766e; border-bottom: 1px solid #ddd; padding-bottom: 5px;">2. Tindak Lanjut & Action Items</h4>
-                    <p style="background: #f9f9f9; padding: 12px; border-left: 4px solid #0d9488;">${item.tindakLanjut || '-'}</p>
-                    <br>
-                    <p><strong>PIC / Penanggung Jawab:</strong> ${item.pic}</p>
-                    <p><strong>Deadline Penyelesaian:</strong> ${item.deadline || '-'}</p>
-                </body>
-                </html>
             `;
+
+            dataNotulen.forEach((item, idx) => {
+                htmlContent += `
+                    <div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
+                        <h4>${idx + 1}. [${item.periode}] ${item.topikUtama}</h4>
+                        <p><strong>Tanggal Rapat:</strong> ${item.tanggal} | <strong>Status:</strong> ${item.status}</p>
+                        <p><strong>Pembahasan:</strong> ${item.pembahasan || '-'}</p>
+                        <p><strong>Tindak Lanjut:</strong> ${item.tindakLanjut || '-'}</p>
+                        <p><strong>PIC:</strong> ${item.pic} | <strong>Deadline:</strong> ${item.deadline || '-'}</p>
+                    </div>
+                `;
+            });
+
+            htmlContent += `</body></html>`;
 
             let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = `Notulen_${item.periode.replace(/[^a-zA-Z0-9]/g, '_')}_${item.topikUtama.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+            a.download = `Laporan_Notulen_BSS.doc`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

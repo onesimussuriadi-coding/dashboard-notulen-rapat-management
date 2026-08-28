@@ -186,7 +186,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tindak Lanjut & Penyelesaian</label>
-                        <textarea id="notulenTindakLanjut" class="form-control" rows="2" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
+                        <textarea id="notulenTindakLanjut" class="form-control" rows="3" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -402,6 +402,25 @@
             }
         }
 
+        // Fungsi pemformatan agar nomor (1., 2., dst) otomatis rapi tersusun ke bawah
+        function formatTindakLanjut(teks) {
+            if (!teks) return '-';
+            let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
+            if (regex.test(teks)) {
+                let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
+                if (parts.length > 1) {
+                    let htmlList = '<ol class="ps-3 mb-0 text-secondary" style="text-align: left;">';
+                    parts.forEach(part => {
+                        let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
+                        htmlList += `<li>${cleanText}</li>`;
+                    });
+                    htmlList += '</ol>';
+                    return htmlList;
+                }
+            }
+            return `<span class="text-secondary">${teks}</span>`;
+        }
+
         function renderNotulen() {
             const container = document.getElementById('containerNotulen');
             container.innerHTML = '';
@@ -467,9 +486,9 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 20%;">Topik Utama</th>
-                                        <th style="width: 25%;">Pembahasan & Arahan</th>
-                                        <th style="width: 25%;">Tindak Lanjut & Penyelesaian</th>
+                                        <th style="width: 22%;">Topik Utama</th>
+                                        <th style="width: 20%;">Pembahasan & Arahan</th>
+                                        <th style="width: 33%;">Tindak Lanjut & Penyelesaian</th>
                                         <th style="width: 15%;">PIC & Deadline</th>
                                         <th style="width: 10%;">Status</th>
                                         <th style="width: 5%;" class="text-center no-print">Aksi</th>
@@ -492,11 +511,13 @@
                         }
                     } catch(e) {}
 
+                    let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
+
                     headerHtml += `
                         <tr>
                             <td><strong>${n.topikUtama || '-'}</strong></td>
                             <td>${n.pembahasan || '-'}</td>
-                            <td><span class="text-secondary">${n.tindakLanjut || '-'}</span></td>
+                            <td>${formattedTindakLanjutHTML}</td>
                             <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
                             <td><span class="badge ${badgeClass}">${n.status}</span></td>
                             <td class="text-center no-print">

@@ -9,15 +9,54 @@
         .bg-teal-custom { background-color: #134e4a !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
-        /* Menyembunyikan konten utama sebelum password dikonfirmasi benar */
+        
+        /* Layar Login Cantik */
+        #loginScreen {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #134e4a 0%, #0f766e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+        /* Sembunyikan dashboard sebelum sukses login */
         #mainContent { display: none; }
     </style>
 </head>
 <body class="bg-light" onload="cekAutentikasi()">
 
-    <!-- Halaman Utama (Diproteksi Password) -->
+    <!-- TAMPILAN KOTAK LOGIN CANTIK DI TENGAH LAYAR -->
+    <div id="loginScreen">
+        <div class="login-card text-center">
+            <div class="mb-3">
+                <span style="font-size: 48px;">🏢</span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">PT Banggai Sentral Sulawesi</h4>
+            <p class="text-muted small mb-4">Selamat Datang di Sistem Pengelolaan Rapat Manajemen & Operasional</p>
+            
+            <div class="form-floating mb-3 text-start">
+                <input type="password" class="form-control" id="inputPasswordModal" placeholder="Password" onkeypress="handleEnter(event)">
+                <label for="inputPasswordModal">🔒 Masukkan Password Akses</label>
+            </div>
+            
+            <button class="btn btn-teal w-100 py-2 fw-bold" onclick="prosesLogin()">Masuk ke Dashboard</button>
+            <div id="errorMsg" class="text-danger small mt-2 d-none">Password salah, silakan coba lagi.</div>
+            
+            <div class="mt-4 text-muted" style="font-size: 11px;">
+                &copy; 2026 PT Banggai Sentral Sulawesi — Secure Portal
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN UTAMA DASHBOARD -->
     <div id="mainContent">
-        <!-- Navbar dengan Tombol Backup, Restore, dan Lock -->
         <nav class="navbar navbar-dark bg-teal-custom shadow-sm py-3">
             <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
                 <div class="text-center text-md-start mb-2 mb-md-0">
@@ -34,7 +73,6 @@
             </div>
         </nav>
 
-        <!-- Konten Utama -->
         <div class="container my-5">
             <div class="row text-center mb-4">
                 <div class="col">
@@ -43,9 +81,7 @@
                 </div>
             </div>
 
-            <!-- Menu Kartu Modul -->
             <div class="row g-4">
-                <!-- Modul 1: Jadwal Rapat -->
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm border-teal border-opacity-25">
                         <div class="card-body d-flex flex-column">
@@ -56,7 +92,6 @@
                     </div>
                 </div>
 
-                <!-- Modul 2: Absensi -->
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm border-success border-opacity-25">
                         <div class="card-body d-flex flex-column">
@@ -67,7 +102,6 @@
                     </div>
                 </div>
 
-                <!-- Modul 3: Notulen Rapat -->
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm border-danger border-opacity-25">
                         <div class="card-body d-flex flex-column">
@@ -80,38 +114,44 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="text-center py-4 text-muted border-top bg-white">
             <small>&copy; 2026 PT Banggai Sentral Sulawesi - Dashboard Rapat Manajemen</small>
         </footer>
     </div>
 
-    <!-- Script Keamanan Password & Cloud Sync -->
+    <!-- Script Logika Login & Cloud Sync -->
     <script>
-        // PASSWORD UTAMA SISTEM (Ubah teks di bawah ini jika ingin mengganti password)
-        const PASSWORD_RAHASIA = "bss2026"; 
+        const PASSWORD_RAHASIA = "bss2026"; // Anda bisa ubah password ini sesuai keinginan
 
         function cekAutentikasi() {
             let statusLogin = sessionStorage.getItem('bss_logged_in');
-            
             if (statusLogin === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             } else {
-                let inputPwd = prompt("🔒 Masukkan Password Akses Dashboard PT BSS:");
-                if (inputPwd === PASSWORD_RAHASIA) {
-                    sessionStorage.setItem('bss_logged_in', 'true');
-                    document.getElementById('mainContent').style.display = 'block';
-                    alert('Login Berhasil! Selamat datang di sistem.');
-                } else {
-                    alert('Password salah atau akses dibatalkan!');
-                    document.body.innerHTML = `
-                        <div style="text-align:center; margin-top:15vh; font-family:Arial;">
-                            <h1 style="color:#dc3545;">⛔ AKSES DITOLAK</h1>
-                            <p>Anda memerlukan password yang sah untuk membuka Dashboard PT Banggai Sentral Sulawesi.</p>
-                            <button onclick="location.reload()" style="padding:10px 20px; background:#0d9488; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Coba Masukkan Password Lagi</button>
-                        </div>
-                    `;
-                }
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'none';
+                setTimeout(() => { document.getElementById('inputPasswordModal').focus(); }, 100);
+            }
+        }
+
+        function prosesLogin() {
+            let inputPwd = document.getElementById('inputPasswordModal').value;
+            if (inputPwd === PASSWORD_RAHASIA) {
+                sessionStorage.setItem('bss_logged_in', 'true');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            } else {
+                let err = document.getElementById('errorMsg');
+                err.classList.remove('d-none');
+                document.getElementById('inputPasswordModal').value = '';
+                document.getElementById('inputPasswordModal').focus();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                prosesLogin();
             }
         }
 

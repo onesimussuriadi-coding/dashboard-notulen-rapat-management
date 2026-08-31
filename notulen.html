@@ -11,14 +11,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // Konfigurasi Firebase Asli BSS-DASHBOARD
         const firebaseConfig = {
-            apiKey: "MASUKKAN_API_KEY_ANDA",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
+            apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
+            authDomain: "bss-dashboard-73681.firebaseapp.com",
+            databaseURL: "https://bss-dashboard-73681-default-rtdb.firebaseio.com",
+            projectId: "bss-dashboard-73681",
+            storageBucket: "bss-dashboard-73681.appspot.com",
+            messagingSenderId: "252320657377",
+            appId: "1:252320657377:web:6144074f593ffd5d46aca0",
+            measurementId: "G-0DZTBMCJ1H"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -179,9 +181,8 @@
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     
-                    <!-- BAGIAN INFORMASI UMUM (Akan disembunyikan saat tambah topik rapat ke tanggal yang sama) -->
+                    <!-- BAGIAN INFORMASI UMUM -->
                     <div id="sectionInfoUmum">
-                        <!-- FITUR PANGGIL ULANG / CARRY OVER -->
                         <div class="alert alert-warning p-3 mb-3 no-print border-warning">
                             <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
                             <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
@@ -240,7 +241,7 @@
                         <hr class="my-3">
                     </div>
 
-                    <!-- BAGIAN DETAIL TOPIK (Selalu Tampil) -->
+                    <!-- BAGIAN DETAIL TOPIK -->
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
 
                     <div class="mb-3">
@@ -572,20 +573,15 @@
             isiDropdownTanggalLalu();
         }
 
-        // FITUR TAMBAH TOPIK (Menyembunyikan bagian atas & mengunci data rapat)
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            
-            // Sembunyikan bagian informasi umum di atas
             document.getElementById('sectionInfoUmum').style.display = 'none';
 
-            // Simpan data tersembunyi untuk proses simpan
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             document.getElementById('notulenLokasi').value = lokasi;
             
-            // Kosongkan khusus kolom topik baru
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
@@ -600,8 +596,6 @@
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            
-            // Tampilkan kembali bagian informasi umum untuk rapat baru
             document.getElementById('sectionInfoUmum').style.display = 'block';
 
             document.getElementById('selectTanggalLalu').value = '';
@@ -632,8 +626,6 @@
         function bukaModalEditNotulen(index) {
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
-
-            // Tampilkan kembali bagian informasi umum saat mengedit
             document.getElementById('sectionInfoUmum').style.display = 'block';
 
             isiDropdownJadwal();
@@ -680,8 +672,6 @@
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
-            
-            // Cek apakah sedang mode tambah topik cepat (bagian info umum disembunyikan)
             const isQuickAdd = document.getElementById('sectionInfoUmum').style.display === 'none';
 
             let periode, tanggal, lokasi, media;
@@ -689,7 +679,6 @@
             if (isQuickAdd) {
                 periode = document.getElementById('notulenPeriode').value;
                 tanggal = document.getElementById('notulenTanggal').value;
-                // Ambil data lokasi & media dari baris rapat yang sedang diklik
                 let matchedGroup = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
                 lokasi = matchedGroup ? matchedGroup.lokasi : 'Ruang Meeting di Office Utama';
                 media = matchedGroup ? matchedGroup.media : 'Offline';

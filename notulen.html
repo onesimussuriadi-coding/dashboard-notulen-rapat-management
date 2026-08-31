@@ -101,6 +101,7 @@
         </div>
     </div>
 
+    <!-- MODAL NOTULEN -->
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -129,14 +130,33 @@
                         </div>
                         <hr class="my-3">
                     </div>
+                    
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
                     <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
+                    
+                    <!-- BAGIAN PIC / PENANGGUNG JAWAB DIPERBARUI DENGAN OPSI MANUAL PIHAK KETIGA -->
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label">PIC / Penanggung Jawab</label><select id="notulenSelectPic" class="form-select mb-2" onchange="pilihPicMaster(this)"><option value="">-- Pilih dari Master Personel --</option></select><input type="text" id="notulenPic" class="form-control" placeholder="Atau ketik manual..."></div>
-                        <div class="col-md-6 mb-3"><label class="form-label">Deadline</label><input type="date" id="notulenDeadline" class="form-control"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">PIC / Penanggung Jawab</label>
+                            <select id="notulenSelectPic" class="form-select mb-2" onchange="pilihPicMaster(this)">
+                                <option value="">-- Pilih dari Master Personel --</option>
+                                <option value="MANUAL_PIHAK_KETIGA">➕ Input Manual (Pihak Ketiga / Vendor)</option>
+                            </select>
+                            
+                            <!-- Input manual muncul jika memilih pihak ketiga -->
+                            <div id="divPicManual" style="display: none;">
+                                <input type="text" id="notulenPicManualNama" class="form-control mb-1" placeholder="Nama Penanggung Jawab...">
+                                <input type="text" id="notulenPicManualInstansi" class="form-control" placeholder="Instansi / Perusahaan Vendor...">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Deadline</label>
+                            <input type="date" id="notulenDeadline" class="form-control">
+                        </div>
                     </div>
+
                     <div class="mb-3"><label class="form-label">Status</label><select id="notulenStatus" class="form-select"><option value="Open">Open</option><option value="Info">Info</option><option value="Closing">Closing</option></select></div>
                 </div>
                 <div class="modal-footer">
@@ -176,11 +196,23 @@
 
         function isiDropdownMasterPic() {
             const select = document.getElementById('notulenSelectPic');
-            select.innerHTML = '<option value="">-- Pilih dari Master Personel --</option>';
+            select.innerHTML = '<option value="">-- Pilih dari Master Personel --</option><option value="MANUAL_PIHAK_KETIGA">➕ Input Manual (Pihak Ketiga / Vendor)</option>';
             dataPersonel.forEach(p => {
                 let opt = document.createElement('option'); opt.value = `${p.nama} (${p.jabatan})`;
                 opt.textContent = `${p.nama} — ${p.jabatan}`; select.appendChild(opt);
             });
+        }
+
+        function pilihPicMaster(sel) {
+            const val = sel.value;
+            const divManual = document.getElementById('divPicManual');
+            if(val === 'MANUAL_PIHAK_KETIGA') {
+                divManual.style.display = 'block';
+                document.getElementById('notulenPicManualNama').value = '';
+                document.getElementById('notulenPicManualInstansi').value = '';
+            } else {
+                divManual.style.display = 'none';
+            }
         }
 
         function isiDropdownTanggalLalu() {
@@ -223,8 +255,6 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        function pilihPicMaster(sel) { if(sel.value) document.getElementById('notulenPic').value = sel.value; }
-
         function renderNotulen() {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
@@ -250,7 +280,7 @@
 
             let grouped = {};
             filtered.forEach(item => {
-                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-'}||${item.media || '-'}`;
+                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-}||${item.media || '-'}`;
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
@@ -292,7 +322,8 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenPic').value = '';
+            document.getElementById('notulenSelectPic').value = '';
+            document.getElementById('divPicManual').style.display = 'none';
             document.getElementById('notulenDeadline').value = '';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
@@ -306,7 +337,8 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenPic').value = '';
+            document.getElementById('notulenSelectPic').value = '';
+            document.getElementById('divPicManual').style.display = 'none';
             document.getElementById('notulenDeadline').value = '';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
@@ -321,7 +353,27 @@
             document.getElementById('notulenTopikUtama').value = n.topikUtama;
             document.getElementById('notulenPembahasan').value = n.pembahasan;
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
-            document.getElementById('notulenPic').value = n.pic;
+            
+            // Cek apakah PIC ada di dropdown master atau manual pihak ketiga
+            const selectPic = document.getElementById('notulenSelectPic');
+            let found = false;
+            for (let i = 0; i < selectPic.options.length; i++) {
+                if (selectPic.options[i].value === n.pic) {
+                    selectPic.value = n.pic;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && n.pic) {
+                selectPic.value = 'MANUAL_PIHAK_KETIGA';
+                document.getElementById('divPicManual').style.display = 'block';
+                // Pisahkan nama dan instansi jika formatnya tersimpan
+                document.getElementById('notulenPicManualNama').value = n.pic;
+                document.getElementById('notulenPicManualInstansi').value = '';
+            } else {
+                document.getElementById('divPicManual').style.display = 'none';
+            }
+
             document.getElementById('notulenDeadline').value = n.deadline;
             document.getElementById('notulenStatus').value = n.status;
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
@@ -343,7 +395,17 @@
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
-            const pic = document.getElementById('notulenPic').value.trim();
+            
+            // Ambil nilai PIC (dari master atau manual pihak ketiga)
+            const selPicVal = document.getElementById('notulenSelectPic').value;
+            let pic = selPicVal;
+            if(selPicVal === 'MANUAL_PIHAK_KETIGA') {
+                const namaManual = document.getElementById('notulenPicManualNama').value.trim();
+                const instansiManual = document.getElementById('notulenPicManualInstansi').value.trim();
+                if(!namaManual) { alert('Silakan masukkan nama PIC pihak ketiga!'); return; }
+                pic = instansiManual ? `${namaManual} (${instansiManual})` : namaManual;
+            }
+
             const deadline = document.getElementById('notulenDeadline').value;
             const status = document.getElementById('notulenStatus').value;
 

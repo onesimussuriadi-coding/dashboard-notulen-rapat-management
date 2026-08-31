@@ -146,9 +146,9 @@
                         </div>
                         <div class="mb-3"><label class="form-label">Pilih dari Jadwal Rapat Terdaftar</label><select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)"><option value="">-- Pilih Jadwal --</option></select></div>
                         <div class="row">
-                            <!-- PERIODE RAPAT DIUBAH JADI DROPDOWN MINGGU KE-1 S.D MINGGU KE-4 -->
+                            <!-- PERIODE RAPAT: DROPDOWN MINGGU KE-1 S.D MINGGU KE-4 -->
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Periode Rapat</label>
+                                <label class="form-label fw-bold">Periode Rapat</label>
                                 <select id="notulenPeriode" class="form-select">
                                     <option value="Minggu ke-1">Minggu ke-1</option>
                                     <option value="Minggu ke-2">Minggu ke-2</option>
@@ -156,14 +156,15 @@
                                     <option value="Minggu ke-4">Minggu ke-4</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3"><label class="form-label">Tanggal Rapat</label><input type="date" id="notulenTanggal" class="form-control"></div>
+                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tanggal Rapat</label><input type="date" id="notulenTanggal" class="form-control"></div>
                         </div>
                         <div class="row">
-                            <!-- LOKASI RAPAT DENGAN PILIHAN KANTOR SPESIFIK & OPSIONAL -->
+                            <!-- LOKASI RAPAT SESUAI DAFTAR KANTOR SPESIFIK & OPSIONAL -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">📍 Lokasi Rapat</label>
                                 <select id="notulenLokasi" class="form-select" onchange="cekLokasiLainnya(this)">
-                                    <option value="Ruang Meeting Kantor Pasar Tua">Ruang Meeting Kantor Pasar Tua</option>
+                                    <option value="Ruang Meeting Kantor Office Pasar Tua">Ruang Meeting Kantor Office Pasar Tua</option>
+                                    <option value="Ruang Meeting Kantor Operasional Pasar Tua">Ruang Meeting Kantor Operasional Pasar Tua</option>
                                     <option value="Ruang Meeting Kantor Sukarno">Ruang Meeting Kantor Sukarno</option>
                                     <option value="Ruang Meeting Kantor Utama" selected>Ruang Meeting Kantor Utama</option>
                                     <option value="Ruang Meeting Kantor Surabaya">Ruang Meeting Kantor Surabaya</option>
@@ -370,7 +371,7 @@
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian header agar fokus ke topik
+            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian header rapat agar langsung fokus ke topik
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             document.getElementById('notulenTopikUtama').value = '';

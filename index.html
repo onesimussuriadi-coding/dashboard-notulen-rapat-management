@@ -24,14 +24,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Sinkronisasi data Visi Misi ke Cloud Firebase
         window.simpanVisiMisiCloud = function(dataVm, callback) {
             set(ref(db, 'ptbss_visimisi_data'), dataVm)
                 .then(() => { if(callback) callback(); })
                 .catch(err => console.error("Gagal sinkron visi misi ke cloud: ", err));
         };
 
-        // Memuat data dari Cloud Firebase secara real-time saat halaman dibuka
         onValue(ref(db, 'ptbss_visimisi_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
@@ -47,103 +45,106 @@
         .bg-teal-custom { background-color: #134e4a !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
-        .card-vision { border: 2px solid #134e4a; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card-vision { border: 2px solid #134e4a; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        
+        /* PENGATURAN AGAR PAS DALAM SATU LAYAR (COMPACT FIT) */
+        body { font-size: 13.5px; overflow-x: hidden; }
+        .container-compact { max-width: 920px; padding-top: 10px; padding-bottom: 10px; }
+        .compact-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 2px; }
+        .compact-subtitle { font-size: 0.8rem; margin-bottom: 10px; }
+        .card-vision .card-body { padding: 12px 18px !important; }
+        .card-vision h5 { font-size: 1rem; margin-bottom: 6px !important; }
+        .mission-text { font-size: 0.83rem; line-height: 1.35; margin-bottom: 4px; }
     </style>
 </head>
 <body class="bg-light" onload="muatVisiMisi()">
 
-    <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
+    <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
         <div class="container">
-            <span class="navbar-brand mb-0 h1">🏢 PT Banggai Sentral Sulawesi</span>
+            <span class="navbar-brand mb-0 fs-6">🏢 PT Banggai Sentral Sulawesi</span>
             <div>
-                <button class="btn btn-outline-light btn-sm me-2 fw-bold" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit Visi & Misi</button>
-                <a href="index.html" class="btn btn-light btn-sm fw-bold text-teal">Continue ke Dashboard →</a>
+                <button class="btn btn-outline-light btn-sm py-0 px-2 fw-bold" style="font-size: 12px;" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit</button>
+                <a href="index.html" class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 12px;">Continue →</a>
             </div>
         </div>
     </nav>
 
-    <div class="container my-5" style="max-width: 900px;">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold text-dark">Visi & Misi Perusahaan</h2>
-            <p class="text-muted">PT Banggai Sentral Sulawesi (Dinamis & Terhubung Cloud)</p>
+    <div class="container container-compact">
+        <div class="text-center mb-2">
+            <h3 class="compact-title text-dark">Visi & Misi Perusahaan</h3>
+            <p class="compact-subtitle text-muted">PT Banggai Sentral Sulawesi</p>
         </div>
 
         <!-- KOTAK VISION -->
-        <div class="card card-vision mb-4 bg-white">
-            <div class="card-body p-4 text-center">
-                <h4 class="text-uppercase fw-bold text-decoration-underline mb-3" style="color: #134e4a;">Vision</h4>
+        <div class="card card-vision mb-2 bg-white">
+            <div class="card-body text-center">
+                <h5 class="text-uppercase fw-bold text-decoration-underline" style="color: #134e4a;">Vision</h5>
                 
-                <!-- Tampilan Mode Baca -->
                 <div id="viewVision">
-                    <p class="fs-5 fst-italic mb-3" id="teksVisionEn">"To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity."</p>
-                    <hr class="w-25 mx-auto">
-                    <p class="fs-6 text-secondary" id="teksVisionId">Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.</p>
+                    <p class="fst-italic mb-1" id="teksVisionEn" style="font-size: 0.9rem;">"To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity."</p>
+                    <hr class="w-25 mx-auto my-1">
+                    <p class="text-secondary mb-0" id="teksVisionId" style="font-size: 0.83rem;">Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.</p>
                 </div>
 
-                <!-- Tampilan Mode Edit -->
                 <div id="editVision" style="display: none;">
-                    <div class="mb-3 text-start">
-                        <label class="form-label small fw-bold">English Vision:</label>
-                        <textarea id="inputVisionEn" class="form-control" rows="2"></textarea>
+                    <div class="mb-2 text-start">
+                        <label class="form-label small fw-bold mb-0">English Vision:</label>
+                        <textarea id="inputVisionEn" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
-                    <div class="mb-3 text-start">
-                        <label class="form-label small fw-bold">Terjemahan Bahasa Indonesia:</label>
-                        <textarea id="inputVisionId" class="form-control" rows="2"></textarea>
+                    <div class="mb-1 text-start">
+                        <label class="form-label small fw-bold mb-0">Bahasa Indonesia:</label>
+                        <textarea id="inputVisionId" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- KOTAK MISSION -->
-        <div class="card card-vision mb-5 bg-white">
-            <div class="card-body p-4">
-                <h4 class="text-uppercase fw-bold text-decoration-underline text-center mb-4" style="color: #134e4a;">Mission</h4>
+        <div class="card card-vision mb-2 bg-white">
+            <div class="card-body">
+                <h5 class="text-uppercase fw-bold text-decoration-underline text-center" style="color: #134e4a;">Mission</h5>
                 
-                <!-- Tampilan Mode Baca -->
                 <div class="row" id="viewMission">
-                    <div class="col-md-6 mb-3">
-                        <ol class="mb-0" style="text-align: left; padding-left: 20px;" id="listMissionEn"></ol>
+                    <div class="col-md-6">
+                        <ol class="mb-0 ps-3" id="listMissionEn"></ol>
                     </div>
                     <div class="col-md-6">
-                        <ol class="mb-0" style="text-align: left; padding-left: 20px;" id="listMissionId"></ol>
+                        <ol class="mb-0 ps-3" id="listMissionId"></ol>
                     </div>
                 </div>
 
-                <!-- Tampilan Mode Edit -->
                 <div id="editMission" style="display: none;">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Mission (English) — Pisahkan tiap poin dengan baris baru:</label>
-                            <textarea id="inputMissionEn" class="form-control" rows="8"></textarea>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold mb-0">Mission (English):</label>
+                            <textarea id="inputMissionEn" class="form-control form-control-sm" rows="6"></textarea>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Misi (Bahasa Indonesia) — Pisahkan tiap poin dengan baris baru:</label>
-                            <textarea id="inputMissionId" class="form-control" rows="8"></textarea>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold mb-0">Misi (Indonesia):</label>
+                            <textarea id="inputMissionId" class="form-control form-control-sm" rows="6"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tombol Simpan Perubahan (Muncul saat Mode Edit aktif) -->
-                <div class="text-center mt-4" id="divBtnSimpan" style="display: none;">
-                    <button class="btn btn-success fw-bold px-4 py-2" onclick="simpanPerubahanVisiMisi()">💾 Simpan & Perbarui Visi Misi</button>
-                    <button class="btn btn-secondary fw-bold px-3 py-2 ms-2" onclick="toggleModeEdit()">Batal</button>
+                <div class="text-center mt-2" id="divBtnSimpan" style="display: none;">
+                    <button class="btn btn-success btn-sm fw-bold px-3 py-1" onclick="simpanPerubahanVisiMisi()">💾 Simpan</button>
+                    <button class="btn btn-secondary btn-sm fw-bold px-3 py-1 ms-1" onclick="toggleModeEdit()">Batal</button>
                 </div>
             </div>
         </div>
 
         <!-- TOMBOL CONTINUE -->
-        <div class="text-center pb-5">
-            <a href="index.html" class="btn btn-teal btn-lg px-5 py-3 fw-bold shadow">
+        <div class="text-center pb-2">
+            <a href="index.html" class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.95rem;">
                 Continue / Lanjut ke Dashboard →
             </a>
         </div>
     </div>
 
-    <footer class="text-center py-4 text-muted border-top bg-white"><small>&copy; 2026 PT Banggai Sentral Sulawesi - All Rights Reserved</small></footer>
+    <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 11px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Data Default Visi Misi
         let defaultVisiMisi = {
             visionEn: "To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity.",
             visionId: "Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.",
@@ -174,22 +175,20 @@
             document.getElementById('teksVisionEn').textContent = `"${data.visionEn}"`;
             document.getElementById('teksVisionId').textContent = data.visionId;
 
-            // Render List Mission En
             let listEn = document.getElementById('listMissionEn');
             listEn.innerHTML = '';
             data.missionEn.forEach(item => {
                 let li = document.createElement('li');
-                li.className = 'mb-2';
+                li.className = 'mission-text';
                 li.textContent = item;
                 listEn.appendChild(li);
             });
 
-            // Render List Mission Id
             let listId = document.getElementById('listMissionId');
             listId.innerHTML = '';
             data.missionId.forEach(item => {
                 let li = document.createElement('li');
-                li.className = 'mb-2';
+                li.className = 'mission-text';
                 li.textContent = item;
                 listId.appendChild(li);
             });
@@ -206,9 +205,8 @@
                 document.getElementById('viewMission').style.display = 'none';
                 document.getElementById('editMission').style.display = 'block';
                 document.getElementById('divBtnSimpan').style.display = 'block';
-                document.getElementById('btnEditMode').textContent = '❌ Tutup Edit';
+                document.getElementById('btnEditMode').textContent = '❌ Tutup';
 
-                // Masukkan teks saat ini ke input textarea
                 document.getElementById('inputVisionEn').value = dataStored.visionEn;
                 document.getElementById('inputVisionId').value = dataStored.visionId;
                 document.getElementById('inputMissionEn').value = dataStored.missionEn.join('\n');
@@ -219,7 +217,7 @@
                 document.getElementById('viewMission').style.display = 'flex';
                 document.getElementById('editMission').style.display = 'none';
                 document.getElementById('divBtnSimpan').style.display = 'none';
-                document.getElementById('btnEditMode').textContent = '✏️ Edit Visi & Misi';
+                document.getElementById('btnEditMode').textContent = '✏️ Edit';
             }
         }
 
@@ -234,20 +232,14 @@
                 return;
             }
 
-            let updatedData = {
-                visionEn: vEn,
-                visionId: vId,
-                missionEn: mEn,
-                missionId: mId
-            };
+            let updatedData = { visionEn: vEn, visionId: vId, missionEn: mEn, missionId: mId };
 
             localStorage.setItem('bss_visimisi', JSON.stringify(updatedData));
             tampilkanDataVisiMisi(updatedData);
 
-            // Sinkronisasi ke Cloud Firebase
             if (typeof window.simpanVisiMisiCloud === 'function') {
                 window.simpanVisiMisiCloud(updatedData, () => {
-                    alert('Visi & Misi berhasil diperbarui dan disinkronkan ke Cloud!');
+                    alert('Visi & Misi berhasil diperbarui!');
                 });
             } else {
                 alert('Visi & Misi berhasil diperbarui secara lokal!');

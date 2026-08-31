@@ -57,6 +57,20 @@
         .bg-teal-header { background-color: #0f766e !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
+
+        /* PENGATURAN KHUSUS CETAK / PRINT PDF */
+        @media print {
+            body { background: white !important; font-size: 12pt; color: #000; }
+            .navbar, .btn, .card.mb-4.bg-white, .modal, footer { display: none !important; }
+            .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print-header { display: block !important; text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+            .card { border: none !important; box-shadow: none !important; margin-bottom: 20px !important; }
+            .card-header { background-color: #f8f9fa !important; color: #000 !important; border: 1px solid #dee2e6 !important; font-weight: bold; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #dee2e6 !important; padding: 8px !important; font-size: 11pt !important; }
+            .no-print { display: none !important; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body class="bg-light" onload="muatDataNotulen()">
@@ -72,7 +86,15 @@
     </nav>
 
     <div class="container my-5">
-        <div class="row mb-4 align-items-center">
+        <!-- KOP SURAT KHUSUS CETAK -->
+        <div class="print-header">
+            <h4 class="fw-bold mb-1">PT BANGGAI SENTRAL SULAWESI</h4>
+            <p class="mb-1 small">Jalan Urip Sumoharjo Nomor 53, Luwuk</p>
+            <hr class="my-1 border-dark">
+            <h5 class="fw-bold mt-2 text-uppercase">RAPAT TINJAUAN MANAJEMEN</h5>
+        </div>
+
+        <div class="row mb-4 align-items-center no-print">
             <div class="col">
                 <h3>Pencatatan Hasil Rapat & Action Items</h3>
                 <p class="text-muted">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud Real-Time.</p>
@@ -84,7 +106,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4 bg-white border-0">
+        <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body">
                 <h6 class="text-secondary mb-3">🔍 Filter Histori Notulen & Tindak Lanjut</h6>
                 <div class="row g-3">
@@ -146,7 +168,6 @@
                         </div>
                         <div class="mb-3"><label class="form-label">Pilih dari Jadwal Rapat Terdaftar</label><select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)"><option value="">-- Pilih Jadwal --</option></select></div>
                         <div class="row">
-                            <!-- PERIODE RAPAT: DROPDOWN MINGGU KE-1 S.D MINGGU KE-4 -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Periode Rapat</label>
                                 <select id="notulenPeriode" class="form-select">
@@ -159,7 +180,6 @@
                             <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tanggal Rapat</label><input type="date" id="notulenTanggal" class="form-control"></div>
                         </div>
                         <div class="row">
-                            <!-- LOKASI RAPAT SESUAI DAFTAR KANTOR SPESIFIK & OPSIONAL -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">📍 Lokasi Rapat</label>
                                 <select id="notulenLokasi" class="form-select" onchange="cekLokasiLainnya(this)">
@@ -343,22 +363,24 @@
             for(let key in grouped) {
                 let [periode, tanggal, lokasi, media] = key.split('||');
                 let tglF = tanggal;
-                try { const p = tanggal.split('-'); tglF = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e){}
+                try { const p = tanggal.split('-'); tglF = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch(e){}
 
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
+                
+                // Header card yang rapi saat diprint memuat Periode, Tanggal, dan Lokasi
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglF} | 📍 ${lokasi}</h5>
-                    <button class="btn btn-sm btn-light text-teal fw-bold px-2" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
+                    <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
+                    <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>
-                    <th style="width:22%;">Topik Utama</th><th style="width:20%;">Pembahasan</th><th style="width:33%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:10%;">Status</th><th style="width:5%;" class="text-center">Aksi</th></tr></thead><tbody>`;
+                    <th style="width:25%;">Topik Utama</th><th style="width:25%;">Pembahasan & Arahan</th><th style="width:30%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:0%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
                     html += `<tr><td><strong>${n.topikUtama}</strong></td><td>${n.pembahasan || '-'}</td><td>${n.tindakLanjut || '-'}</td>
                         <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
                         <td><span class="badge ${badge}">${n.status}</span></td>
-                        <td class="text-center"><button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                        <td class="text-center no-print"><button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
                         <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button></td></tr>`;
                 });
                 html += `</tbody></table></div></div>`;
@@ -371,7 +393,7 @@
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian header rapat agar langsung fokus ke topik
+            document.getElementById('sectionInfoUmum').style.display = 'none';
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             document.getElementById('notulenTopikUtama').value = '';
@@ -386,7 +408,7 @@
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'block'; // Tampilkan header lengkap
+            document.getElementById('sectionInfoUmum').style.display = 'block';
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('notulenLokasi').value = 'Ruang Meeting Kantor Utama';

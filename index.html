@@ -56,9 +56,9 @@
         .mission-text { font-size: 0.8rem; line-height: 1.3; margin-bottom: 3px; }
     </style>
 </head>
-<body onload="inisialisasiAplikasi()">
+<body>
 
-    <!-- 1. TAMPILAN HALAMAN LOGIN -->
+    <!-- 1. TAMPILAN HALAMAN LOGIN (MUNCUL PERTAMA KALI) -->
     <div id="sectionLogin" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="card shadow-lg border-0 p-4" style="width: 380px; border-radius: 10px;">
             <div class="text-center mb-4">
@@ -69,19 +69,19 @@
                 <label class="form-label small fw-bold">Password Sistem</label>
                 <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password (bss2026)...">
             </div>
-            <button type="button" class="btn btn-teal w-100 fw-bold py-2" onclick="prosesLoginManual()">Masuk / Login →</button>
+            <button type="button" class="btn btn-teal w-100 fw-bold py-2" onclick="bukaVisiMisi()">Masuk / Login →</button>
         </div>
     </div>
 
-    <!-- 2. TAMPILAN HALAMAN VISI & MISI -->
+    <!-- 2. TAMPILAN HALAMAN VISI & MISI ( DISEMBUNYIKAN AWALNYA ) -->
     <div id="sectionVisiMisi" style="display: none;">
         <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
             <div class="container">
                 <span class="navbar-brand mb-0 fs-6">🏢 PT Banggai Sentral Sulawesi</span>
                 <div>
                     <button class="btn btn-outline-light btn-sm py-0 px-2 fw-bold" style="font-size: 11px;" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit</button>
-                    <button class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;" onclick="lanjutKeDashboard()">Continue →</button>
-                    <button class="btn btn-outline-danger btn-sm py-0 px-2 ms-2" style="font-size: 11px;" onclick="logoutSistem()">Keluar</button>
+                    <button class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;" onclick="bukaDashboard()">Continue →</button>
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 ms-2" style="font-size: 11px;" onclick="kembaliKeLogin()">Keluar</button>
                 </div>
             </div>
         </nav>
@@ -152,7 +152,7 @@
 
             <!-- TOMBOL CONTINUE KE DASHBOARD -->
             <div class="text-center pb-1">
-                <button class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;" onclick="lanjutKeDashboard()">
+                <button class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;" onclick="bukaDashboard()">
                     Continue / Lanjut ke Dashboard →
                 </button>
             </div>
@@ -161,14 +161,14 @@
         <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 10px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
     </div>
 
-    <!-- 3. TAMPILAN MENU UTAMA DASHBOARD RAPAT -->
+    <!-- 3. TAMPILAN MENU UTAMA DASHBOARD RAPAT ( DISEMBUNYIKAN AWALNYA ) -->
     <div id="sectionDashboard" style="display: none;">
         <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
             <div class="container">
                 <span class="navbar-brand mb-0 h1">🏢 PT Banggai Sentral Sulawesi</span>
                 <div>
-                    <button class="btn btn-outline-light btn-sm me-2" onclick="kembaliKeVisiMisi()">← Visi & Misi</button>
-                    <button class="btn btn-danger btn-sm" onclick="logoutSistem()">Keluar</button>
+                    <button class="btn btn-outline-light btn-sm me-2" onclick="bukaVisiMisi()">← Visi & Misi</button>
+                    <button class="btn btn-danger btn-sm" onclick="kembaliKeLogin()">Keluar</button>
                 </div>
             </div>
         </nav>
@@ -212,67 +212,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function inisialisasiAplikasi() {
-            let statusLogin = localStorage.getItem('bss_logged_in');
-            let statusStep = localStorage.getItem('bss_step');
-
-            if (statusLogin === 'true' && statusStep === 'visimisi') {
-                tampilkanVisiMisi();
-            } else if (statusLogin === 'true' && statusStep === 'dashboard') {
-                tampilkanDashboard();
-            } else {
-                logoutSistem();
-            }
-        }
-
-        function prosesLoginManual() {
+        function bukaVisiMisi() {
             let p = document.getElementById('inputPassword').value.trim();
-
-            // Jika password dikosongkan atau diisi "bss2026", langsung diizinkan masuk
+            // Validasi password longgar agar langsung tembus tanpa macet
             if (p === "" || p.toLowerCase() === "bss2026" || p.toLowerCase() === "bss 2026") {
-                localStorage.setItem('bss_logged_in', 'true');
-                localStorage.setItem('bss_step', 'visimisi');
-                tampilkanVisiMisi();
+                document.getElementById('sectionLogin').style.display = 'none';
+                document.getElementById('sectionVisiMisi').style.display = 'block';
+                document.getElementById('sectionDashboard').style.display = 'none';
+                muatVisiMisi();
             } else {
-                alert('Password salah! Gunakan: bss2026 (atau kosongkan untuk langsung masuk)');
+                alert('Password salah! Gunakan: bss2026 (atau kosongkan)');
             }
         }
 
-        function tampilkanLogin() {
-            document.getElementById('sectionLogin').style.display = 'flex';
-            document.getElementById('sectionVisiMisi').style.display = 'none';
-            document.getElementById('sectionDashboard').style.display = 'none';
-        }
-
-        function tampilkanVisiMisi() {
-            document.getElementById('sectionLogin').style.display = 'none';
-            document.getElementById('sectionVisiMisi').style.display = 'block';
-            document.getElementById('sectionDashboard').style.display = 'none';
-            muatVisiMisi();
-        }
-
-        function lanjutKeDashboard() {
-            localStorage.setItem('bss_step', 'dashboard');
-            tampilkanDashboard();
-        }
-
-        function tampilkanDashboard() {
+        function bukaDashboard() {
             document.getElementById('sectionLogin').style.display = 'none';
             document.getElementById('sectionVisiMisi').style.display = 'none';
             document.getElementById('sectionDashboard').style.display = 'block';
         }
 
-        function kembaliKeVisiMisi() {
-            localStorage.setItem('bss_step', 'visimisi');
-            tampilkanVisiMisi();
-        }
-
-        function logoutSistem() {
-            localStorage.removeItem('bss_logged_in');
-            localStorage.removeItem('bss_step');
-            let pwdInput = document.getElementById('inputPassword');
-            if(pwdInput) pwdInput.value = '';
-            tampilkanLogin();
+        function kembaliKeLogin() {
+            document.getElementById('inputPassword').value = '';
+            document.getElementById('sectionLogin').style.display = 'flex';
+            document.getElementById('sectionVisiMisi').style.display = 'none';
+            document.getElementById('sectionDashboard').style.display = 'none';
         }
 
         let defaultVisiMisi = {

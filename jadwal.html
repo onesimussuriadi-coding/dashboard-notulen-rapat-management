@@ -133,6 +133,7 @@
         </div>
     </div>
 
+    <!-- MODAL JADWAL -->
     <div class="modal fade" id="modalJadwal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -196,7 +197,7 @@
             } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
-        // HANYA SATU TOMBOL PANAH ATAS (⬆️) YANG RAPI UNTUK MENAIKKAN POSISI BARIS
+        // MENGGUNAKAN SATU TOMBOL DROPDOWN "AKSI" YANG BERISI PILIHAN (NAIK, TURUN, EDIT, HAPUS)
         function renderPersonel() {
             const list = document.getElementById('listPersonel');
             if(!list) return;
@@ -204,24 +205,36 @@
             dataPersonel.forEach((p, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
-                li.innerHTML = `<div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
-                    <div class="d-flex align-items-center gap-1">
-                        ${index > 0 ? `<button class="btn btn-sm btn-outline-secondary px-2 py-1" style="font-size: 11px;" title="Geser ke Atas" onclick="geserPersonel(${index})">⬆️ Naik</button>` : ''}
-                        <button class="btn btn-sm btn-outline-warning px-2 py-1" style="font-size: 11px;" onclick="editPersonel(${index})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger px-2 py-1" style="font-size: 11px;" onclick="hapusPersonel(${index})">Hapus</button>
-                    </div>`;
+                
+                let dropdownHtml = `
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1 px-2" type="button" data-bs-toggle="dropdown" style="font-size: 12px;">
+                            ⚙️ Aksi
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" style="font-size: 13px;">
+                            ${index > 0 ? `<li><a class="dropdown-item" href="#" onclick="geserPersonel(${index}, -1); return false;">⬆️ Pindah ke Atas</a></li>` : ''}
+                            ${index < dataPersonel.length - 1 ? `<li><a class="dropdown-item" href="#" onclick="geserPersonel(${index}, 1); return false;">⬇️ Pindah ke Bawah</a></li>` : ''}
+                            <li><a class="dropdown-item text-warning fw-bold" href="#" onclick="editPersonel(${index}); return false;">✏️ Edit Personel</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="hapusPersonel(${index}); return false;">🗑️ Hapus</a></li>
+                        </ul>
+                    </div>
+                `;
+
+                li.innerHTML = `<div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>${dropdownHtml}`;
                 list.appendChild(li);
             });
             localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
             updateDropdownPersonel();
         }
 
-        function geserPersonel(index) {
-            if (index <= 0) return;
-            // Tukar posisi dengan baris di atasnya (bisa diklik berulang kali sampai paling atas)
+        function geserPersonel(index, arah) {
+            const targetIndex = index + arah;
+            if (targetIndex < 0 || targetIndex >= dataPersonel.length) return;
+            
             const temp = dataPersonel[index];
-            dataPersonel[index] = dataPersonel[index - 1];
-            dataPersonel[index - 1] = temp;
+            dataPersonel[index] = dataPersonel[targetIndex];
+            dataPersonel[targetIndex] = temp;
 
             renderPersonel();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();

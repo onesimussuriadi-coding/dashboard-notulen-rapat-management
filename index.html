@@ -58,16 +58,16 @@
 </head>
 <body onload="inisialisasiAplikasi()">
 
-    <!-- 1. TAMPILAN HALAMAN LOGIN HANYA PASSWORD -->
+    <!-- 1. TAMPILAN HALAMAN LOGIN (BEBAS TANPA PASSWORD KETAT) -->
     <div id="sectionLogin" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="card shadow-lg border-0 p-4" style="width: 380px; border-radius: 10px;">
             <div class="text-center mb-4">
                 <h4 class="fw-bold text-teal" style="color: #134e4a;">PT Banggai Sentral Sulawesi</h4>
-                <p class="text-muted small">Masukkan Password untuk Masuk</p>
+                <p class="text-muted small">Sistem Pengelolaan Rapat Perusahaan</p>
             </div>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Password</label>
-                <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password (BSS 2026)..." onkeypress="if(event.key === 'Enter') prosesLogin()">
+                <label class="form-label small fw-bold">Password (Opsional)</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Tekan Masuk untuk lanjut..." onkeypress="if(event.key === 'Enter') prosesLogin()">
             </div>
             <button class="btn btn-teal w-100 fw-bold py-2" onclick="prosesLogin()">Masuk / Login →</button>
         </div>
@@ -226,18 +226,10 @@
         }
 
         function prosesLogin() {
-            let p = document.getElementById('inputPassword').value.trim();
-            
-            // Membersihkan spasi dan mengubah ke huruf besar agar "BSS 2026", "bss 2026", "BSS2026" tetap diterima
-            let cleanP = p.replace(/\s+/g, '').toUpperCase();
-
-            if (cleanP === "BSS2026") { 
-                localStorage.setItem('bss_logged_in', 'true');
-                localStorage.setItem('bss_step', 'visimisi');
-                tampilkanVisiMisi();
-            } else {
-                alert('Password salah! Silakan masukkan: BSS 2026');
-            }
+            // SEMENTARA DIBEBASKAN (TIDAK ADA VALIDASI PASSWORD YANG KETAT)
+            localStorage.setItem('bss_logged_in', 'true');
+            localStorage.setItem('bss_step', 'visimisi');
+            tampilkanVisiMisi();
         }
 
         function tampilkanLogin() {

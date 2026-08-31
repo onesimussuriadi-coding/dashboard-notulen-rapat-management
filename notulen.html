@@ -58,6 +58,24 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
+        /* FORMAT TAMPILAN NOMOR AGAR SEJAJAR DAN RAPI KE BAWAH */
+        .formatted-list {
+            padding-left: 0;
+            margin-bottom: 0;
+            list-style-type: none;
+        }
+        .formatted-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 4px;
+        }
+        .formatted-list li span.num {
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-weight: bold;
+        }
+
         @media print {
             body { background: white !important; font-size: 12pt; color: #000; }
             .navbar, .btn, .card.mb-4.bg-white, .modal, footer { display: none !important; }
@@ -328,16 +346,27 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        // FUNGSI UNTUK MEMBUAT PENOMORAN OTOMATIS TERSUSUN KE BAWAH SECARA RAPI
+        // FUNGSI UNTUK MEMFORMAT PENOMORAN MENJADI LIST YANG SEJAJAR & RAPI KE BAWAH
         function formatTeksPenomoran(teks) {
             if (!teks) return '-';
-            // Mencari pola angka penomoran seperti "1.", "2.", "3.", dst lalu disisipkan baris baru (<br>) di depannya
-            let formatted = teks.replace(/(\s|^)(\d+\.)/g, '<br>$2').trim();
-            // Jika diawali dengan <br> di baris pertama, hapus agar rapi
-            if (formatted.startsWith('<br>')) {
-                formatted = formatted.substring(4);
-            }
-            return formatted;
+            // Pisahkan teks berdasarkan pola angka bernomor (misal: "1.", "2.", "3.")
+            let parts = teks.split(/(?=\d+\.\s*)/);
+            if (parts.length <= 1) return teks;
+
+            let html = '<ul class="formatted-list">';
+            parts.forEach(part => {
+                part = part.trim();
+                if (part) {
+                    let match = part.match(/^(\d+\.)\s*(.*)$/);
+                    if (match) {
+                        html += `<li><span class="num">${match[1]}</span>${match[2]}</li>`;
+                    } else {
+                        html += `<li>${part}</li>`;
+                    }
+                }
+            });
+            html += '</ul>';
+            return html;
         }
 
         function renderNotulen() {
@@ -387,7 +416,6 @@
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
                     
-                    // Menerapkan format pembersihan baris penomoran otomatis
                     let pembahasanRapi = formatTeksPenomoran(n.pembahasan);
                     let tindakLanjutRapi = formatTeksPenomoran(n.tindakLanjut);
 

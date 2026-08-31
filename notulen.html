@@ -58,23 +58,9 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        /* FORMAT TAMPILAN NOMOR AGAR SEJAJAR DAN RAPI KE BAWAH */
-        .formatted-list {
-            padding-left: 0;
-            margin-bottom: 0;
-            list-style-type: none;
-        }
-        .formatted-list li {
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 4px;
-        }
-        .formatted-list li span.num {
-            position: absolute;
-            left: 0;
-            top: 0;
-            font-weight: bold;
-        }
+        .formatted-list { padding-left: 0; margin-bottom: 0; list-style-type: none; }
+        .formatted-list li { position: relative; padding-left: 20px; margin-bottom: 4px; }
+        .formatted-list li span.num { position: absolute; left: 0; top: 0; font-weight: bold; }
 
         @media print {
             body { background: white !important; font-size: 12pt; color: #000; }
@@ -216,19 +202,18 @@
                     
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
-                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan (Contoh: 1. Sertifikasi... 2. Meeting...)"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">PIC / Penanggung Jawab</label>
-                            <select id="notulenSelectPic" class="form-select mb-2" onchange="pilihPicMaster(this)">
-                                <option value="">-- Pilih dari Master Personel --</option>
-                                <option value="MANUAL_PIHAK_KETIGA">➕ Input Manual (Pihak Ketiga / Vendor)</option>
-                            </select>
-                            <div id="divPicManual" style="display: none;">
-                                <input type="text" id="notulenPicManualNama" class="form-control mb-1" placeholder="Nama Penanggung Jawab...">
-                                <input type="text" id="notulenPicManualInstansi" class="form-control" placeholder="Instansi / Perusahaan Vendor...">
+                            <label class="form-label fw-bold">PIC / Penanggung Jawab (Bisa Pilih Banyak)</label>
+                            <div class="border rounded p-2 bg-white" style="max-height: 150px; overflow-y: auto;" id="containerCheckboxPic">
+                                <!-- Daftar checkbox PIC akan dirender otomatis melalui Javascript -->
+                            </div>
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="text" id="inputPicManualNama" class="form-control" placeholder="Nama Pihak Ketiga / Vendor...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="tambahPicManualBaru()">+ Tambah</button>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -254,8 +239,14 @@
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
+        let daftarPicAktif = []; // Menyimpan list gabungan personel master & manual
 
-        function muatDataNotulen() { renderNotulen(); isiDropdownJadwal(); isiDropdownMasterPic(); isiDropdownTanggalLalu(); }
+        function muatDataNotulen() { 
+            renderNotulen(); 
+            isiDropdownJadwal(); 
+            inisialisasiDaftarPic();
+            isiDropdownTanggalLalu(); 
+        }
 
         function syncDataToCloud() {
             alert('Menyinkronkan data secara real-time ke Cloud...');
@@ -274,25 +265,40 @@
             });
         }
 
-        function isiDropdownMasterPic() {
-            const select = document.getElementById('notulenSelectPic');
-            select.innerHTML = '<option value="">-- Pilih dari Master Personel --</option><option value="MANUAL_PIHAK_KETIGA">➕ Input Manual (Pihak Ketiga / Vendor)</option>';
-            dataPersonel.forEach(p => {
-                let opt = document.createElement('option'); opt.value = `${p.nama} (${p.jabatan})`;
-                opt.textContent = `${p.nama} — ${p.jabatan}`; select.appendChild(opt);
+        function inisialisasiDaftarPic(selectedPics = []) {
+            const container = document.getElementById('containerCheckboxPic');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            // Gabungkan master personel dengan PIC manual yang mungkin sudah tersimpan sebelumnya
+            let allPics = dataPersonel.map(p => `${p.nama} (${p.jabatan})`);
+            selectedPics.forEach(sp => {
+                if(!allPics.includes(sp)) allPics.push(sp);
+            });
+
+            allPics.forEach((namaPic, idx) => {
+                let isChecked = selectedPics.includes(namaPic) ? 'checked' : '';
+                let div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = `<input class="form-check-input checkbox-pic" type="checkbox" value="${namaPic}" id="pic_${idx}" ${isChecked}>
+                                 <label class="form-check-label small" for="pic_${idx}">${namaPic}</label>`;
+                container.appendChild(div);
             });
         }
 
-        function pilihPicMaster(sel) {
-            const val = sel.value;
-            const divManual = document.getElementById('divPicManual');
-            if(val === 'MANUAL_PIHAK_KETIGA') {
-                divManual.style.display = 'block';
-                document.getElementById('notulenPicManualNama').value = '';
-                document.getElementById('notulenPicManualInstansi').value = '';
-            } else {
-                divManual.style.display = 'none';
-            }
+        function tambahPicManualBaru() {
+            const input = document.getElementById('inputPicManualNama');
+            const val = input.value.trim();
+            if(!val) { alert('Masukkan nama pihak ketiga / vendor terlebih dahulu!'); return; }
+            
+            const container = document.getElementById('containerCheckboxPic');
+            let idx = container.children.length;
+            let div = document.createElement('div');
+            div.className = 'form-check';
+            div.innerHTML = `<input class="form-check-input checkbox-pic" type="checkbox" value="${val}" id="pic_m_${idx}" checked>
+                             <label class="form-check-label small fw-bold text-primary" for="pic_m_${idx}">${val} (Pihak Ketiga)</label>`;
+            container.appendChild(div);
+            input.value = '';
         }
 
         function cekLokasiLainnya(sel) {
@@ -346,10 +352,8 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        // FUNGSI UNTUK MEMFORMAT PENOMORAN MENJADI LIST YANG SEJAJAR & RAPI KE BAWAH
         function formatTeksPenomoran(teks) {
             if (!teks) return '-';
-            // Pisahkan teks berdasarkan pola angka bernomor (misal: "1.", "2.", "3.")
             let parts = teks.split(/(?=\d+\.\s*)/);
             if (parts.length <= 1) return teks;
 
@@ -394,7 +398,7 @@
 
             let grouped = {};
             filtered.forEach(item => {
-                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-'}||${item.media || '-'}`;
+                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-}||${item.media || '-'}`;
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
@@ -418,12 +422,20 @@
                     
                     let pembahasanRapi = formatTeksPenomoran(n.pembahasan);
                     let tindakLanjutRapi = formatTeksPenomoran(n.tindakLanjut);
+                    
+                    // Menampilkan daftar PIC (mendukung format array atau string lama)
+                    let picFormatted = '-';
+                    if (Array.isArray(n.pic)) {
+                        picFormatted = n.pic.join(', ');
+                    } else if (n.pic) {
+                        picFormatted = n.pic;
+                    }
 
                     html += `<tr>
                         <td><strong>${n.topikUtama}</strong></td>
                         <td>${pembahasanRapi}</td>
                         <td>${tindakLanjutRapi}</td>
-                        <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
+                        <td><strong>${picFormatted}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
                         <td><span class="badge ${badge}">${n.status}</span></td>
                         <td class="text-center no-print">
                             <button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
@@ -447,8 +459,7 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenSelectPic').value = '';
-            document.getElementById('divPicManual').style.display = 'none';
+            inisialisasiDaftarPic([]);
             document.getElementById('notulenDeadline').value = '';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
@@ -464,8 +475,7 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenSelectPic').value = '';
-            document.getElementById('divPicManual').style.display = 'none';
+            inisialisasiDaftarPic([]);
             document.getElementById('notulenDeadline').value = '';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
@@ -499,23 +509,14 @@
             document.getElementById('notulenPembahasan').value = n.pembahasan;
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
             
-            const selectPic = document.getElementById('notulenSelectPic');
-            let found = false;
-            for (let i = 0; i < selectPic.options.length; i++) {
-                if (selectPic.options[i].value === n.pic) {
-                    selectPic.value = n.pic;
-                    found = true;
-                    break;
-                }
+            // Mengambil list PIC yang tersimpan (bisa berupa array atau string yang dipisah koma)
+            let currentPics = [];
+            if (Array.isArray(n.pic)) {
+                currentPics = n.pic;
+            } else if (n.pic) {
+                currentPics = n.pic.split(',').map(s => s.trim());
             }
-            if (!found && n.pic) {
-                selectPic.value = 'MANUAL_PIHAK_KETIGA';
-                document.getElementById('divPicManual').style.display = 'block';
-                document.getElementById('notulenPicManualNama').value = n.pic;
-                document.getElementById('notulenPicManualInstansi').value = '';
-            } else {
-                document.getElementById('divPicManual').style.display = 'none';
-            }
+            inisialisasiDaftarPic(currentPics);
 
             document.getElementById('notulenDeadline').value = n.deadline;
             document.getElementById('notulenStatus').value = n.status;
@@ -549,20 +550,18 @@
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             
-            const selPicVal = document.getElementById('notulenSelectPic').value;
-            let pic = selPicVal;
-            if(selPicVal === 'MANUAL_PIHAK_KETIGA') {
-                const namaManual = document.getElementById('notulenPicManualNama').value.trim();
-                const instansiManual = document.getElementById('notulenPicManualInstansi').value.trim();
-                if(!namaManual) { alert('Silakan masukkan nama PIC pihak ketiga!'); return; }
-                pic = instansiManual ? `${namaManual} (${instansiManual})` : namaManual;
-            }
+            // Mengumpulkan semua PIC yang dicentang oleh user
+            let selectedPics = [];
+            document.querySelectorAll('.checkbox-pic:checked').forEach(cb => {
+                selectedPics.push(cb.value);
+            });
 
             const deadline = document.getElementById('notulenDeadline').value;
             const status = document.getElementById('notulenStatus').value;
 
-            if(!topikUtama || !pic) { alert('Topik Utama dan PIC wajib diisi!'); return; }
-            const dataBaru = { periode, tanggal, lokasi, media, topikUtama, pembahasan, tindakLanjut, pic, deadline, status };
+            if(!topikUtama || selectedPics.length === 0) { alert('Topik Utama dan minimal 1 PIC wajib diisi!'); return; }
+            
+            const dataBaru = { periode, tanggal, lokasi, media, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
             if(index === -1) dataNotulen.unshift(dataBaru); else dataNotulen[index] = dataBaru;
             renderNotulen();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();

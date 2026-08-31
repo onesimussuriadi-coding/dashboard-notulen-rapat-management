@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PT Banggai Sentral Sulawesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .bg-teal-custom { background-color: #134e4a !important; }
+        .btn-teal { background-color: #0d9488; color: white; border: none; }
+        .btn-teal:hover { background-color: #0f766e; color: white; }
+        body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+    <div class="card shadow-lg border-0 p-4" style="width: 380px; border-radius: 10px;">
+        <div class="text-center mb-4">
+            <h4 class="fw-bold" style="color: #134e4a;">PT Banggai Sentral Sulawesi</h4>
+            <p class="text-muted small">Sistem Pengelolaan Rapat Perusahaan</p>
+        </div>
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Password Sistem</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password (bss2026)...">
+        </div>
+        <button type="button" class="btn btn-teal w-100 fw-bold py-2" onclick="cekLogin()">Masuk / Login →</button>
+    </div>
+
+    <script>
+        function cekLogin() {
+            let p = document.getElementById('inputPassword').value.trim();
+            if (p === "" || p.toLowerCase() === "bss2026" || p.toLowerCase() === "bss 2026") {
+                window.location.href = "visimisi.html";
+            } else {
+                alert('Password salah! Gunakan: bss2026');
+            }
+        }
+    </script>
+</body>
+</html>

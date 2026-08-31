@@ -70,26 +70,25 @@
             border-bottom: 1px solid #dee2e6;
             padding: 8px 10px;
             align-items: flex-start;
-            background-color: transparent; /* Mengikuti warna latar belakang sel tabel utama */
+            background-color: transparent;
         }
         .excel-row:last-child {
             border-bottom: none;
         }
         .excel-num {
             font-weight: bold;
-            min-width: 28px;
+            min-width: 25px;
             flex-shrink: 0;
         }
         .excel-text {
             flex-grow: 1;
         }
-        /* Sub-poin sekarang warnanya transparan / sama persis dengan baris induknya */
         .excel-row.sub-item {
             background-color: transparent !important; 
         }
         .excel-row.sub-item .excel-num {
             padding-left: 15px;
-            min-width: 43px;
+            min-width: 40px;
         }
         .excel-row.sub-item .excel-text {
             padding-left: 5px;
@@ -242,7 +241,7 @@
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
                     <div class="mb-3">
                         <label class="form-label">Pembahasan & Arahan</label>
-                        <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Contoh: 4. SPDA Expired&#10;   1. Perpanjangan SPDA&#10;   2. Update KBLI"></textarea>
+                        <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Contoh: 1. Pembahasan..."></textarea>
                     </div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     
@@ -456,11 +455,12 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
+                // PENGATURAN LEBAR KOLOM (TOPIK UTAMA 15%, PEMBAHASAN 15%, TINDAK LANJUT 50%, PIC 15%, STATUS 5%)
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
-                    <th style="width:25%;">Topik Utama</th><th style="width:25%;">Pembahasan & Arahan</th><th style="width:30%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:0%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
+                    <th style="width:15%;">Topik Utama</th><th style="width:15%;">Pembahasan & Arahan</th><th style="width:50%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:0%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';

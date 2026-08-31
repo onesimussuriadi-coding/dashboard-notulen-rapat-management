@@ -12,7 +12,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Anda (Pastikan sama dengan halaman lainnya)
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "MASUKKAN_API_KEY_ANDA",
             authDomain: "PROJECT_ID.firebaseapp.com",
@@ -48,10 +48,7 @@
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
-                if (serverData.personel) {
-                    localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
-                    dataPersonel = serverData.personel;
-                }
+                if (serverData.personel) localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
                 if (serverData.absen) {
                     localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
                     dataAbsen = serverData.absen;
@@ -59,7 +56,6 @@
                 if (serverData.jadwal) localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
                 if (serverData.notulen) localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
                 
-                // Render ulang tampilan secara otomatis saat komputer lain mengubah data
                 if (typeof renderAbsen === 'function' && typeof isiDropdownMaster === 'function') {
                     renderAbsen();
                     isiDropdownMaster();
@@ -94,7 +90,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
-                <p class="text-muted">Pilih nama personel, jabatan otomatis, status, dan keterangan izin/tugas luar secara real-time (Cloud Connected).</p>
+                <p class="text-muted">Pilih nama personel terdaftar atau input manual untuk tamu/pihak ketiga secara real-time.</p>
             </div>
             <div class="col-auto no-print">
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
@@ -147,10 +143,20 @@
                         <label class="form-label">Nama Peserta Rapat</label>
                         <select id="absenNama" class="form-select" onchange="pilihAbsenPersonel(this)">
                             <option value="">-- Pilih Nama Anda --</option>
+                            <option value="MANUAL_TAMU">➕ Input Manual / Tamu / Pihak Ketiga</option>
                         </select>
                     </div>
+
+                    <!-- Input Manual (Muncul jika pilih Tamu / Pihak Ketiga) -->
+                    <div class="mb-3" id="divInputManual" style="display: none;">
+                        <label class="form-label text-primary fw-bold">Nama Lengkap Tamu / Pihak Ketiga</label>
+                        <input type="text" id="manualNama" class="form-control mb-2" placeholder="Ketik nama lengkap tamu...">
+                        <label class="form-label text-primary fw-bold">Instansi / Jabatan Tamu</label>
+                        <input type="text" id="manualJabatan" class="form-control" placeholder="Contoh: PT Kontraktor / Konsultan / Vendor...">
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Jabatan</label>
+                        <label class="form-label">Jabatan (Internal)</label>
                         <input type="text" id="absenJabatan" class="form-control" readonly placeholder="Otomatis terisi dari master">
                     </div>
                     <div class="mb-3">
@@ -164,7 +170,7 @@
                     </div>
                     <div class="mb-3" id="divKeterangan" style="display: none;">
                         <label class="form-label">Keterangan / Alasan Spesifik</label>
-                        <input type="text" id="absenKeterangan" class="form-control" placeholder="Contoh: Tugas luar memantau unit, Izin keluarga, dll.">
+                        <input type="text" id="absenKeterangan" class="form-control" placeholder="Contoh: Izin urusan keluarga, Sakit surat dokter, dll.">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -212,7 +218,7 @@
         function isiDropdownMaster() {
             const select = document.getElementById('absenNama');
             if(!select) return;
-            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option><option value="MANUAL_TAMU">➕ Input Manual / Tamu / Pihak Ketiga</option>';
             dataPersonel.forEach(p => {
                 let opt = document.createElement('option');
                 opt.value = p.nama;
@@ -223,8 +229,21 @@
         }
 
         function pilihAbsenPersonel(select) {
-            const opt = select.options[select.selectedIndex];
-            document.getElementById('absenJabatan').value = opt.getAttribute('data-jabatan') || '';
+            const val = select.value;
+            const divManual = document.getElementById('divInputManual');
+            const inputJabatan = document.getElementById('absenJabatan');
+
+            if(val === 'MANUAL_TAMU') {
+                divManual.style.display = 'block';
+                inputJabatan.value = '';
+                inputJabatan.readOnly = false;
+                inputJabatan.placeholder = 'Masukkan jabatan/instansi tamu...';
+            } else {
+                divManual.style.display = 'none';
+                inputJabatan.readOnly = true;
+                const opt = select.options[select.selectedIndex];
+                inputJabatan.value = opt.getAttribute('data-jabatan') || '';
+            }
         }
 
         function cekStatusAbsen(select) {
@@ -271,15 +290,27 @@
         }
 
         function simpanAbsen() {
-            const nama = document.getElementById('absenNama').value;
-            const jabatan = document.getElementById('absenJabatan').value;
-            const status = document.getElementById('absenStatus').value;
-            const keterangan = document.getElementById('absenKeterangan').value.trim();
+            const selectNama = document.getElementById('absenNama').value;
+            let nama = selectNama;
+            let jabatan = document.getElementById('absenJabatan').value;
+
+            if(selectNama === 'MANUAL_TAMU') {
+                nama = document.getElementById('manualNama').value.trim();
+                jabatan = document.getElementById('manualJabatan').value.trim() || 'Tamu / Pihak Ketiga';
+                if(!nama) {
+                    alert('Silakan ketik nama tamu / pihak ketiga terlebih dahulu!');
+                    document.getElementById('manualNama').focus();
+                    return;
+                }
+            }
 
             if(!nama) {
-                alert('Silakan pilih nama peserta terlebih dahulu!');
+                alert('Silakan pilih atau isi nama peserta terlebih dahulu!');
                 return;
             }
+
+            const status = document.getElementById('absenStatus').value;
+            const keterangan = document.getElementById('absenKeterangan').value.trim();
 
             const now = new Date();
             const waktuString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' | ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -296,8 +327,13 @@
             localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
 
+            // Reset form
             document.getElementById('absenNama').value = '';
+            document.getElementById('manualNama').value = '';
+            document.getElementById('manualJabatan').value = '';
+            document.getElementById('divInputManual').style.display = 'none';
             document.getElementById('absenJabatan').value = '';
+            document.getElementById('absenJabatan').readOnly = true;
             document.getElementById('absenStatus').value = 'Hadir';
             document.getElementById('divKeterangan').style.display = 'none';
             document.getElementById('absenKeterangan').value = '';

@@ -58,12 +58,12 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        /* GARIS PEMISAH SEPERTI EXCEL (GRID) UNTUK SETIAP POIN NOMOR */
+        /* FORMAT GRID EXCEL DENGAN DUKUNGAN SUB-POIN MENJOROK KE DALAM */
         .excel-grid-container {
             display: flex;
             flex-direction: column;
             width: 100%;
-            margin: -8px; /* Menyesuaikan padding sel tabel Bootstrap */
+            margin: -8px;
         }
         .excel-row {
             display: flex;
@@ -76,14 +76,24 @@
         }
         .excel-num {
             font-weight: bold;
-            min-width: 25px;
+            min-width: 28px;
             flex-shrink: 0;
         }
         .excel-text {
             flex-grow: 1;
         }
+        /* Kelas khusus untuk sub-poin (anak nomor) agar masuk ke dalam */
+        .excel-row.sub-item {
+            background-color: #fcfcfc;
+        }
+        .excel-row.sub-item .excel-num {
+            padding-left: 15px;
+            min-width: 43px;
+        }
+        .excel-row.sub-item .excel-text {
+            padding-left: 5px;
+        }
 
-        /* MEMBUAT GARIS VERTIKAL ANTAR KOLOM TABEL */
         .table-bordered-grid th, .table-bordered-grid td {
             border: 1px solid #dee2e6 !important;
             vertical-align: middle;
@@ -229,7 +239,10 @@
                     
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
-                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
+                    <div class="mb-3">
+                        <label class="form-label">Pembahasan & Arahan <small class="text-muted">(Gunakan spasi/indentasi atau ketik sub-nomor seperti 1., 2. untuk anak poin)</small></label>
+                        <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Contoh: 4. SPDA Expired&#10;   1. Perpanjangan SPDA&#10;   2. Update KBLI"></textarea>
+                    </div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     
                     <div class="row">
@@ -379,24 +392,29 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        // FUNGSI FORMAT GRID EXCEL HORIZONTAL & VERTIKAL
+        // FUNGSI PINTAR UNTUK MENDETEKSI SUB-POIN (ANAK NOMOR) AGAR MENJOROK KE DALAM
         function formatTeksExcelGrid(teks) {
             if (!teks) return '-';
-            let parts = teks.split(/(?=\d+\.\s*)/);
-            if (parts.length <= 1) return teks;
-
+            let lines = teks.split('\n');
             let html = '<div class="excel-grid-container">';
-            parts.forEach(part => {
-                part = part.trim();
-                if (part) {
-                    let match = part.match(/^(\d+\.)\s*(.*)$/);
-                    if (match) {
-                        html += `<div class="excel-row"><div class="excel-num">${match[1]}</div><div class="excel-text">${match[2]}</div></div>`;
-                    } else {
-                        html += `<div class="excel-row"><div class="excel-text">${part}</div></div>`;
-                    }
+            
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                if (!trimmed) return;
+                
+                // Cek apakah baris ini adalah sub-poin (diawali spasi/indentasi di textarea ATAU berupa nomor urut anak)
+                let isSub = line.startsWith(' ') || line.startsWith('\t') || trimmed.match(/^[a-z]\./) || (line.match(/^\s+/) && trimmed.match(/^\d+\./));
+                
+                let matchNum = trimmed.match(/^(\d+\.|[a-z]\.|•|-)\s*(.*)$/);
+                if (matchNum) {
+                    let cssClass = isSub ? 'excel-row sub-item' : 'excel-row';
+                    html += `<div class="${cssClass}"><div class="excel-num">${matchNum[1]}</div><div class="excel-text">${matchNum[2]}</div></div>`;
+                } else {
+                    let cssClass = isSub ? 'excel-row sub-item' : 'excel-row';
+                    html += `<div class="${cssClass}"><div class="excel-text">${trimmed}</div></div>`;
                 }
             });
+            
             html += '</div>';
             return html;
         }
@@ -420,7 +438,7 @@
             });
 
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen sesuai filter bulan Agustus (atau filter aktif lainnya).</div>`;
+                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen sesuai filter yang dipilih.</div>`;
                 return;
             }
 

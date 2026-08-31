@@ -205,12 +205,29 @@
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
                 li.innerHTML = `<div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
-                    <div><button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button></div>`;
+                    <div>
+                        ${index > 0 ? `<button class="btn btn-sm btn-outline-secondary me-1 px-1" title="Pindah ke Atas" onclick="geserPersonel(${index}, -1)">⬆️</button>` : ''}
+                        ${index < dataPersonel.length - 1 ? `<button class="btn btn-sm btn-outline-secondary me-1 px-1" title="Pindah ke Bawah" onclick="geserPersonel(${index}, 1)">⬇️</button>` : ''}
+                        <button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button>
+                    </div>`;
                 list.appendChild(li);
             });
             localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
             updateDropdownPersonel();
+        }
+
+        function geserPersonel(index, arah) {
+            const targetIndex = index + arah;
+            if (targetIndex < 0 || targetIndex >= dataPersonel.length) return;
+            
+            // Tukar posisi data dalam array
+            const temp = dataPersonel[index];
+            dataPersonel[index] = dataPersonel[targetIndex];
+            dataPersonel[targetIndex] = temp;
+
+            renderPersonel();
+            if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
         }
 
         function tambahPersonel() {

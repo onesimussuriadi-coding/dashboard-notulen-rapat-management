@@ -53,7 +53,6 @@
                     if (typeof renderNotulen === 'function') {
                         renderNotulen();
                         isiDropdownTanggalLalu();
-                        updateDatalistLokasi();
                     }
                 }
             }
@@ -213,14 +212,14 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
-                            <!-- Menggunakan Datalist & Select Kombinasi agar bisa dipilih dari opsi default maupun diketik bebas -->
-                            <input type="text" id="notulenLokasi" class="form-control" list="listLokasiRapat" placeholder="Pilih atau ketik lokasi rapat...">
-                            <datalist id="listLokasiRapat">
-                                <option value="Ruang Meeting di Pasar Tua">
-                                <option value="Ruang Meeting di Sukarno">
-                                <option value="Ruang Meeting di Office Utama">
-                                <option value="Ruang Meeting di Office Surabaya">
-                            </datalist>
+                            <select id="notulenLokasi" class="form-select mb-2" onchange="cekPilihanLokasi(this)">
+                                <option value="Ruang Meeting di Pasar Tua">Ruang Meeting di Pasar Tua</option>
+                                <option value="Ruang Meeting di Sukarno">Ruang Meeting di Sukarno</option>
+                                <option value="Ruang Meeting di Office Utama" selected>Ruang Meeting di Office Utama</option>
+                                <option value="Ruang Meeting di Office Surabaya">Ruang Meeting di Office Surabaya</option>
+                                <option value="LAINNYA">➕ Ketik Lokasi Lainnya (Manual)</option>
+                            </select>
+                            <input type="text" id="notulenLokasiManual" class="form-control form-control-sm" style="display: none;" placeholder="Ketik nama lokasi rapat secara bebas...">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
@@ -300,7 +299,6 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownTanggalLalu();
-            updateDatalistLokasi();
         }
 
         function syncDataToCloud() {
@@ -311,6 +309,18 @@
                 });
             } else {
                 alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
+            }
+        }
+
+        function cekPilihanLokasi(select) {
+            const inputManual = document.getElementById('notulenLokasiManual');
+            if(select.value === 'LAINNYA') {
+                inputManual.style.display = 'block';
+                inputManual.focus();
+                inputManual.value = '';
+            } else {
+                inputManual.style.display = 'none';
+                inputManual.value = '';
             }
         }
 
@@ -395,18 +405,6 @@
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
             alert(`Berhasil menarik ${topikLalu.length} topik dari tanggal ${tglTarget} ke rapat tanggal ${tglBaru}!`);
-        }
-
-        function updateDatalistLokasi() {
-            const datalist = document.getElementById('listLokasiRapat');
-            if(!datalist) return;
-            datalist.innerHTML = `
-                <option value="Ruang Meeting di Pasar Tua">
-                <option value="Ruang Meeting di Sukarno">
-                <option value="Ruang Meeting di Office Utama">
-                <option value="Ruang Meeting di Office Surabaya">
-            `;
-            dataNotulen.forEach(n => { if(n.lokasi) datalist.innerHTML += `<option value="${n.lokasi}">`; });
         }
 
         function pilihJadwalOtomatis(select) {
@@ -564,7 +562,6 @@
 
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
             isiDropdownTanggalLalu();
-            updateDatalistLokasi();
         }
 
         function bukaModalNotulen() {
@@ -574,7 +571,11 @@
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
+            
             document.getElementById('notulenLokasi').value = 'Ruang Meeting di Office Utama';
+            document.getElementById('notulenLokasiManual').style.display = 'none';
+            document.getElementById('notulenLokasiManual').value = '';
+
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
             document.getElementById('notulenTopikUtama').value = '';
@@ -588,7 +589,6 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownTanggalLalu();
-            updateDatalistLokasi();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -599,11 +599,30 @@
             isiDropdownJadwal();
             isiDropdownMasterPic();
             isiDropdownTanggalLalu();
-            updateDatalistLokasi();
+            
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;
-            document.getElementById('notulenLokasi').value = n.lokasi || '';
+            
+            const selectLokasi = document.getElementById('notulenLokasi');
+            const inputManual = document.getElementById('notulenLokasiManual');
+            let lokasiVal = n.lokasi || 'Ruang Meeting di Office Utama';
+            let opsiTersedia = [
+                "Ruang Meeting di Pasar Tua", 
+                "Ruang Meeting di Sukarno", 
+                "Ruang Meeting di Office Utama", 
+                "Ruang Meeting di Office Surabaya"
+            ];
+
+            if(opsiTersedia.includes(lokasiVal)) {
+                selectLokasi.value = lokasiVal;
+                inputManual.style.display = 'none';
+                inputManual.value = '';
+            } else {
+                selectLokasi.value = 'LAINNYA';
+                inputManual.style.display = 'block';
+                inputManual.value = lokasiVal;
+            }
             
             let mediaArr = n.media ? n.media.split(', ') : [];
             document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
@@ -623,7 +642,10 @@
             const index = parseInt(document.getElementById('editIndexNotulen').value);
             const periode = document.getElementById('notulenPeriode').value.trim();
             const tanggal = document.getElementById('notulenTanggal').value;
-            const lokasi = document.getElementById('notulenLokasi').value.trim() || 'Ruang Meeting di Office Utama';
+            
+            const selectLokasiVal = document.getElementById('notulenLokasi').value;
+            const manualLokasiVal = document.getElementById('notulenLokasiManual').value.trim();
+            const lokasi = (selectLokasiVal === 'LAINNYA') ? (manualLokasiVal || 'Ruang Meeting di Office Utama') : selectLokasiVal;
             
             let mediaList = [];
             if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');

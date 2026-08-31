@@ -38,7 +38,6 @@
                 .catch(err => console.error("Gagal sinkron ke cloud: ", err));
         };
 
-        // Otomatis menarik data terbaru dari server cloud ke semua komputer secara live
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
@@ -197,6 +196,7 @@
             } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
+        // HANYA SATU TOMBOL PANAH ATAS (⬆️) YANG RAPI UNTUK MENAIKKAN POSISI BARIS
         function renderPersonel() {
             const list = document.getElementById('listPersonel');
             if(!list) return;
@@ -205,11 +205,10 @@
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
                 li.innerHTML = `<div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
-                    <div>
-                        ${index > 0 ? `<button class="btn btn-sm btn-outline-secondary me-1 px-1" title="Pindah ke Atas" onclick="geserPersonel(${index}, -1)">⬆️</button>` : ''}
-                        ${index < dataPersonel.length - 1 ? `<button class="btn btn-sm btn-outline-secondary me-1 px-1" title="Pindah ke Bawah" onclick="geserPersonel(${index}, 1)">⬇️</button>` : ''}
-                        <button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button>
+                    <div class="d-flex align-items-center gap-1">
+                        ${index > 0 ? `<button class="btn btn-sm btn-outline-secondary px-2 py-1" style="font-size: 11px;" title="Geser ke Atas" onclick="geserPersonel(${index})">⬆️ Naik</button>` : ''}
+                        <button class="btn btn-sm btn-outline-warning px-2 py-1" style="font-size: 11px;" onclick="editPersonel(${index})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger px-2 py-1" style="font-size: 11px;" onclick="hapusPersonel(${index})">Hapus</button>
                     </div>`;
                 list.appendChild(li);
             });
@@ -217,14 +216,12 @@
             updateDropdownPersonel();
         }
 
-        function geserPersonel(index, arah) {
-            const targetIndex = index + arah;
-            if (targetIndex < 0 || targetIndex >= dataPersonel.length) return;
-            
-            // Tukar posisi data dalam array
+        function geserPersonel(index) {
+            if (index <= 0) return;
+            // Tukar posisi dengan baris di atasnya (bisa diklik berulang kali sampai paling atas)
             const temp = dataPersonel[index];
-            dataPersonel[index] = dataPersonel[targetIndex];
-            dataPersonel[targetIndex] = temp;
+            dataPersonel[index] = dataPersonel[index - 1];
+            dataPersonel[index - 1] = temp;
 
             renderPersonel();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();

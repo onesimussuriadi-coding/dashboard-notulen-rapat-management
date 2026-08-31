@@ -63,11 +63,11 @@
         <div class="card shadow-lg border-0 p-4" style="width: 380px; border-radius: 10px;">
             <div class="text-center mb-4">
                 <h4 class="fw-bold text-teal" style="color: #134e4a;">PT Banggai Sentral Sulawesi</h4>
-                <p class="text-muted small">Masukkan Password Standar untuk Masuk</p>
+                <p class="text-muted small">Masukkan Password untuk Masuk</p>
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold">Password</label>
-                <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password..." onkeypress="if(event.key === 'Enter') prosesLogin()">
+                <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password (bss2026)..." onkeypress="if(event.key === 'Enter') prosesLogin()">
             </div>
             <button class="btn btn-teal w-100 fw-bold py-2" onclick="prosesLogin()">Masuk / Login →</button>
         </div>
@@ -228,13 +228,13 @@
         function prosesLogin() {
             let p = document.getElementById('inputPassword').value.trim();
 
-            // Password standar yang diminta: BSS 2026
-            if (p === "BSS 2026" || p === "BSS2026") { 
+            // Password dikunci menjadi bss2026 (huruf kecil semua)
+            if (p === "bss2026") { 
                 localStorage.setItem('bss_logged_in', 'true');
                 localStorage.setItem('bss_step', 'visimisi');
                 tampilkanVisiMisi();
             } else {
-                alert('Password salah! Gunakan password standar: BSS 2026');
+                alert('Password salah! Gunakan: bss2026');
             }
         }
 

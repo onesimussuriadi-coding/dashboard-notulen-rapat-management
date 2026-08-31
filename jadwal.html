@@ -6,6 +6,66 @@
     <title>Jadwal & Rotasi Personel Rapat</title>
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "MASUKKAN_API_KEY_ANDA",
+            authDomain: "PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "PROJECT_ID",
+            storageBucket: "PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Fungsi Global untuk Sinkronisasi Real-Time ke Firebase
+        window.simpanKeFirebaseCloud = function(callback) {
+            const payload = {
+                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+            };
+
+            set(ref(db, 'ptbss_rapat_data'), payload)
+                .then(() => {
+                    if(callback) callback();
+                })
+                .catch(err => {
+                    console.error("Gagal sinkron ke cloud: ", err);
+                });
+        };
+
+        // Real-time Listener (Mendengar perubahan data dari komputer lain secara otomatis)
+        onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
+            const serverData = snapshot.val();
+            if (serverData) {
+                if (serverData.personel) {
+                    localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
+                    dataPersonel = serverData.personel;
+                }
+                if (serverData.jadwal) {
+                    localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
+                    dataJadwal = serverData.jadwal;
+                }
+                if (serverData.absen) localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
+                if (serverData.notulen) localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
+                
+                if (typeof renderPersonel === 'function' && typeof renderJadwal === 'function') {
+                    renderPersonel();
+                    renderJadwal();
+                }
+            }
+        });
+    </script>
 </head>
 <body class="bg-light" onload="muatDataAwal()">
 
@@ -25,7 +85,7 @@
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan (Terhubung ke Cloud Google Sheets).</p>
+                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan (Terhubung ke Cloud Real-Time).</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-success me-2" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
@@ -49,7 +109,7 @@
                             </tr>
                         </thead>
                         <tbody id="bodyTabelJadwal">
-                            <!-- Data dimuat otomatis dari localStorage / Cloud -->
+                            <!-- Data dimuat otomatis -->
                         </tbody>
                     </table>
                 </div>
@@ -66,7 +126,7 @@
                             <!-- Data dimuat otomatis -->
                         </ul>
                         
-                        <!-- Form Tambah Personel & Jabatan -->
+                        <!-- Form Tambah / Edit Personel & Jabatan -->
                         <div class="p-3 bg-light border rounded">
                             <div class="mb-2">
                                 <input type="text" id="inputNamaBaru" class="form-control form-control-sm" placeholder="Nama Lengkap Personel...">
@@ -85,8 +145,8 @@
                         <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Akses Online</h5>
                         <ul class="text-muted small ps-3">
                             <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar (`http://bit.ly/bss-meeting`).</li>
-                            <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal kini dilengkapi tombol langsung menuju ruang Jitsi.</li>
-                            <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Google Sheets perusahaan.</li>
+                            <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal dilengkapi tombol menuju ruang Jitsi.</li>
+                            <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Real-Time Database perusahaan.</li>
                         </ul>
                     </div>
                 </div>
@@ -172,10 +232,8 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Lengkap dengan API Google Sheets -->
+    <!-- JavaScript Logika Lengkap -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
-
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
             { nama: "Prayogo Sudana", jabatan: "General Manager" },
@@ -198,64 +256,34 @@
         ];
 
         function muatDataAwal() {
-            fetchDataFromCloud(() => {
-                renderPersonel();
-                renderJadwal();
-            });
-        }
-
-        function fetchDataFromCloud(callback) {
-            fetch(WEB_APP_URL + "?action=load")
-                .then(res => res.json())
-                .then(data => {
-                    if (data.personel && data.personel.length > 0) {
-                        dataPersonel = data.personel;
-                        localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
-                    }
-                    if (data.jadwal && data.jadwal.length > 0) {
-                        dataJadwal = data.jadwal;
-                        localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
-                    }
-                    if(callback) callback();
-                })
-                .catch(err => {
-                    console.log('Menggunakan data lokal offline.');
-                    if(callback) callback();
-                });
+            renderPersonel();
+            renderJadwal();
         }
 
         function syncDataToCloud() {
-            alert('Menyinkronkan data ke Google Sheets...');
-            const payload = {
-                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
-                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
-                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
-                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "save", payload: payload })
-            })
-            .then(() => {
-                alert('Sinkronisasi ke Cloud Google Sheets berhasil!');
-            })
-            .catch(err => {
-                alert('Gagal menyinkronkan: ' + err);
-            });
+            alert('Menyinkronkan data secara real-time ke Cloud...');
+            if (typeof window.simpanKeFirebaseCloud === 'function') {
+                window.simpanKeFirebaseCloud(() => {
+                    alert('Sinkronisasi Cloud berhasil!');
+                });
+            } else {
+                alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
+            }
         }
 
         function renderPersonel() {
             const list = document.getElementById('listPersonel');
+            if(!list) return;
             list.innerHTML = '';
             dataPersonel.forEach((p, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
                 li.innerHTML = `
                     <div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="hapusPersonel(${index})">Hapus</button>
+                    <div>
+                        <button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button>
+                    </div>
                 `;
                 list.appendChild(li);
             });
@@ -279,20 +307,63 @@
             inputNama.value = '';
             inputJabatan.value = '';
             renderPersonel();
-            syncDataToCloud();
+            localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+            if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
+        }
+
+        function editPersonel(index) {
+            const p = dataPersonel[index];
+            document.getElementById('inputNamaBaru').value = p.nama;
+            document.getElementById('inputJabatanBaru').value = p.jabatan;
+            
+            const btnContainer = document.querySelector('#inputNamaBaru').closest('.p-3');
+            let btnAksi = btnContainer.querySelector('button');
+            btnAksi.className = 'btn btn-warning btn-sm w-100 fw-bold text-dark';
+            btnAksi.textContent = '💾 Update / Simpan Perubahan';
+            btnAksi.setAttribute('onclick', `updatePersonel(${index})`);
+        }
+
+        function updatePersonel(index) {
+            const inputNama = document.getElementById('inputNamaBaru');
+            const inputJabatan = document.getElementById('inputJabatanBaru');
+            const nama = inputNama.value.trim();
+            const jabatan = inputJabatan.value.trim() || 'Staff';
+
+            if(nama === '') {
+                alert('Nama personel tidak boleh kosong!');
+                inputNama.focus();
+                return;
+            }
+
+            dataPersonel[index] = { nama: nama, jabatan: jabatan };
+            
+            inputNama.value = '';
+            inputJabatan.value = '';
+            
+            const btnContainer = inputNama.closest('.p-3');
+            let btnAksi = btnContainer.querySelector('button');
+            btnAksi.className = 'btn btn-outline-primary btn-sm w-100';
+            btnAksi.textContent = '+ Tambah ke Master Personel';
+            btnAksi.setAttribute('onclick', 'tambahPersonel()');
+
+            renderPersonel();
+            localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+            if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
         }
 
         function hapusPersonel(index) {
             if(confirm('Hapus personel ini dari master?')) {
                 dataPersonel.splice(index, 1);
                 renderPersonel();
-                syncDataToCloud();
+                localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
+                if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
         }
 
         function updateDropdownPersonel() {
             const selectLeader = document.getElementById('valLeader');
             const selectNotulen = document.getElementById('valNotulen');
+            if(!selectLeader || !selectNotulen) return;
 
             let curLeader = selectLeader.value;
             let curNotulen = selectNotulen.value;
@@ -330,6 +401,7 @@
 
         function renderJadwal() {
             const tbody = document.getElementById('bodyTabelJadwal');
+            if(!tbody) return;
             tbody.innerHTML = '';
 
             dataJadwal.forEach((j, index) => {
@@ -450,7 +522,8 @@
             }
 
             renderJadwal();
-            syncDataToCloud();
+            localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
+            if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
 
             const modalEl = document.getElementById('modalJadwal');
             bootstrap.Modal.getInstance(modalEl).hide();
@@ -460,7 +533,8 @@
             if(confirm('Apakah Anda yakin ingin menghapus jadwal rapat ini?')) {
                 dataJadwal.splice(index, 1);
                 renderJadwal();
-                syncDataToCloud();
+                localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
+                if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
         }
     </script>

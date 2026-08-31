@@ -6,6 +6,68 @@
     <title>Daftar Absen & Kehadiran Rapat</title>
     <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Konfigurasi Firebase Anda (Pastikan sama dengan halaman lainnya)
+        const firebaseConfig = {
+            apiKey: "MASUKKAN_API_KEY_ANDA",
+            authDomain: "PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "PROJECT_ID",
+            storageBucket: "PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Fungsi Global untuk Sinkronisasi Real-Time ke Firebase
+        window.simpanKeFirebaseCloud = function(callback) {
+            const payload = {
+                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+            };
+
+            set(ref(db, 'ptbss_rapat_data'), payload)
+                .then(() => {
+                    if(callback) callback();
+                })
+                .catch(err => {
+                    console.error("Gagal sinkron ke cloud: ", err);
+                });
+        };
+
+        // Real-time Listener (Mendengar perubahan data dari komputer lain secara otomatis)
+        onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
+            const serverData = snapshot.val();
+            if (serverData) {
+                if (serverData.personel) {
+                    localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
+                    dataPersonel = serverData.personel;
+                }
+                if (serverData.absen) {
+                    localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
+                    dataAbsen = serverData.absen;
+                }
+                if (serverData.jadwal) localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
+                if (serverData.notulen) localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
+                
+                // Render ulang tampilan secara otomatis saat komputer lain mengubah data
+                if (typeof renderAbsen === 'function' && typeof isiDropdownMaster === 'function') {
+                    renderAbsen();
+                    isiDropdownMaster();
+                }
+            }
+        });
+    </script>
+
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -121,10 +183,8 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Absen dengan API Google Sheets -->
+    <!-- JavaScript Logika Absen -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
-
         let dataAbsen = JSON.parse(localStorage.getItem('bss_absen')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
@@ -134,57 +194,24 @@
         ];
 
         function muatDataAbsen() {
-            fetchDataFromCloud(() => {
-                renderAbsen();
-                isiDropdownMaster();
-            });
-        }
-
-        function fetchDataFromCloud(callback) {
-            fetch(WEB_APP_URL + "?action=load")
-                .then(res => res.json())
-                .then(data => {
-                    if (data.personel && data.personel.length > 0) {
-                        dataPersonel = data.personel;
-                        localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
-                    }
-                    if (data.absen && data.absen.length > 0) {
-                        dataAbsen = data.absen;
-                        localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
-                    }
-                    if(callback) callback();
-                })
-                .catch(err => {
-                    console.log('Menggunakan data lokal offline.');
-                    if(callback) callback();
-                });
+            renderAbsen();
+            isiDropdownMaster();
         }
 
         function syncDataToCloud() {
-            alert('Menyinkronkan data ke Google Sheets...');
-            const payload = {
-                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
-                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
-                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
-                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "save", payload: payload })
-            })
-            .then(() => {
-                alert('Sinkronisasi ke Cloud Google Sheets berhasil!');
-            })
-            .catch(err => {
-                alert('Gagal menyinkronkan: ' + err);
-            });
+            alert('Menyinkronkan data secara real-time ke Cloud...');
+            if (typeof window.simpanKeFirebaseCloud === 'function') {
+                window.simpanKeFirebaseCloud(() => {
+                    alert('Sinkronisasi Cloud berhasil!');
+                });
+            } else {
+                alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
+            }
         }
 
         function isiDropdownMaster() {
             const select = document.getElementById('absenNama');
+            if(!select) return;
             select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
             dataPersonel.forEach(p => {
                 let opt = document.createElement('option');
@@ -213,6 +240,7 @@
 
         function renderAbsen() {
             const tbody = document.getElementById('bodyTabelAbsen');
+            if(!tbody) return;
             tbody.innerHTML = '';
 
             if(dataAbsen.length === 0) {
@@ -265,7 +293,8 @@
             });
 
             renderAbsen();
-            syncDataToCloud();
+            localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
+            if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
 
             document.getElementById('absenNama').value = '';
             document.getElementById('absenJabatan').value = '';
@@ -281,7 +310,8 @@
             if(confirm('Hapus data kehadiran ini?')) {
                 dataAbsen.splice(index, 1);
                 renderAbsen();
-                syncDataToCloud();
+                localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
+                if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
         }
 

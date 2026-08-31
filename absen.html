@@ -75,6 +75,7 @@
                 <p class="text-muted">Pilih nama personel terdaftar atau input manual untuk tamu/pihak ketiga secara real-time.</p>
             </div>
             <div class="col-auto">
+                <button class="btn btn-outline-dark me-2 fw-bold" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen</button>
             </div>
@@ -99,6 +100,7 @@
         </div>
     </div>
 
+    <!-- MODAL ABSEN -->
     <div class="modal fade" id="modalAbsen" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">

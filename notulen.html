@@ -78,6 +78,7 @@
                 <p class="text-muted">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud Real-Time.</p>
             </div>
             <div class="col-auto">
+                <button class="btn btn-outline-dark me-2 fw-bold" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
                 <button class="btn btn-teal" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
             </div>
@@ -87,9 +88,41 @@
             <div class="card-body">
                 <h6 class="text-secondary mb-3">🔍 Filter Histori Notulen & Tindak Lanjut</h6>
                 <div class="row g-3">
-                    <div class="col-md-4"><label class="form-label small fw-bold">Pilih Tahun</label><select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
-                    <div class="col-md-4"><label class="form-label small fw-bold">Pilih Bulan</label><select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Bulan</option><option value="09" selected>September</option></select></div>
-                    <div class="col-md-4"><label class="form-label small fw-bold">Status Tindak Lanjut</label><select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Status Aktif</option><option value="Open">Open Saja</option><option value="Closing">Closing</option></select></div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Pilih Tahun</label>
+                        <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL">Semua Tahun</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Pilih Bulan</label>
+                        <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL">Semua Bulan</option>
+                            <option value="01">Januari</option>
+                            <option value="02">Februari</option>
+                            <option value="03">Maret</option>
+                            <option value="04">April</option>
+                            <option value="05">Mei</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">Agustus</option>
+                            <option value="09" selected>September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Status Tindak Lanjut</label>
+                        <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL">Semua Status Aktif</option>
+                            <option value="Open">Open Saja</option>
+                            <option value="Closing">Closing</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,7 +169,6 @@
                     <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     
-                    <!-- BAGIAN PIC / PENANGGUNG JAWAB DIPERBARUI DENGAN OPSI MANUAL PIHAK KETIGA -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">PIC / Penanggung Jawab</label>
@@ -144,8 +176,6 @@
                                 <option value="">-- Pilih dari Master Personel --</option>
                                 <option value="MANUAL_PIHAK_KETIGA">➕ Input Manual (Pihak Ketiga / Vendor)</option>
                             </select>
-                            
-                            <!-- Input manual muncul jika memilih pihak ketiga -->
                             <div id="divPicManual" style="display: none;">
                                 <input type="text" id="notulenPicManualNama" class="form-control mb-1" placeholder="Nama Penanggung Jawab...">
                                 <input type="text" id="notulenPicManualInstansi" class="form-control" placeholder="Instansi / Perusahaan Vendor...">
@@ -280,7 +310,7 @@
 
             let grouped = {};
             filtered.forEach(item => {
-                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-}||${item.media || '-'}`;
+                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-'}||${item.media || '-'}`;
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
@@ -354,7 +384,6 @@
             document.getElementById('notulenPembahasan').value = n.pembahasan;
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
             
-            // Cek apakah PIC ada di dropdown master atau manual pihak ketiga
             const selectPic = document.getElementById('notulenSelectPic');
             let found = false;
             for (let i = 0; i < selectPic.options.length; i++) {
@@ -367,7 +396,6 @@
             if (!found && n.pic) {
                 selectPic.value = 'MANUAL_PIHAK_KETIGA';
                 document.getElementById('divPicManual').style.display = 'block';
-                // Pisahkan nama dan instansi jika formatnya tersimpan
                 document.getElementById('notulenPicManualNama').value = n.pic;
                 document.getElementById('notulenPicManualInstansi').value = '';
             } else {
@@ -396,7 +424,6 @@
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             
-            // Ambil nilai PIC (dari master atau manual pihak ketiga)
             const selPicVal = document.getElementById('notulenSelectPic').value;
             let pic = selPicVal;
             if(selPicVal === 'MANUAL_PIHAK_KETIGA') {

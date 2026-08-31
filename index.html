@@ -58,16 +58,12 @@
 </head>
 <body onload="inisialisasiAplikasi()">
 
-    <!-- 1. TAMPILAN HALAMAN LOGIN (MUNCUL PERTAMA KALI SAAT LINK DIBUKA) -->
+    <!-- 1. TAMPILAN HALAMAN LOGIN HANYA PASSWORD -->
     <div id="sectionLogin" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-        <div class="card shadow-lg border-0 p-4" style="width: 400px; border-radius: 10px;">
+        <div class="card shadow-lg border-0 p-4" style="width: 380px; border-radius: 10px;">
             <div class="text-center mb-4">
                 <h4 class="fw-bold text-teal" style="color: #134e4a;">PT Banggai Sentral Sulawesi</h4>
-                <p class="text-muted small">Silakan Login untuk Masuk ke Sistem Rapat</p>
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold">Username</label>
-                <input type="text" id="inputUsername" class="form-control" placeholder="Masukkan username...">
+                <p class="text-muted small">Masukkan Password Standar untuk Masuk</p>
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold">Password</label>
@@ -77,7 +73,7 @@
         </div>
     </div>
 
-    <!-- 2. TAMPILAN HALAMAN VISI & MISI (MUNCUL SETELAH LOGIN SUKSES) -->
+    <!-- 2. TAMPILAN HALAMAN VISI & MISI -->
     <div id="sectionVisiMisi" style="display: none;">
         <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
             <div class="container">
@@ -154,7 +150,7 @@
                 </div>
             </div>
 
-            <!-- TOMBOL CONTINUE KE DASHBOARD UTAMA -->
+            <!-- TOMBOL CONTINUE KE DASHBOARD -->
             <div class="text-center pb-1">
                 <button class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;" onclick="lanjutKeDashboard()">
                     Continue / Lanjut ke Dashboard →
@@ -165,7 +161,7 @@
         <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 10px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
     </div>
 
-    <!-- 3. TAMPILAN MENU UTAMA DASHBOARD RAPAT (MUNCUL SETELAH KLIK CONTINUE) -->
+    <!-- 3. TAMPILAN MENU UTAMA DASHBOARD RAPAT -->
     <div id="sectionDashboard" style="display: none;">
         <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
             <div class="container">
@@ -216,9 +212,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Logika Pengaturan Alur Tampilan Sesuai Permintaan
         function inisialisasiAplikasi() {
-            // Bersihkan sesi saat pertama kali link dibuka agar selalu mulai dari Login
             let statusLogin = localStorage.getItem('bss_logged_in');
             let statusStep = localStorage.getItem('bss_step');
 
@@ -227,19 +221,20 @@
             } else if (statusLogin === 'true' && statusStep === 'dashboard') {
                 tampilkanDashboard();
             } else {
-                logoutSistem(); // Paksa mulai dari Login
+                logoutSistem();
             }
         }
 
         function prosesLogin() {
             let p = document.getElementById('inputPassword').value.trim();
 
-            if (p !== "") { 
+            // Password standar yang diminta: BSS 2026
+            if (p === "BSS 2026" || p === "BSS2026") { 
                 localStorage.setItem('bss_logged_in', 'true');
                 localStorage.setItem('bss_step', 'visimisi');
                 tampilkanVisiMisi();
             } else {
-                alert('Masukkan password dengan benar!');
+                alert('Password salah! Gunakan password standar: BSS 2026');
             }
         }
 
@@ -275,12 +270,11 @@
         function logoutSistem() {
             localStorage.removeItem('bss_logged_in');
             localStorage.removeItem('bss_step');
-            document.getElementById('inputUsername').value = '';
-            document.getElementById('inputPassword').value = '';
+            let pwdInput = document.getElementById('inputPassword');
+            if(pwdInput) pwdInput.value = '';
             tampilkanLogin();
         }
 
-        // Data & Editor Visi Misi Dinamis
         let defaultVisiMisi = {
             visionEn: "To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity.",
             visionId: "Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.",

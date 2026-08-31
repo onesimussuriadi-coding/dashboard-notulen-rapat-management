@@ -101,18 +101,10 @@
                         <label class="form-label small fw-bold">Pilih Bulan</label>
                         <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Bulan</option>
-                            <option value="01">Januari</option>
-                            <option value="02">Februari</option>
-                            <option value="03">Maret</option>
-                            <option value="04">April</option>
-                            <option value="05">Mei</option>
-                            <option value="06">Juni</option>
-                            <option value="07">Juli</option>
-                            <option value="08">Agustus</option>
-                            <option value="09" selected>September</option>
-                            <option value="10">Oktober</option>
-                            <option value="11">November</option>
-                            <option value="12">Desember</option>
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08">Agustus</option><option value="09" selected>September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -154,11 +146,32 @@
                         </div>
                         <div class="mb-3"><label class="form-label">Pilih dari Jadwal Rapat Terdaftar</label><select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)"><option value="">-- Pilih Jadwal --</option></select></div>
                         <div class="row">
-                            <div class="col-md-6 mb-3"><label class="form-label">Periode Rapat</label><input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2"></div>
+                            <!-- PERIODE RAPAT DIUBAH JADI DROPDOWN MINGGU KE-1 S.D MINGGU KE-4 -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Periode Rapat</label>
+                                <select id="notulenPeriode" class="form-select">
+                                    <option value="Minggu ke-1">Minggu ke-1</option>
+                                    <option value="Minggu ke-2">Minggu ke-2</option>
+                                    <option value="Minggu ke-3">Minggu ke-3</option>
+                                    <option value="Minggu ke-4">Minggu ke-4</option>
+                                </select>
+                            </div>
                             <div class="col-md-6 mb-3"><label class="form-label">Tanggal Rapat</label><input type="date" id="notulenTanggal" class="form-control"></div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">📍 Lokasi Rapat</label><select id="notulenLokasi" class="form-select"><option value="Ruang Meeting di Office Utama">Ruang Meeting di Office Utama</option></select></div>
+                            <!-- LOKASI RAPAT DENGAN PILIHAN KANTOR SPESIFIK & OPSIONAL -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">📍 Lokasi Rapat</label>
+                                <select id="notulenLokasi" class="form-select" onchange="cekLokasiLainnya(this)">
+                                    <option value="Ruang Meeting Kantor Pasar Tua">Ruang Meeting Kantor Pasar Tua</option>
+                                    <option value="Ruang Meeting Kantor Sukarno">Ruang Meeting Kantor Sukarno</option>
+                                    <option value="Ruang Meeting Kantor Utama" selected>Ruang Meeting Kantor Utama</option>
+                                    <option value="Ruang Meeting Kantor Surabaya">Ruang Meeting Kantor Surabaya</option>
+                                    <option value="Ruang Meeting Kantor Jakarta">Ruang Meeting Kantor Jakarta</option>
+                                    <option value="OPSIONAL_LAINNYA">Lainnya / Opsional...</option>
+                                </select>
+                                <input type="text" id="notulenLokasiManual" class="form-control mt-2" style="display: none;" placeholder="Ketik lokasi opsional...">
+                            </div>
                             <div class="col-md-6 mb-3"><label class="form-label fw-bold">💻 Media</label><div class="d-flex gap-4 mt-2"><div class="form-check"><input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline"><label class="form-check-label" for="mediaOffline">Offline</label></div><div class="form-check"><input class="form-check-input" type="checkbox" id="mediaOnline" value="Online"><label class="form-check-label" for="mediaOnline">Online</label></div></div></div>
                         </div>
                         <hr class="my-3">
@@ -245,6 +258,17 @@
             }
         }
 
+        function cekLokasiLainnya(sel) {
+            const inputManual = document.getElementById('notulenLokasiManual');
+            if(sel.value === 'OPSIONAL_LAINNYA') {
+                inputManual.style.display = 'block';
+                inputManual.value = '';
+                inputManual.focus();
+            } else {
+                inputManual.style.display = 'none';
+            }
+        }
+
         function isiDropdownTanggalLalu() {
             const select = document.getElementById('selectTanggalLalu');
             if(!select) return;
@@ -267,7 +291,7 @@
             if(topikLalu.length === 0) { alert('Tidak ada topik Open pada tanggal tersebut.'); return; }
             topikLalu.forEach(item => {
                 dataNotulen.unshift({
-                    periode: periodeBaru, tanggal: tglBaru, lokasi: item.lokasi || 'Office Utama',
+                    periode: periodeBaru, tanggal: tglBaru, lokasi: item.lokasi || 'Ruang Meeting Kantor Utama',
                     media: item.media || 'Offline', topikUtama: item.topikUtama, pembahasan: item.pembahasan,
                     tindakLanjut: item.tindakLanjut, pic: item.pic, deadline: item.deadline, status: 'Open'
                 });
@@ -323,7 +347,7 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglF}</h5>
+                    <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglF} | 📍 ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>
                     <th style="width:22%;">Topik Utama</th><th style="width:20%;">Pembahasan</th><th style="width:33%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:10%;">Status</th><th style="width:5%;" class="text-center">Aksi</th></tr></thead><tbody>`;
@@ -346,7 +370,7 @@
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'none';
+            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian header agar fokus ke topik
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             document.getElementById('notulenTopikUtama').value = '';
@@ -361,9 +385,11 @@
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'block';
-            document.getElementById('notulenPeriode').value = '';
+            document.getElementById('sectionInfoUmum').style.display = 'block'; // Tampilkan header lengkap
+            document.getElementById('notulenPeriode').value = 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('notulenLokasi').value = 'Ruang Meeting Kantor Utama';
+            document.getElementById('notulenLokasiManual').style.display = 'none';
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
@@ -378,8 +404,26 @@
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('sectionInfoUmum').style.display = 'block';
             const n = dataNotulen[index];
-            document.getElementById('notulenPeriode').value = n.periode;
+            document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = n.tanggal;
+            
+            const selectLokasi = document.getElementById('notulenLokasi');
+            let locFound = false;
+            for (let i = 0; i < selectLokasi.options.length; i++) {
+                if (selectLokasi.options[i].value === n.lokasi) {
+                    selectLokasi.value = n.lokasi;
+                    locFound = true;
+                    break;
+                }
+            }
+            if(!locFound && n.lokasi) {
+                selectLokasi.value = 'OPSIONAL_LAINNYA';
+                document.getElementById('notulenLokasiManual').style.display = 'block';
+                document.getElementById('notulenLokasiManual').value = n.lokasi;
+            } else {
+                document.getElementById('notulenLokasiManual').style.display = 'none';
+            }
+
             document.getElementById('notulenTopikUtama').value = n.topikUtama;
             document.getElementById('notulenPembahasan').value = n.pembahasan;
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
@@ -410,16 +454,26 @@
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
             const isQuick = document.getElementById('sectionInfoUmum').style.display === 'none';
-            let periode, tanggal, lokasi = 'Office Utama', media = 'Offline';
+            let periode, tanggal, lokasi = 'Ruang Meeting Kantor Utama', media = 'Offline';
+            
             if(isQuick) {
                 periode = document.getElementById('notulenPeriode').value;
                 tanggal = document.getElementById('notulenTanggal').value;
                 let match = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
                 if(match) { lokasi = match.lokasi; media = match.media; }
             } else {
-                periode = document.getElementById('notulenPeriode').value.trim();
+                periode = document.getElementById('notulenPeriode').value;
                 tanggal = document.getElementById('notulenTanggal').value;
+                const selLoc = document.getElementById('notulenLokasi').value;
+                lokasi = selLoc === 'OPSIONAL_LAINNYA' ? (document.getElementById('notulenLokasiManual').value.trim() || 'Kantor Utama') : selLoc;
+                
+                let mOff = document.getElementById('mediaOffline').checked;
+                let mOn = document.getElementById('mediaOnline').checked;
+                if(mOff && mOn) media = 'Offline & Online';
+                else if(mOff) media = 'Offline';
+                else if(mOn) media = 'Online';
             }
+
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();

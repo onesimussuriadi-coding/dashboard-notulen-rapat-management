@@ -43,7 +43,7 @@
                 if (serverData.personel) localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
                 if (serverData.jadwal) localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
                 if (serverData.absen) localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
-                if (serverData.notulen) {
+                if (serverData.notulen && serverData.notulen.length > 0) {
                     localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
                     dataNotulen = serverData.notulen;
                     if (typeof renderNotulen === 'function') { renderNotulen(); isiDropdownTanggalLalu(); }
@@ -127,7 +127,7 @@
                             <option value="ALL">Semua Bulan</option>
                             <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
                             <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
-                            <option value="07">Juli</option><option value="08">Agustus</option><option value="09" selected>September</option>
+                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
                             <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                         </select>
                     </div>
@@ -208,9 +208,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">PIC / Penanggung Jawab (Bisa Pilih Banyak)</label>
-                            <div class="border rounded p-2 bg-white" style="max-height: 150px; overflow-y: auto;" id="containerCheckboxPic">
-                                <!-- Daftar checkbox PIC akan dirender otomatis melalui Javascript -->
-                            </div>
+                            <div class="border rounded p-2 bg-white" style="max-height: 150px; overflow-y: auto;" id="containerCheckboxPic"></div>
                             <div class="input-group input-group-sm mt-2">
                                 <input type="text" id="inputPicManualNama" class="form-control" placeholder="Nama Pihak Ketiga / Vendor...">
                                 <button class="btn btn-outline-secondary" type="button" onclick="tambahPicManualBaru()">+ Tambah</button>
@@ -239,9 +237,12 @@
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
-        let daftarPicAktif = []; // Menyimpan list gabungan personel master & manual
 
         function muatDataNotulen() { 
+            let localData = JSON.parse(localStorage.getItem('bss_notulen'));
+            if(localData && localData.length > 0) {
+                dataNotulen = localData;
+            }
             renderNotulen(); 
             isiDropdownJadwal(); 
             inisialisasiDaftarPic();
@@ -270,7 +271,6 @@
             if(!container) return;
             container.innerHTML = '';
             
-            // Gabungkan master personel dengan PIC manual yang mungkin sudah tersimpan sebelumnya
             let allPics = dataPersonel.map(p => `${p.nama} (${p.jabatan})`);
             selectedPics.forEach(sp => {
                 if(!allPics.includes(sp)) allPics.push(sp);
@@ -392,13 +392,13 @@
             });
 
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen sesuai filter.</div>`;
+                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen sesuai filter bulan Agustus (atau filter aktif lainnya).</div>`;
                 return;
             }
 
             let grouped = {};
             filtered.forEach(item => {
-                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-}||${item.media || '-'}`;
+                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-'}||${item.media || '-'}`;
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
@@ -423,7 +423,6 @@
                     let pembahasanRapi = formatTeksPenomoran(n.pembahasan);
                     let tindakLanjutRapi = formatTeksPenomoran(n.tindakLanjut);
                     
-                    // Menampilkan daftar PIC (mendukung format array atau string lama)
                     let picFormatted = '-';
                     if (Array.isArray(n.pic)) {
                         picFormatted = n.pic.join(', ');
@@ -509,7 +508,6 @@
             document.getElementById('notulenPembahasan').value = n.pembahasan;
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
             
-            // Mengambil list PIC yang tersimpan (bisa berupa array atau string yang dipisah koma)
             let currentPics = [];
             if (Array.isArray(n.pic)) {
                 currentPics = n.pic;
@@ -548,9 +546,8 @@
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
-            const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
+            const tindakLanjut = document.getElementById('notulenTestTindakLanjut') ? document.getElementById('notulenTestTindakLanjut').value.trim() : document.getElementById('notulenTindakLanjut').value.trim();
             
-            // Mengumpulkan semua PIC yang dicentang oleh user
             let selectedPics = [];
             document.querySelectorAll('.checkbox-pic:checked').forEach(cb => {
                 selectedPics.push(cb.value);

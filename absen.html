@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Absen & Kehadiran Rapat</title>
-    <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Firebase SDK (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Asli BSS-DASHBOARD
         const firebaseConfig = {
             apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
             authDomain: "bss-dashboard-73681.firebaseapp.com",
@@ -27,7 +24,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Fungsi Global untuk Sinkronisasi Real-Time ke Firebase
         window.simpanKeFirebaseCloud = function(callback) {
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
@@ -37,15 +33,10 @@
             };
 
             set(ref(db, 'ptbss_rapat_data'), payload)
-                .then(() => {
-                    if(callback) callback();
-                })
-                .catch(err => {
-                    console.error("Gagal sinkron ke cloud: ", err);
-                });
+                .then(() => { if(callback) callback(); })
+                .catch(err => console.error("Gagal sinkron ke cloud: ", err));
         };
 
-        // Real-time Listener (Mendengar perubahan data dari komputer lain secara otomatis)
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
@@ -64,52 +55,31 @@
             }
         });
     </script>
-
-    <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; }
-            .card { border: none !important; box-shadow: none !important; }
-        }
-    </style>
 </head>
-<body class="bg-light" onload="muatDataAbsen()">
+<body class="bg-light" onload="cekKeamananDanMuatAbsen()">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-success shadow-sm no-print">
+    <nav class="navbar navbar-dark bg-success shadow-sm">
         <div class="container">
             <span class="navbar-brand mb-0 h1">📝 Modul Daftar Absen & Kehadiran Rapat</span>
             <div>
                 <a href="jadwal.html" class="btn btn-outline-light btn-sm me-2">← Jadwal Rapat</a>
-                <a href="index.html" class="btn btn-outline-light btn-sm">Dashboard Utama</a>
+                <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
             </div>
         </div>
     </nav>
 
-    <!-- Konten Utama -->
     <div class="container my-5">
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
                 <p class="text-muted">Pilih nama personel terdaftar atau input manual untuk tamu/pihak ketiga secara real-time.</p>
             </div>
-            <div class="col-auto no-print">
+            <div class="col-auto">
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
-                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / PDF</button>
-                <button class="btn btn-success me-2" onclick="downloadAbsenExcel()">📊 Excel</button>
-                <button class="btn btn-primary me-2" onclick="downloadAbsenWord()">📄 Word</button>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen</button>
             </div>
         </div>
 
-        <!-- Kop Dokumen Resmi untuk Cetak / PDF -->
-        <div class="text-center mb-4 d-none d-print-block">
-            <h3>PT BANGGAI SENTRAL SULAWESI</h3>
-            <h5>DAFTAR HADIR PESERTA RAPAT MANAJEMEN</h5>
-            <hr>
-        </div>
-
-        <!-- Tabel Rekap Absen -->
         <div class="card shadow-sm mb-5">
             <div class="card-body">
                 <div class="table-responsive">
@@ -119,19 +89,16 @@
                                 <th>Waktu Check-in</th>
                                 <th>Nama Peserta & Jabatan</th>
                                 <th>Status & Keterangan</th>
-                                <th class="text-center no-print">Aksi</th>
+                                <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="bodyTabelAbsen">
-                            <!-- Data dimuat otomatis -->
-                        </tbody>
+                        <tbody id="bodyTabelAbsen"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form Absen -->
     <div class="modal fade" id="modalAbsen" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -147,51 +114,44 @@
                             <option value="MANUAL_TAMU">➕ Input Manual / Tamu / Pihak Ketiga</option>
                         </select>
                     </div>
-
-                    <!-- Input Manual (Muncul jika pilih Tamu / Pihak Ketiga) -->
                     <div class="mb-3" id="divInputManual" style="display: none;">
-                        <label class="form-label text-primary fw-bold">Nama Lengkap Tamu / Pihak Ketiga</label>
+                        <label class="form-label text-primary fw-bold">Nama Lengkap Tamu</label>
                         <input type="text" id="manualNama" class="form-control mb-2" placeholder="Ketik nama lengkap tamu...">
                         <label class="form-label text-primary fw-bold">Instansi / Jabatan Tamu</label>
-                        <input type="text" id="manualJabatan" class="form-control" placeholder="Contoh: PT Kontraktor / Konsultan / Vendor...">
+                        <input type="text" id="manualJabatan" class="form-control" placeholder="Contoh: PT Kontraktor / Vendor...">
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Jabatan (Internal)</label>
-                        <input type="text" id="absenJabatan" class="form-control" readonly placeholder="Otomatis terisi dari master">
-                    </div>
+                    <div class="mb-3"><label class="form-label">Jabatan (Internal)</label><input type="text" id="absenJabatan" class="form-control" readonly placeholder="Otomatis terisi dari master"></div>
                     <div class="mb-3">
                         <label class="form-label">Status Kehadiran</label>
                         <select id="absenStatus" class="form-select" onchange="cekStatusAbsen(this)">
-                            <option value="Hadir">Hadir</option>
-                            <option value="Izin">Izin (Keperluan Keluarga / Lainnya)</option>
-                            <option value="Sakit">Sakit</option>
-                            <option value="Tugas Luar">Tugas Luar / Tugas Proyek</option>
+                            <option value="Hadir">Hadir</option><option value="Izin">Izin</option><option value="Sakit">Sakit</option><option value="Tugas Luar">Tugas Luar</option>
                         </select>
                     </div>
-                    <div class="mb-3" id="divKeterangan" style="display: none;">
-                        <label class="form-label">Keterangan / Alasan Spesifik</label>
-                        <input type="text" id="absenKeterangan" class="form-control" placeholder="Contoh: Izin urusan keluarga, Sakit surat dokter, dll.">
-                    </div>
+                    <div class="mb-3" id="divKeterangan" style="display: none;"><label class="form-label">Keterangan / Alasan</label><input type="text" id="absenKeterangan" class="form-control" placeholder="Tuliskan keterangan..."></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-success" onclick="simpanAbsen()">OK / Simpan Kehadiran</button>
+                    <button type="button" class="btn btn-success" onclick="simpanAbsen()">Simpan Kehadiran</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-muted no-print">
-        <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Absensi</small>
-    </footer>
+    <footer class="text-center py-4 text-muted"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Absensi</small></footer>
 
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Absen -->
     <script>
+        function cekKeamananDanMuatAbsen() {
+            let statusLogin = localStorage.getItem('bss_logged_in');
+            if (statusLogin !== 'true') {
+                alert('Sesi Anda belum terverifikasi. Silakan masukkan password di halaman utama.');
+                window.location.href = 'index.html';
+                return;
+            }
+            muatDataAbsen();
+        }
+
         let dataAbsen = JSON.parse(localStorage.getItem('bss_absen')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
@@ -200,20 +160,13 @@
             { nama: "Elizabeth Nani Ekawati", jabatan: "Admin Operasional" }
         ];
 
-        function muatDataAbsen() {
-            renderAbsen();
-            isiDropdownMaster();
-        }
+        function muatDataAbsen() { renderAbsen(); isiDropdownMaster(); }
 
         function syncDataToCloud() {
             alert('Menyinkronkan data secara real-time ke Cloud...');
             if (typeof window.simpanKeFirebaseCloud === 'function') {
-                window.simpanKeFirebaseCloud(() => {
-                    alert('Sinkronisasi Cloud berhasil!');
-                });
-            } else {
-                alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
-            }
+                window.simpanKeFirebaseCloud(() => { alert('Sinkronisasi Cloud berhasil!'); });
+            } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
         function isiDropdownMaster() {
@@ -222,8 +175,7 @@
             select.innerHTML = '<option value="">-- Pilih Nama Anda --</option><option value="MANUAL_TAMU">➕ Input Manual / Tamu / Pihak Ketiga</option>';
             dataPersonel.forEach(p => {
                 let opt = document.createElement('option');
-                opt.value = p.nama;
-                opt.setAttribute('data-jabatan', p.jabatan);
+                opt.value = p.nama; opt.setAttribute('data-jabatan', p.jabatan);
                 opt.textContent = `${p.nama} (${p.jabatan})`;
                 select.appendChild(opt);
             });
@@ -233,58 +185,33 @@
             const val = select.value;
             const divManual = document.getElementById('divInputManual');
             const inputJabatan = document.getElementById('absenJabatan');
-
             if(val === 'MANUAL_TAMU') {
-                divManual.style.display = 'block';
-                inputJabatan.value = '';
-                inputJabatan.readOnly = false;
-                inputJabatan.placeholder = 'Masukkan jabatan/instansi tamu...';
+                divManual.style.display = 'block'; inputJabatan.value = ''; inputJabatan.readOnly = false;
             } else {
-                divManual.style.display = 'none';
-                inputJabatan.readOnly = true;
-                const opt = select.options[select.selectedIndex];
-                inputJabatan.value = opt.getAttribute('data-jabatan') || '';
+                divManual.style.display = 'none'; inputJabatan.readOnly = true;
+                inputJabatan.value = select.options[select.selectedIndex].getAttribute('data-jabatan') || '';
             }
         }
 
         function cekStatusAbsen(select) {
-            const val = select.value;
-            const divKet = document.getElementById('divKeterangan');
-            if(val === 'Hadir') {
-                divKet.style.display = 'none';
-                document.getElementById('absenKeterangan').value = '';
-            } else {
-                divKet.style.display = 'block';
-            }
+            document.getElementById('divKeterangan').style.display = select.value === 'Hadir' ? 'none' : 'block';
         }
 
         function renderAbsen() {
             const tbody = document.getElementById('bodyTabelAbsen');
             if(!tbody) return;
             tbody.innerHTML = '';
-
             if(dataAbsen.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Belum ada data kehadiran tercatat.</td></tr>`;
                 return;
             }
-
             dataAbsen.forEach((a, index) => {
-                let badgeClass = 'bg-success';
-                if(a.status === 'Izin') badgeClass = 'bg-warning text-dark';
-                else if(a.status === 'Sakit') badgeClass = 'bg-danger';
-                else if(a.status === 'Tugas Luar') badgeClass = 'bg-info text-dark';
-
-                let ketHtml = a.keterangan ? `<br><small class="text-muted">Ket: ${a.keterangan}</small>` : '';
-
+                let badge = a.status === 'Hadir' ? 'bg-success' : a.status === 'Izin' ? 'bg-warning text-dark' : 'bg-danger';
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${a.waktu}</strong></td>
+                tr.innerHTML = `<td><strong>${a.waktu}</strong></td>
                     <td><span class="fw-bold text-success">${a.nama}</span> <span class="text-muted">— ${a.jabatan}</span></td>
-                    <td><span class="badge ${badgeClass}">${a.status}</span>${ketHtml}</td>
-                    <td class="text-center no-print">
-                        <button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>
-                    </td>
-                `;
+                    <td><span class="badge ${badge}">${a.status}</span> ${a.keterangan ? '<br><small class="text-muted">Ket: '+a.keterangan+'</small>' : ''}</td>
+                    <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button></td>`;
                 tbody.appendChild(tr);
             });
             localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
@@ -292,148 +219,30 @@
 
         function simpanAbsen() {
             const selectNama = document.getElementById('absenNama').value;
-            let nama = selectNama;
-            let jabatan = document.getElementById('absenJabatan').value;
-
+            let nama = selectNama, jabatan = document.getElementById('absenJabatan').value;
             if(selectNama === 'MANUAL_TAMU') {
                 nama = document.getElementById('manualNama').value.trim();
                 jabatan = document.getElementById('manualJabatan').value.trim() || 'Tamu / Pihak Ketiga';
-                if(!nama) {
-                    alert('Silakan ketik nama tamu / pihak ketiga terlebih dahulu!');
-                    document.getElementById('manualNama').focus();
-                    return;
-                }
+                if(!nama) { alert('Silakan ketik nama tamu!'); return; }
             }
-
-            if(!nama) {
-                alert('Silakan pilih atau isi nama peserta terlebih dahulu!');
-                return;
-            }
-
+            if(!nama) { alert('Silakan pilih atau isi nama peserta!'); return; }
             const status = document.getElementById('absenStatus').value;
             const keterangan = document.getElementById('absenKeterangan').value.trim();
-
             const now = new Date();
             const waktuString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' | ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-            dataAbsen.unshift({
-                waktu: waktuString,
-                nama: nama,
-                jabatan: jabatan,
-                status: status,
-                keterangan: keterangan
-            });
-
+            dataAbsen.unshift({ waktu: waktuString, nama, jabatan, status, keterangan });
             renderAbsen();
-            localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
-
-            // Reset form
-            document.getElementById('absenNama').value = '';
-            document.getElementById('manualNama').value = '';
-            document.getElementById('manualJabatan').value = '';
-            document.getElementById('divInputManual').style.display = 'none';
-            document.getElementById('absenJabatan').value = '';
-            document.getElementById('absenJabatan').readOnly = true;
-            document.getElementById('absenStatus').value = 'Hadir';
-            document.getElementById('divKeterangan').style.display = 'none';
-            document.getElementById('absenKeterangan').value = '';
-
-            const modalEl = document.getElementById('modalAbsen');
-            bootstrap.Modal.getInstance(modalEl).hide();
+            bootstrap.Modal.getInstance(document.getElementById('modalAbsen')).hide();
         }
 
         function hapusAbsen(index) {
             if(confirm('Hapus data kehadiran ini?')) {
                 dataAbsen.splice(index, 1);
                 renderAbsen();
-                localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
-        }
-
-        function downloadAbsenExcel() {
-            if (dataAbsen.length === 0) {
-                alert('Belum ada data kehadiran untuk diunduh.');
-                return;
-            }
-
-            let htmlContent = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head><meta charset="utf-8"><title>Rekap Kehadiran Rapat BSS</title></head>
-                <body>
-                    <table border="1">
-                        <tr><th colspan="4" style="background-color:#198754; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP KEHADIRAN RAPAT</th></tr>
-                        <tr style="background-color:#f2f2f2;">
-                            <th>Waktu Check-in</th><th>Nama Peserta</th><th>Jabatan</th><th>Status & Keterangan</th>
-                        </tr>
-            `;
-
-            dataAbsen.forEach(item => {
-                htmlContent += `
-                    <tr>
-                        <td>${item.waktu}</td>
-                        <td>${item.nama}</td>
-                        <td>${item.jabatan}</td>
-                        <td>${item.status} ${item.keterangan ? '('+item.keterangan+')' : ''}</td>
-                    </tr>
-                `;
-            });
-
-            htmlContent += `</table></body></html>`;
-
-            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `Rekap_Absen_BSS.xls`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function downloadAbsenWord() {
-            if (dataAbsen.length === 0) {
-                alert('Belum ada data kehadiran untuk diunduh.');
-                return;
-            }
-
-            let htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Daftar Hadir Rapat</title></head>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #198754; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>
-                    <h3 style="text-align: center; margin-top: 5px;">DAFTAR HADIR PESERTA RAPAT MANAJEMEN</h3>
-                    <hr style="border: 1px solid #198754;">
-                    <table border="1" cellspacing="0" cellpadding="8" style="width:100%; border-collapse:collapse; margin-top:20px;">
-                        <thead>
-                            <tr style="background-color:#198754; color:white;">
-                                <th>Waktu Check-in</th><th>Nama Peserta & Jabatan</th><th>Status Kehadiran</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            dataAbsen.forEach(item => {
-                htmlContent += `
-                    <tr>
-                        <td>${item.waktu}</td>
-                        <td><strong>${item.nama}</strong> (${item.jabatan})</td>
-                        <td>${item.status} ${item.keterangan ? '- Ket: '+item.keterangan : ''}</td>
-                    </tr>
-                `;
-            });
-
-            htmlContent += `</tbody></table></body></html>`;
-
-            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `Daftar_Hadir_BSS.doc`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
     </script>
 </body>

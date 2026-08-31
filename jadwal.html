@@ -4,29 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadwal & Rotasi Personel Rapat</title>
-    <!-- Menggunakan Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Firebase SDK (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Anda
         const firebaseConfig = {
-            apiKey: "MASUKKAN_API_KEY_ANDA",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
+            apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
+            authDomain: "bss-dashboard-73681.firebaseapp.com",
+            databaseURL: "https://bss-dashboard-73681-default-rtdb.firebaseio.com",
+            projectId: "bss-dashboard-73681",
+            storageBucket: "bss-dashboard-73681.appspot.com",
+            messagingSenderId: "252320657377",
+            appId: "1:252320657377:web:6144074f593ffd5d46aca0",
+            measurementId: "G-0DZTBMCJ1H"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Fungsi Global untuk Sinkronisasi Real-Time ke Firebase
         window.simpanKeFirebaseCloud = function(callback) {
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
@@ -36,15 +33,10 @@
             };
 
             set(ref(db, 'ptbss_rapat_data'), payload)
-                .then(() => {
-                    if(callback) callback();
-                })
-                .catch(err => {
-                    console.error("Gagal sinkron ke cloud: ", err);
-                });
+                .then(() => { if(callback) callback(); })
+                .catch(err => console.error("Gagal sinkron ke cloud: ", err));
         };
 
-        // Real-time Listener (Mendengar perubahan data dari komputer lain secara otomatis)
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
@@ -67,9 +59,8 @@
         });
     </script>
 </head>
-<body class="bg-light" onload="muatDataAwal()">
+<body class="bg-light" onload="cekKeamananDanMuatData()">
 
-    <!-- Navbar -->
     <nav class="navbar navbar-dark bg-primary shadow-sm">
         <div class="container">
             <span class="navbar-brand mb-0 h1">🗓️ Modul Jadwal & Rotasi Pemimpin Rapat</span>
@@ -80,12 +71,11 @@
         </div>
     </nav>
 
-    <!-- Konten Utama -->
     <div class="container my-5">
         <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Jadwal Giliran Rapat Periode Berjalan</h3>
-                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan (Terhubung ke Cloud Real-Time).</p>
+                <p class="text-muted">Kelola penugasan, akses ruang rapat online, kalender interaktif, dan status pelaksanaan (Real-Time Cloud Connected).</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-success me-2" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
@@ -93,7 +83,6 @@
             </div>
         </div>
 
-        <!-- Tabel Jadwal -->
         <div class="card shadow-sm mb-5">
             <div class="card-body">
                 <div class="table-responsive">
@@ -108,32 +97,21 @@
                                 <th class="text-center">Aksi (Edit / Hapus)</th>
                             </tr>
                         </thead>
-                        <tbody id="bodyTabelJadwal">
-                            <!-- Data dimuat otomatis -->
-                        </tbody>
+                        <tbody id="bodyTabelJadwal"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Bagian Master Data Personel & Jabatan -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">👥 Daftar Master Personel & Jabatan</h5>
-                        <ul class="list-group list-group-flush mb-3" id="listPersonel">
-                            <!-- Data dimuat otomatis -->
-                        </ul>
-                        
-                        <!-- Form Tambah / Edit Personel & Jabatan -->
+                        <ul class="list-group list-group-flush mb-3" id="listPersonel"></ul>
                         <div class="p-3 bg-light border rounded">
-                            <div class="mb-2">
-                                <input type="text" id="inputNamaBaru" class="form-control form-control-sm" placeholder="Nama Lengkap Personel...">
-                            </div>
-                            <div class="mb-2">
-                                <input type="text" id="inputJabatanBaru" class="form-control form-control-sm" placeholder="Jabatan / Divisi...">
-                            </div>
+                            <div class="mb-2"><input type="text" id="inputNamaBaru" class="form-control form-control-sm" placeholder="Nama Lengkap Personel..."></div>
+                            <div class="mb-2"><input type="text" id="inputJabatanBaru" class="form-control form-control-sm" placeholder="Jabatan / Divisi..."></div>
                             <button class="btn btn-outline-primary btn-sm w-100" type="button" onclick="tambahPersonel()">+ Tambah ke Master Personel</button>
                         </div>
                     </div>
@@ -144,9 +122,9 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Akses Online</h5>
                         <ul class="text-muted small ps-3">
-                            <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar (`http://bit.ly/bss-meeting`).</li>
+                            <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar.</li>
                             <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal dilengkapi tombol menuju ruang Jitsi.</li>
-                            <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Real-Time Database perusahaan.</li>
+                            <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Real-Time Database.</li>
                         </ul>
                     </div>
                 </div>
@@ -154,7 +132,6 @@
         </div>
     </div>
 
-    <!-- Modal Form Tambah / Edit Jadwal -->
     <div class="modal fade" id="modalJadwal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -164,47 +141,19 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editIndex" value="-1">
-                    <div class="mb-3">
-                        <label class="form-label">Periode / Minggu</label>
-                        <input type="text" id="valPeriode" class="form-control" placeholder="Contoh: Minggu ke-3">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tanggal Rapat</label>
-                        <input type="date" id="valTanggal" class="form-control">
+                    <div class="mb-3"><label class="form-label">Periode / Minggu</label><input type="text" id="valPeriode" class="form-control" placeholder="Contoh: Minggu ke-3"></div>
+                    <div class="mb-3"><label class="form-label">Tanggal Rapat</label><input type="date" id="valTanggal" class="form-control"></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Jam Mulai</label><input type="time" id="valJamMulai" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Jam Selesai</label><input type="time" id="valJamSelesai" class="form-control"></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jam Mulai</label>
-                            <input type="time" id="valJamMulai" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jam Selesai</label>
-                            <input type="time" id="valJamSelesai" class="form-control">
-                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Pemimpin Rapat (Leader)</label><select id="valLeader" class="form-select" onchange="pilihLeader(this)"><option value="">-- Pilih Leader --</option></select></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Jabatan Leader</label><input type="text" id="valJabatanLeader" class="form-control" readonly placeholder="Otomatis terisi"></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Pemimpin Rapat (Leader)</label>
-                            <select id="valLeader" class="form-select" onchange="pilihLeader(this)">
-                                <option value="">-- Pilih Leader --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jabatan Leader</label>
-                            <input type="text" id="valJabatanLeader" class="form-control" readonly placeholder="Otomatis terisi">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Petugas Notulen</label>
-                            <select id="valNotulen" class="form-select" onchange="pilihNotulen(this)">
-                                <option value="">-- Pilih Notulis --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jabatan Notulis</label>
-                            <input type="text" id="valJabatanNotulen" class="form-control" readonly placeholder="Otomatis terisi">
-                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Petugas Notulen</label><select id="valNotulen" class="form-select" onchange="pilihNotulen(this)"><option value="">-- Pilih Notulis --</option></select></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Jabatan Notulis</label><input type="text" id="valJabatanNotulen" class="form-control" readonly placeholder="Otomatis terisi"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Status / Keterangan Rapat</label>
@@ -212,7 +161,7 @@
                             <option value="Akan Datang">Akan Datang</option>
                             <option value="Berjalan">Berjalan (Otomatis Catat Jam Mulai)</option>
                             <option value="Selesai">Selesai (Otomatis Catat Jam Selesai)</option>
-                            <option value="Tidak Dilakukan Rapat">Tidak Dilakukan Rapat (Kosong/Geser)</option>
+                            <option value="Tidak Dilakukan Rapat">Tidak Dilakukan Rapat</option>
                         </select>
                     </div>
                 </div>
@@ -224,16 +173,21 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-muted">
-        <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Jadwal</small>
-    </footer>
+    <footer class="text-center py-4 text-muted"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Jadwal</small></footer>
 
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Lengkap -->
     <script>
+        function cekKeamananDanMuatData() {
+            let statusLogin = localStorage.getItem('bss_logged_in');
+            if (statusLogin !== 'true') {
+                alert('Sesi Anda belum terverifikasi. Silakan masukkan password di halaman utama.');
+                window.location.href = 'index.html';
+                return;
+            }
+            muatDataAwal();
+        }
+
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
             { nama: "Prayogo Sudana", jabatan: "General Manager" },
@@ -243,32 +197,19 @@
 
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [
             {
-                periode: "Minggu ke-1",
-                tanggal: "2026-09-03",
-                jamMulai: "13:30",
-                jamSelesai: "15:30",
-                leader: "I Made Vridianto",
-                jabatanLeader: "Manager HSE",
-                notulen: "Ruwaeda Magga",
-                jabatanNotulen: "Supervisor Akuntansi dan Keuangan",
-                status: "Selesai"
+                periode: "Minggu ke-1", tanggal: "2026-09-03", jamMulai: "13:30", jamSelesai: "15:30",
+                leader: "I Made Vridianto", jabatanLeader: "Manager HSE",
+                notulen: "Ruwaeda Magga", jabatanNotulen: "Supervisor Akuntansi dan Keuangan", status: "Selesai"
             }
         ];
 
-        function muatDataAwal() {
-            renderPersonel();
-            renderJadwal();
-        }
+        function muatDataAwal() { renderPersonel(); renderJadwal(); }
 
         function syncDataToCloud() {
             alert('Menyinkronkan data secara real-time ke Cloud...');
             if (typeof window.simpanKeFirebaseCloud === 'function') {
-                window.simpanKeFirebaseCloud(() => {
-                    alert('Sinkronisasi Cloud berhasil!');
-                });
-            } else {
-                alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
-            }
+                window.simpanKeFirebaseCloud(() => { alert('Sinkronisasi Cloud berhasil!'); });
+            } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
         function renderPersonel() {
@@ -278,13 +219,9 @@
             dataPersonel.forEach((p, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
-                li.innerHTML = `
-                    <div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button>
-                    </div>
-                `;
+                li.innerHTML = `<div><strong>${p.nama}</strong> <span class="text-muted">— ${p.jabatan}</span></div>
+                    <div><button class="btn btn-sm btn-outline-warning me-1 px-2" onclick="editPersonel(${index})">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusPersonel(${index})">Hapus</button></div>`;
                 list.appendChild(li);
             });
             localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
@@ -292,22 +229,13 @@
         }
 
         function tambahPersonel() {
-            const inputNama = document.getElementById('inputNamaBaru');
-            const inputJabatan = document.getElementById('inputJabatanBaru');
-            const nama = inputNama.value.trim();
-            const jabatan = inputJabatan.value.trim() || 'Staff';
-
-            if(nama === '') {
-                alert('Nama personel tidak boleh kosong!');
-                inputNama.focus();
-                return;
-            }
-
-            dataPersonel.push({ nama: nama, jabatan: jabatan });
-            inputNama.value = '';
-            inputJabatan.value = '';
+            const nama = document.getElementById('inputNamaBaru').value.trim();
+            const jabatan = document.getElementById('inputJabatanBaru').value.trim() || 'Staff';
+            if(!nama) { alert('Nama tidak boleh kosong!'); return; }
+            dataPersonel.push({ nama, jabatan });
+            document.getElementById('inputNamaBaru').value = '';
+            document.getElementById('inputJabatanBaru').value = '';
             renderPersonel();
-            localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
         }
 
@@ -315,47 +243,31 @@
             const p = dataPersonel[index];
             document.getElementById('inputNamaBaru').value = p.nama;
             document.getElementById('inputJabatanBaru').value = p.jabatan;
-            
-            const btnContainer = document.querySelector('#inputNamaBaru').closest('.p-3');
-            let btnAksi = btnContainer.querySelector('button');
+            let btnAksi = document.querySelector('#inputNamaBaru').closest('.p-3').querySelector('button');
             btnAksi.className = 'btn btn-warning btn-sm w-100 fw-bold text-dark';
             btnAksi.textContent = '💾 Update / Simpan Perubahan';
             btnAksi.setAttribute('onclick', `updatePersonel(${index})`);
         }
 
         function updatePersonel(index) {
-            const inputNama = document.getElementById('inputNamaBaru');
-            const inputJabatan = document.getElementById('inputJabatanBaru');
-            const nama = inputNama.value.trim();
-            const jabatan = inputJabatan.value.trim() || 'Staff';
-
-            if(nama === '') {
-                alert('Nama personel tidak boleh kosong!');
-                inputNama.focus();
-                return;
-            }
-
-            dataPersonel[index] = { nama: nama, jabatan: jabatan };
-            
-            inputNama.value = '';
-            inputJabatan.value = '';
-            
-            const btnContainer = inputNama.closest('.p-3');
-            let btnAksi = btnContainer.querySelector('button');
+            const nama = document.getElementById('inputNamaBaru').value.trim();
+            const jabatan = document.getElementById('inputJabatanBaru').value.trim() || 'Staff';
+            if(!nama) { alert('Nama tidak boleh kosong!'); return; }
+            dataPersonel[index] = { nama, jabatan };
+            document.getElementById('inputNamaBaru').value = '';
+            document.getElementById('inputJabatanBaru').value = '';
+            let btnAksi = document.querySelector('#inputNamaBaru').closest('.p-3').querySelector('button');
             btnAksi.className = 'btn btn-outline-primary btn-sm w-100';
             btnAksi.textContent = '+ Tambah ke Master Personel';
             btnAksi.setAttribute('onclick', 'tambahPersonel()');
-
             renderPersonel();
-            localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
         }
 
         function hapusPersonel(index) {
-            if(confirm('Hapus personel ini dari master?')) {
+            if(confirm('Hapus personel ini?')) {
                 dataPersonel.splice(index, 1);
                 renderPersonel();
-                localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
         }
@@ -364,71 +276,35 @@
             const selectLeader = document.getElementById('valLeader');
             const selectNotulen = document.getElementById('valNotulen');
             if(!selectLeader || !selectNotulen) return;
-
-            let curLeader = selectLeader.value;
-            let curNotulen = selectNotulen.value;
-
+            let curL = selectLeader.value, curN = selectNotulen.value;
             selectLeader.innerHTML = '<option value="">-- Pilih Leader --</option>';
             selectNotulen.innerHTML = '<option value="">-- Pilih Notulis --</option>';
-
             dataPersonel.forEach(p => {
-                let opt1 = document.createElement('option');
-                opt1.value = p.nama;
-                opt1.setAttribute('data-jabatan', p.jabatan);
-                opt1.textContent = `${p.nama} (${p.jabatan})`;
-                selectLeader.appendChild(opt1);
-
-                let opt2 = document.createElement('option');
-                opt2.value = p.nama;
-                opt2.setAttribute('data-jabatan', p.jabatan);
-                opt2.textContent = `${p.nama} (${p.jabatan})`;
-                selectNotulen.appendChild(opt2);
+                let opt1 = document.createElement('option'); opt1.value = p.nama; opt1.setAttribute('data-jabatan', p.jabatan); opt1.textContent = `${p.nama} (${p.jabatan})`; selectLeader.appendChild(opt1);
+                let opt2 = document.createElement('option'); opt2.value = p.nama; opt2.setAttribute('data-jabatan', p.jabatan); opt2.textContent = `${p.nama} (${p.jabatan})`; selectNotulen.appendChild(opt2);
             });
-
-            selectLeader.value = curLeader;
-            selectNotulen.value = curNotulen;
+            selectLeader.value = curL; selectNotulen.value = curN;
         }
 
-        function pilihLeader(select) {
-            const opt = select.options[select.selectedIndex];
-            document.getElementById('valJabatanLeader').value = opt.getAttribute('data-jabatan') || '';
-        }
-
-        function pilihNotulen(select) {
-            const opt = select.options[select.selectedIndex];
-            document.getElementById('valJabatanNotulen').value = opt.getAttribute('data-jabatan') || '';
-        }
+        function pilihLeader(sel) { document.getElementById('valJabatanLeader').value = sel.options[sel.selectedIndex].getAttribute('data-jabatan') || ''; }
+        function pilihNotulen(sel) { document.getElementById('valJabatanNotulen').value = sel.options[sel.selectedIndex].getAttribute('data-jabatan') || ''; }
 
         function renderJadwal() {
             const tbody = document.getElementById('bodyTabelJadwal');
             if(!tbody) return;
             tbody.innerHTML = '';
-
             dataJadwal.forEach((j, index) => {
-                let tanggalFormatted = j.tanggal;
-                try {
-                    const parts = j.tanggal.split('-');
-                    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                    tanggalFormatted = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                } catch(e) {}
-
-                let badgeClass = 'bg-secondary';
-                if(j.status === 'Selesai') badgeClass = 'bg-success';
-                else if(j.status === 'Berjalan') badgeClass = 'bg-warning text-dark';
-                else if(j.status === 'Tidak Dilakukan Rapat') badgeClass = 'bg-danger';
-
+                let tglF = j.tanggal;
+                try { const p = j.tanggal.split('-'); tglF = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e){}
+                let badge = j.status === 'Selesai' ? 'bg-success' : j.status === 'Berjalan' ? 'bg-warning text-dark' : 'bg-secondary';
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${j.periode}</strong></td>
-                    <td>${tanggalFormatted}<br><small class="text-muted">Mulai: ${j.jamMulai} | Selesai: ${j.jamSelesai}</small></td>
-                    <td>Leader: <span class="text-primary fw-bold">${j.leader}</span> <span class="text-muted">— ${j.jabatanLeader}</span><br>Notulis: ${j.notulen} <span class="text-muted">— ${j.jabatanNotulen}</span></td>
+                tr.innerHTML = `<td><strong>${j.periode}</strong></td>
+                    <td>${tglF}<br><small class="text-muted">Mulai: ${j.jamMulai} | Selesai: ${j.jamSelesai}</small></td>
+                    <td>Leader: <span class="text-primary fw-bold">${j.leader}</span> (${j.jabatanLeader})<br>Notulis: ${j.notulen} (${j.jabatanNotulen})</td>
                     <td><a href="http://bit.ly/bss-meeting" target="_blank" class="btn btn-sm btn-outline-primary">🔗 Join Meeting</a></td>
-                    <td><span class="badge ${badgeClass}">${j.status}</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEdit(${index})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="hapusJadwal(${index})">Hapus</button>
-                    </td>
-                `;
+                    <td><span class="badge ${badge}">${j.status}</span></td>
+                    <td class="text-center"><button class="btn btn-sm btn-outline-warning me-1" onclick="bukaModalEdit(${index})">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="hapusJadwal(${index})">Hapus</button></td>`;
                 tbody.appendChild(tr);
             });
             localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
@@ -439,14 +315,10 @@
             document.getElementById('editIndex').value = '-1';
             document.getElementById('valPeriode').value = '';
             document.getElementById('valTanggal').value = new Date().toISOString().split('T')[0];
-            document.getElementById('valJamMulai').value = '';
-            document.getElementById('valJamSelesai').value = '';
-            document.getElementById('valLeader').value = '';
-            document.getElementById('valJabatanLeader').value = '';
-            document.getElementById('valNotulen').value = '';
-            document.getElementById('valJabatanNotulen').value = '';
+            document.getElementById('valJamMulai').value = ''; document.getElementById('valJamSelesai').value = '';
+            document.getElementById('valLeader').value = ''; document.getElementById('valJabatanLeader').value = '';
+            document.getElementById('valNotulen').value = ''; document.getElementById('valJabatanNotulen').value = '';
             document.getElementById('valStatus').value = 'Akan Datang';
-
             updateDropdownPersonel();
             new bootstrap.Modal(document.getElementById('modalJadwal')).show();
         }
@@ -454,35 +326,28 @@
         function bukaModalEdit(index) {
             document.getElementById('modalTitle').innerText = 'Edit Jadwal Rapat';
             document.getElementById('editIndex').value = index;
-
             const j = dataJadwal[index];
             document.getElementById('valPeriode').value = j.periode;
             document.getElementById('valTanggal').value = j.tanggal;
             document.getElementById('valJamMulai').value = j.jamMulai;
             document.getElementById('valJamSelesai').value = j.jamSelesai;
-            
             updateDropdownPersonel();
             document.getElementById('valLeader').value = j.leader;
             document.getElementById('valJabatanLeader').value = j.jabatanLeader;
             document.getElementById('valNotulen').value = j.notulen;
             document.getElementById('valJabatanNotulen').value = j.jabatanNotulen;
             document.getElementById('valStatus').value = j.status;
-
             new bootstrap.Modal(document.getElementById('modalJadwal')).show();
         }
 
         function cekStatusWaktu() {
-            const status = document.getElementById('valStatus').value;
+            const st = document.getElementById('valStatus').value;
             const now = new Date();
-            const jamSekarang = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-            if(status === 'Berjalan') {
-                document.getElementById('valJamMulai').value = jamSekarang;
-            } else if(status === 'Selesai') {
-                if(!document.getElementById('valJamMulai').value) {
-                    document.getElementById('valJamMulai').value = jamSekarang;
-                }
-                document.getElementById('valJamSelesai').value = jamSekarang;
+            const jam = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            if(st === 'Berjalan') document.getElementById('valJamMulai').value = jam;
+            else if(st === 'Selesai') {
+                if(!document.getElementById('valJamMulai').value) document.getElementById('valJamMulai').value = jam;
+                document.getElementById('valJamSelesai').value = jam;
             }
         }
 
@@ -498,42 +363,18 @@
             const jabatanNotulen = document.getElementById('valJabatanNotulen').value;
             const status = document.getElementById('valStatus').value;
 
-            if(!periode || !tanggal || !leader || !notulen) {
-                alert('Kolom Periode, Tanggal, Leader, dan Notulis wajib diisi!');
-                return;
-            }
-
-            const dataBaru = {
-                periode: periode,
-                tanggal: tanggal,
-                jamMulai: jamMulai,
-                jamSelesai: jamSelesai,
-                leader: leader,
-                jabatanLeader: jabatanLeader,
-                notulen: notulen,
-                jabatanNotulen: jabatanNotulen,
-                status: status
-            };
-
-            if(index === -1) {
-                dataJadwal.push(dataBaru);
-            } else {
-                dataJadwal[index] = dataBaru;
-            }
-
+            if(!periode || !tanggal || !leader || !notulen) { alert('Kolom Periode, Tanggal, Leader, dan Notulis wajib diisi!'); return; }
+            const dataBaru = { periode, tanggal, jamMulai, jamSelesai, leader, jabatanLeader, notulen, jabatanNotulen, status };
+            if(index === -1) dataJadwal.push(dataBaru); else dataJadwal[index] = dataBaru;
             renderJadwal();
-            localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
-
-            const modalEl = document.getElementById('modalJadwal');
-            bootstrap.Modal.getInstance(modalEl).hide();
+            bootstrap.Modal.getInstance(document.getElementById('modalJadwal')).hide();
         }
 
         function hapusJadwal(index) {
-            if(confirm('Apakah Anda yakin ingin menghapus jadwal rapat ini?')) {
+            if(confirm('Hapus jadwal ini?')) {
                 dataJadwal.splice(index, 1);
                 renderJadwal();
-                localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
         }

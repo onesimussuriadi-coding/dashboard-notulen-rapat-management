@@ -6,12 +6,10 @@
     <title>Modul Notulen & Tindak Lanjut Rapat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Firebase SDK (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Asli BSS-DASHBOARD
         const firebaseConfig = {
             apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
             authDomain: "bss-dashboard-73681.firebaseapp.com",
@@ -35,12 +33,8 @@
             };
 
             set(ref(db, 'ptbss_rapat_data'), payload)
-                .then(() => {
-                    if(callback) callback();
-                })
-                .catch(err => {
-                    console.error("Gagal sinkron ke cloud: ", err);
-                });
+                .then(() => { if(callback) callback(); })
+                .catch(err => console.error("Gagal sinkron ke cloud: ", err));
         };
 
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
@@ -52,10 +46,7 @@
                 if (serverData.notulen) {
                     localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
                     dataNotulen = serverData.notulen;
-                    if (typeof renderNotulen === 'function') {
-                        renderNotulen();
-                        isiDropdownTanggalLalu();
-                    }
+                    if (typeof renderNotulen === 'function') { renderNotulen(); isiDropdownTanggalLalu(); }
                 }
             }
         });
@@ -66,111 +57,50 @@
         .bg-teal-header { background-color: #0f766e !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
-        .btn-outline-teal { color: #0d9488; border-color: #0d9488; }
-        .btn-outline-teal:hover { background-color: #0d9488; color: white; }
-
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; }
-            .card { border: none !important; box-shadow: none !important; }
-        }
     </style>
 </head>
-<body class="bg-light" onload="muatDataNotulen()">
+<body class="bg-light" onload="cekKeamananDanMuatNotulen()">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
+    <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
         <div class="container">
             <span class="navbar-brand mb-0 h1">📁 Modul Notulen & Tindak Lanjut Rapat</span>
             <div>
                 <a href="jadwal.html" class="btn btn-outline-light btn-sm me-2">← Jadwal Rapat</a>
-                <a href="absen.html" class="btn btn-outline-light btn-sm me-2">Daftar Absen</a>
-                <a href="index.html" class="btn btn-outline-light btn-sm">Dashboard Utama</a>
+                <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
             </div>
         </div>
     </nav>
 
-    <!-- Konten Utama -->
     <div class="container my-5">
-        <div class="row mb-4 align-items-center no-print">
+        <div class="row mb-4 align-items-center">
             <div class="col">
                 <h3>Pencatatan Hasil Rapat & Action Items</h3>
                 <p class="text-muted">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud Real-Time.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
-                <button class="btn btn-outline-dark me-2" onclick="window.print()">🖨️ Print / PDF</button>
-                <button class="btn btn-success me-2" onclick="downloadAllExcel()">📊 Excel</button>
-                <button class="btn btn-primary me-2" onclick="downloadAllWord()">📄 Word</button>
                 <button class="btn btn-teal" onclick="bukaModalNotulen()">+ Buat Notulen Baru</button>
             </div>
         </div>
 
-        <!-- Panel Filter Histori Rapat -->
-        <div class="card shadow-sm mb-4 bg-white border-0 no-print">
+        <div class="card shadow-sm mb-4 bg-white border-0">
             <div class="card-body">
                 <h6 class="text-secondary mb-3">🔍 Filter Histori Notulen & Tindak Lanjut</h6>
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Pilih Tahun</label>
-                        <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Tahun (All)</option>
-                            <option value="2026" selected>2026</option>
-                            <option value="2027">2027</option>
-                            <option value="2028">2028</option>
-                            <option value="2029">2029</option>
-                            <option value="2030">2030</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Pilih Bulan</label>
-                        <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Bulan (All)</option>
-                            <option value="01">Januari</option>
-                            <option value="02">Februari</option>
-                            <option value="03">Maret</option>
-                            <option value="04">April</option>
-                            <option value="05">Mei</option>
-                            <option value="06">Juni</option>
-                            <option value="07">Juli</option>
-                            <option value="08">Agustus</option>
-                            <option value="09" selected>September</option>
-                            <option value="10">Oktober</option>
-                            <option value="11">November</option>
-                            <option value="12">Desember</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Tampilkan Status Tindak Lanjut</label>
-                        <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Status (Open & Info Aktif)</option>
-                            <option value="Open">Open Saja</option>
-                            <option value="Info">Info Saja</option>
-                            <option value="Closing">Closing (Arsip Selesai)</option>
-                        </select>
-                    </div>
+                    <div class="col-md-4"><label class="form-label small fw-bold">Pilih Tahun</label><select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+                    <div class="col-md-4"><label class="form-label small fw-bold">Pilih Bulan</label><select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Bulan</option><option value="09" selected>September</option></select></div>
+                    <div class="col-md-4"><label class="form-label small fw-bold">Status Tindak Lanjut</label><select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()"><option value="ALL">Semua Status Aktif</option><option value="Open">Open Saja</option><option value="Closing">Closing</option></select></div>
                 </div>
             </div>
         </div>
 
-        <!-- Kop Dokumen untuk Cetak / PDF -->
-        <div class="text-center mb-4 d-none d-print-block">
-            <h3>PT BANGGAI SENTRAL SULAWESI</h3>
-            <h5>LOKASI RAPAT MANAJEMEN & NOTULEN</h5>
-            <hr>
-        </div>
-
-        <!-- Tabel Daftar Notulen & Action Items -->
         <div class="card shadow-sm mb-5 border-0">
             <div class="card-body p-0">
-                <div id="containerNotulen">
-                    <!-- Konten akan dirender berkelompok berdasarkan Periode Rapat -->
-                </div>
+                <div id="containerNotulen"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form Input/Edit Notulen -->
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -180,105 +110,34 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
-                    
-                    <!-- BAGIAN INFORMASI UMUM -->
                     <div id="sectionInfoUmum">
-                        <div class="alert alert-warning p-3 mb-3 no-print border-warning">
-                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
-                            <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
+                        <div class="alert alert-warning p-3 mb-3 border-warning">
+                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
                             <div class="input-group input-group-sm">
-                                <select id="selectTanggalLalu" class="form-select">
-                                    <option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>
-                                </select>
+                                <select id="selectTanggalLalu" class="form-select"><option value="">-- Pilih Tanggal Rapat Sebelumnya --</option></select>
                                 <button class="btn btn-dark fw-bold px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses Panggil Ulang</button>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Pilih Jadwal / Periode Rapat (Menentukan Tanggal Otomatis)</label>
-                            <select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)">
-                                <option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>
-                            </select>
+                        <div class="mb-3"><label class="form-label">Pilih dari Jadwal Rapat Terdaftar</label><select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)"><option value="">-- Pilih Jadwal --</option></select></div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Periode Rapat</label><input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2"></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Tanggal Rapat</label><input type="date" id="notulenTanggal" class="form-control"></div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Periode Rapat</label>
-                                <input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Tanggal Rapat Baru</label>
-                                <input type="date" id="notulenTanggal" class="form-control">
-                            </div>
-                        </div>
-
-                        <!-- Lokasi & Media Peserta -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
-                                <select id="notulenLokasi" class="form-select mb-2" onchange="cekPilihanLokasi(this)">
-                                    <option value="Ruang Meeting di Pasar Tua">Ruang Meeting di Pasar Tua</option>
-                                    <option value="Ruang Meeting di Sukarno">Ruang Meeting di Sukarno</option>
-                                    <option value="Ruang Meeting di Office Utama" selected>Ruang Meeting di Office Utama</option>
-                                    <option value="Ruang Meeting di Office Surabaya">Ruang Meeting di Office Surabaya</option>
-                                    <option value="LAINNYA">➕ Ketik Lokasi Lainnya (Manual)</option>
-                                </select>
-                                <input type="text" id="notulenLokasiManual" class="form-control form-control-sm" style="display: none;" placeholder="Ketik nama lokasi rapat secara bebas...">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
-                                <div class="d-flex gap-4 mt-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
-                                        <label class="form-check-label fw-bold" for="mediaOffline">Offline (Tatap Muka)</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="mediaOnline" value="Online">
-                                        <label class="form-check-label fw-bold" for="mediaOnline">Online (Virtual / Jitsi)</label>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">📍 Lokasi Rapat</label><select id="notulenLokasi" class="form-select"><option value="Ruang Meeting di Office Utama">Ruang Meeting di Office Utama</option></select></div>
+                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">💻 Media</label><div class="d-flex gap-4 mt-2"><div class="form-check"><input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline"><label class="form-check-label" for="mediaOffline">Offline</label></div><div class="form-check"><input class="form-check-input" type="checkbox" id="mediaOnline" value="Online"><label class="form-check-label" for="mediaOnline">Online</label></div></div></div>
                         </div>
                         <hr class="my-3">
                     </div>
-
-                    <!-- BAGIAN DETAIL TOPIK -->
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
-
-                    <div class="mb-3">
-                        <label class="form-label">Topik Utama</label>
-                        <input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Crane Sany / Pengadaan Unit...">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Pembahasan & Arahan</label>
-                        <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan detail pembahasan dan arahan pimpinan rapat..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tindak Lanjut & Penyelesaian</label>
-                        <textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
+                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
+                    <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">PIC / Penanggung Jawab</label>
-                            <div class="input-group mb-2">
-                                <select id="notulenSelectPic" class="form-select" onchange="pilihPicMaster(this)">
-                                    <option value="">-- Pilih dari Master Personel --</option>
-                                </select>
-                            </div>
-                            <input type="text" id="notulenPic" class="form-control" placeholder="Atau ketik manual nama & jabatan PIC...">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Deadline Penyelesaian</label>
-                            <input type="date" id="notulenDeadline" class="form-control">
-                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">PIC / Penanggung Jawab</label><select id="notulenSelectPic" class="form-select mb-2" onchange="pilihPicMaster(this)"><option value="">-- Pilih dari Master Personel --</option></select><input type="text" id="notulenPic" class="form-control" placeholder="Atau ketik manual..."></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Deadline</label><input type="date" id="notulenDeadline" class="form-control"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status Tindak Lanjut</label>
-                        <select id="notulenStatus" class="form-select">
-                            <option value="Open">Open (Belum Selesai / Wajib Dibawa ke Rapat Berikutnya)</option>
-                            <option value="Info">Info (Hanya Pengumuman / Catatan Informasi)</option>
-                            <option value="Closing">Closing (Selesai — Otomatis Disembunyikan dari Rapat Berikutnya)</option>
-                        </select>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Status</label><select id="notulenStatus" class="form-select"><option value="Open">Open</option><option value="Info">Info</option><option value="Closing">Closing</option></select></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -288,56 +147,39 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-muted no-print">
-        <small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Notulen Rapat</small>
-    </footer>
+    <footer class="text-center py-4 text-muted"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Notulen Rapat</small></footer>
 
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript Logika Notulen -->
     <script>
+        function cekKeamananDanMuatNotulen() {
+            let statusLogin = localStorage.getItem('bss_logged_in');
+            if (statusLogin !== 'true') {
+                alert('Sesi Anda belum terverifikasi. Silakan masukkan password di halaman utama.');
+                window.location.href = 'index.html';
+                return;
+            }
+            muatDataNotulen();
+        }
+
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
-        function muatDataNotulen() {
-            renderNotulen();
-            isiDropdownJadwal();
-            isiDropdownMasterPic();
-            isiDropdownTanggalLalu();
-        }
+        function muatDataNotulen() { renderNotulen(); isiDropdownJadwal(); isiDropdownMasterPic(); isiDropdownTanggalLalu(); }
 
         function syncDataToCloud() {
             alert('Menyinkronkan data secara real-time ke Cloud...');
             if (typeof window.simpanKeFirebaseCloud === 'function') {
-                window.simpanKeFirebaseCloud(() => {
-                    alert('Sinkronisasi Cloud berhasil!');
-                });
-            } else {
-                alert('Modul Cloud sedang dimuat, silakan coba beberapa saat lagi.');
-            }
-        }
-
-        function cekPilihanLokasi(select) {
-            const inputManual = document.getElementById('notulenLokasiManual');
-            if(select.value === 'LAINNYA') {
-                inputManual.style.display = 'block';
-                inputManual.focus();
-                inputManual.value = '';
-            } else {
-                inputManual.style.display = 'none';
-                inputManual.value = '';
-            }
+                window.simpanKeFirebaseCloud(() => { alert('Sinkronisasi Cloud berhasil!'); });
+            } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
         function isiDropdownJadwal() {
             const select = document.getElementById('notulenPilihJadwal');
             select.innerHTML = '<option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>';
             dataJadwal.forEach((j, idx) => {
-                let opt = document.createElement('option');
-                opt.value = idx;
+                let opt = document.createElement('option'); opt.value = idx;
                 opt.textContent = `${j.periode} (${j.tanggal}) - Leader: ${j.leader}`;
                 select.appendChild(opt);
             });
@@ -347,10 +189,8 @@
             const select = document.getElementById('notulenSelectPic');
             select.innerHTML = '<option value="">-- Pilih dari Master Personel --</option>';
             dataPersonel.forEach(p => {
-                let opt = document.createElement('option');
-                opt.value = `${p.nama} (${p.jabatan})`;
-                opt.textContent = `${p.nama} — ${p.jabatan}`;
-                select.appendChild(opt);
+                let opt = document.createElement('option'); opt.value = `${p.nama} (${p.jabatan})`;
+                opt.textContent = `${p.nama} — ${p.jabatan}`; select.appendChild(opt);
             });
         }
 
@@ -358,16 +198,12 @@
             const select = document.getElementById('selectTanggalLalu');
             if(!select) return;
             select.innerHTML = '<option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>';
-            
             let tglSet = [...new Set(dataNotulen.map(n => n.tanggal))].filter(Boolean);
             tglSet.sort().reverse();
-
             tglSet.forEach(tgl => {
                 let countOpen = dataNotulen.filter(n => n.tanggal === tgl && n.status === 'Open').length;
-                let opt = document.createElement('option');
-                opt.value = tgl;
-                opt.textContent = `Tanggal Rapat: ${tgl} (${countOpen} topik berstatus Open)`;
-                select.appendChild(opt);
+                let opt = document.createElement('option'); opt.value = tgl;
+                opt.textContent = `Tanggal Rapat: ${tgl} (${countOpen} topik berstatus Open)`; select.appendChild(opt);
             });
         }
 
@@ -375,327 +211,146 @@
             const tglTarget = document.getElementById('selectTanggalLalu').value;
             const tglBaru = document.getElementById('notulenTanggal').value;
             const periodeBaru = document.getElementById('notulenPeriode').value;
-
-            if(!tglTarget) {
-                alert('Silakan pilih tanggal rapat sebelumnya terlebih dahulu!');
-                return;
-            }
-            if(!tglBaru || !periodeBaru) {
-                alert('Silakan tentukan Periode dan Tanggal Rapat Baru terlebih dahulu!');
-                return;
-            }
-
+            if(!tglTarget || !tglBaru || !periodeBaru) { alert('Lengkapi tanggal sebelumnya, periode, dan tanggal baru!'); return; }
             let topikLalu = dataNotulen.filter(n => n.tanggal === tglTarget && n.status === 'Open');
-
-            if(topikLalu.length === 0) {
-                alert('Tidak ditemukan topik berstatus Open pada tanggal tersebut.');
-                return;
-            }
-
+            if(topikLalu.length === 0) { alert('Tidak ada topik Open pada tanggal tersebut.'); return; }
             topikLalu.forEach(item => {
-                let duplikat = {
-                    periode: periodeBaru,
-                    tanggal: tglBaru,
-                    lokasi: item.lokasi || 'Ruang Meeting di Office Utama',
-                    media: item.media || 'Offline',
-                    topikUtama: item.topikUtama,
-                    pembahasan: item.pembahasan,
-                    tindakLanjut: item.tindakLanjut,
-                    pic: item.pic,
-                    deadline: item.deadline,
-                    status: 'Open'
-                };
-                dataNotulen.unshift(duplikat);
+                dataNotulen.unshift({
+                    periode: periodeBaru, tanggal: tglBaru, lokasi: item.lokasi || 'Office Utama',
+                    media: item.media || 'Offline', topikUtama: item.topikUtama, pembahasan: item.pembahasan,
+                    tindakLanjut: item.tindakLanjut, pic: item.pic, deadline: item.deadline, status: 'Open'
+                });
             });
-
             renderNotulen();
-            localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
-            alert(`Berhasil menarik ${topikLalu.length} topik dari tanggal ${tglTarget} ke rapat tanggal ${tglBaru}!`);
+            alert(`Berhasil menarik ${topikLalu.length} topik!`);
         }
 
-        function pilihJadwalOtomatis(select) {
-            const idx = select.value;
-            if(idx === "") return;
-            const j = dataJadwal[idx];
+        function pilihJadwalOtomatis(sel) {
+            if(sel.value === "") return;
+            const j = dataJadwal[sel.value];
             document.getElementById('notulenPeriode').value = j.periode;
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        function pilihPicMaster(select) {
-            if(select.value !== "") {
-                document.getElementById('notulenPic').value = select.value;
-            }
-        }
-
-        function formatTindakLanjut(teks) {
-            if (!teks) return '-';
-            let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
-            if (regex.test(teks)) {
-                let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
-                if (parts.length > 1) {
-                    let htmlList = '<ol class="ps-3 mb-0 text-secondary" style="text-align: left;">';
-                    parts.forEach(part => {
-                        let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
-                        htmlList += `<li>${cleanText}</li>`;
-                    });
-                    htmlList += '</ol>';
-                    return htmlList;
-                }
-            }
-            return `<span class="text-secondary">${teks}</span>`;
-        }
+        function pilihPicMaster(sel) { if(sel.value) document.getElementById('notulenPic').value = sel.value; }
 
         function renderNotulen() {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
             container.innerHTML = '';
+            const fT = document.getElementById('filterTahun').value;
+            const fB = document.getElementById('filterBulan').value;
+            const fS = document.getElementById('filterStatus').value;
 
-            const filterTahun = document.getElementById('filterTahun').value;
-            const filterBulan = document.getElementById('filterBulan').value;
-            const filterStatus = document.getElementById('filterStatus').value;
-
-            let filteredData = dataNotulen.filter((n, idx) => {
+            let filtered = dataNotulen.filter((n, idx) => {
                 if(!n.tanggal) return false;
-                let [thn, bln, tgl] = n.tanggal.split('-');
-                
-                let matchTahun = (filterTahun === 'ALL' || thn === filterTahun);
-                let matchBulan = (filterBulan === 'ALL' || bln === filterBulan);
-                let matchStatus = true;
-
-                if(filterStatus === 'Open') matchStatus = (n.status === 'Open');
-                else if(filterStatus === 'Info') matchStatus = (n.status === 'Info');
-                else if(filterStatus === 'Closing') matchStatus = (n.status === 'Closing');
-                else {
-                    matchStatus = (n.status !== 'Closing');
-                }
-
+                let [thn, bln] = n.tanggal.split('-');
+                let mThn = (fT === 'ALL' || thn === fT);
+                let mBln = (fB === 'ALL' || bln === fB);
+                let mSts = fS === 'ALL' ? n.status !== 'Closing' : n.status === fS;
                 n.originalIndex = idx;
-                return matchTahun && matchBulan && matchStatus;
+                return mThn && mBln && mSts;
             });
 
-            if(filteredData.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen atau action items yang sesuai dengan filter.</div>`;
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-muted">Tidak ada data notulen sesuai filter.</div>`;
                 return;
             }
 
             let grouped = {};
-            filteredData.forEach(item => {
-                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-');
+            filtered.forEach(item => {
+                let key = `${item.periode}||${item.tanggal}||${item.lokasi || '-'}||${item.media || '-'}`;
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
 
             for(let key in grouped) {
                 let [periode, tanggal, lokasi, media] = key.split('||');
-                let tglFormatted = tanggal;
-                try {
-                    let p1 = tanggal.split('-');
-                    tglFormatted = new Date(p1[0], p1[1]-1, p1[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                } catch(e) {}
+                let tglF = tanggal;
+                try { const p = tanggal.split('-'); tglF = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e){}
 
-                let cardDiv = document.createElement('div');
-                cardDiv.className = 'card mb-4 shadow-sm border-0';
-
-                let headerHtml = `
-                    <div class="card-header bg-teal-header text-white py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglFormatted}</h5>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
-                                <button class="btn btn-sm btn-light fw-bold text-teal py-0 px-2" style="font-size: 12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik Rapat Ini</button>
-                            </div>
-                        </div>
-                        <div class="small mt-1 text-light opacity-75">
-                            📍 <strong>Lokasi:</strong> ${lokasi} | 💻 <strong>Media Peserta:</strong> ${media}
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 22%;">Topik Utama</th>
-                                        <th style="width: 20%;">Pembahasan & Arahan</th>
-                                        <th style="width: 33%;">Tindak Lanjut & Penyelesaian</th>
-                                        <th style="width: 15%;">PIC & Deadline</th>
-                                        <th style="width: 10%;">Status</th>
-                                        <th style="width: 5%;" class="text-center no-print">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                `;
+                let card = document.createElement('div');
+                card.className = 'card mb-4 shadow-sm border-0';
+                let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglF}</h5>
+                    <button class="btn btn-sm btn-light text-teal fw-bold px-2" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
+                    <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>
+                    <th style="width:22%;">Topik Utama</th><th style="width:20%;">Pembahasan</th><th style="width:33%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:10%;">Status</th><th style="width:5%;" class="text-center">Aksi</th></tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
-                    let badgeClass = 'bg-primary';
-                    if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
-                    else if(n.status === 'Closing') badgeClass = 'bg-success';
-                    else if(n.status === 'Info') badgeClass = 'bg-info text-dark';
-
-                    let deadFormatted = n.deadline || '-';
-                    try {
-                        if(n.deadline) {
-                            let p2 = n.deadline.split('-');
-                            deadFormatted = new Date(p2[0], p2[1]-1, p2[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                        }
-                    } catch(e) {}
-
-                    let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
-
-                    headerHtml += `
-                        <tr>
-                            <td><strong>${n.topikUtama || '-'}</strong></td>
-                            <td>${n.pembahasan || '-'}</td>
-                            <td>${formattedTindakLanjutHTML}</td>
-                            <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${deadFormatted}</small></td>
-                            <td><span class="badge ${badgeClass}">${n.status}</span></td>
-                            <td class="text-center no-print">
-                                <button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
-                            </td>
-                        </tr>
-                    `;
+                    let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
+                    html += `<tr><td><strong>${n.topikUtama}</strong></td><td>${n.pembahasan || '-'}</td><td>${n.tindakLanjut || '-'}</td>
+                        <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
+                        <td><span class="badge ${badge}">${n.status}</span></td>
+                        <td class="text-center"><button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button></td></tr>`;
                 });
-
-                headerHtml += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-
-                cardDiv.innerHTML = headerHtml;
-                container.appendChild(cardDiv);
+                html += `</tbody></table></div></div>`;
+                card.innerHTML = html;
+                container.appendChild(card);
             }
-
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
-            isiDropdownTanggalLalu();
         }
 
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('sectionInfoUmum').style.display = 'none';
-
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
-            document.getElementById('notulenLokasi').value = lokasi;
-            
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenSelectPic').value = '';
             document.getElementById('notulenPic').value = '';
             document.getElementById('notulenDeadline').value = '';
-            document.getElementById('notulenStatus').value = 'Open';
-
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
         function bukaModalNotulen() {
-            document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
+            document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('sectionInfoUmum').style.display = 'block';
-
-            document.getElementById('selectTanggalLalu').value = '';
-            document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
-            
-            document.getElementById('notulenLokasi').value = 'Ruang Meeting di Office Utama';
-            document.getElementById('notulenLokasiManual').style.display = 'none';
-            document.getElementById('notulenLokasiManual').value = '';
-
-            document.getElementById('mediaOffline').checked = false;
-            document.getElementById('mediaOnline').checked = false;
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenSelectPic').value = '';
             document.getElementById('notulenPic').value = '';
             document.getElementById('notulenDeadline').value = '';
-            document.getElementById('notulenStatus').value = 'Open';
-
-            isiDropdownJadwal();
-            isiDropdownMasterPic();
-            isiDropdownTanggalLalu();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
         function bukaModalEditNotulen(index) {
-            document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
+            document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('sectionInfoUmum').style.display = 'block';
-
-            isiDropdownJadwal();
-            isiDropdownMasterPic();
-            isiDropdownTanggalLalu();
-            
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode;
             document.getElementById('notulenTanggal').value = n.tanggal;
-            
-            const selectLokasi = document.getElementById('notulenLokasi');
-            const inputManual = document.getElementById('notulenLokasiManual');
-            let lokasiVal = n.lokasi || 'Ruang Meeting di Office Utama';
-            let opsiTersedia = [
-                "Ruang Meeting di Pasar Tua", 
-                "Ruang Meeting di Sukarno", 
-                "Ruang Meeting di Office Utama", 
-                "Ruang Meeting di Office Surabaya"
-            ];
-
-            if(opsiTersedia.includes(lokasiVal)) {
-                selectLokasi.value = lokasiVal;
-                inputManual.style.display = 'none';
-                inputManual.value = '';
-            } else {
-                selectLokasi.value = 'LAINNYA';
-                inputManual.style.display = 'block';
-                inputManual.value = lokasiVal;
-            }
-            
-            let mediaArr = n.media ? n.media.split(', ') : [];
-            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
-            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
-
-            document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
-            document.getElementById('notulenPembahasan').value = n.pembahasan || '';
-            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
+            document.getElementById('notulenTopikUtama').value = n.topikUtama;
+            document.getElementById('notulenPembahasan').value = n.pembahasan;
+            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut;
             document.getElementById('notulenPic').value = n.pic;
             document.getElementById('notulenDeadline').value = n.deadline;
             document.getElementById('notulenStatus').value = n.status;
-
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
-            const isQuickAdd = document.getElementById('sectionInfoUmum').style.display === 'none';
-
-            let periode, tanggal, lokasi, media;
-
-            if (isQuickAdd) {
+            const isQuick = document.getElementById('sectionInfoUmum').style.display === 'none';
+            let periode, tanggal, lokasi = 'Office Utama', media = 'Offline';
+            if(isQuick) {
                 periode = document.getElementById('notulenPeriode').value;
                 tanggal = document.getElementById('notulenTanggal').value;
-                let matchedGroup = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
-                lokasi = matchedGroup ? matchedGroup.lokasi : 'Ruang Meeting di Office Utama';
-                media = matchedGroup ? matchedGroup.media : 'Offline';
+                let match = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
+                if(match) { lokasi = match.lokasi; media = match.media; }
             } else {
                 periode = document.getElementById('notulenPeriode').value.trim();
                 tanggal = document.getElementById('notulenTanggal').value;
-                
-                const selectLokasiVal = document.getElementById('notulenLokasi').value;
-                const manualLokasiVal = document.getElementById('notulenLokasiManual').value.trim();
-                lokasi = (selectLokasiVal === 'LAINNYA') ? (manualLokasiVal || 'Ruang Meeting di Office Utama') : selectLokasiVal;
-                
-                let mediaList = [];
-                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
             }
-
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
@@ -703,114 +358,20 @@
             const deadline = document.getElementById('notulenDeadline').value;
             const status = document.getElementById('notulenStatus').value;
 
-            if(!topikUtama || !pic) {
-                alert('Silakan lengkapi Topik Utama dan PIC!');
-                return;
-            }
-
+            if(!topikUtama || !pic) { alert('Topik Utama dan PIC wajib diisi!'); return; }
             const dataBaru = { periode, tanggal, lokasi, media, topikUtama, pembahasan, tindakLanjut, pic, deadline, status };
-
-            if(index === -1) {
-                dataNotulen.unshift(dataBaru);
-            } else {
-                dataNotulen[index] = dataBaru;
-            }
-
+            if(index === -1) dataNotulen.unshift(dataBaru); else dataNotulen[index] = dataBaru;
             renderNotulen();
-            localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
         }
 
         function hapusNotulen(index) {
-            if(confirm('Hapus catatan notulen ini?')) {
+            if(confirm('Hapus notulen ini?')) {
                 dataNotulen.splice(index, 1);
                 renderNotulen();
-                localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }
-        }
-
-        function downloadAllExcel() {
-            if (dataNotulen.length === 0) {
-                alert('Belum ada data notulen untuk diunduh.');
-                return;
-            }
-
-            let htmlContent = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head>
-                <body>
-                    <table border="1">
-                        <tr><th colspan="9" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>
-                        <tr style="background-color:#f2f2f2;">
-                            <th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th>
-                        </tr>
-            `;
-
-            dataNotulen.forEach(item => {
-                htmlContent += `
-                    <tr>
-                        <td>${item.periode}</td>
-                        <td>${item.tanggal}</td>
-                        <td>${item.lokasi || '-'}</td>
-                        <td>${item.media || '-'}</td>
-                        <td>${item.topikUtama}</td>
-                        <td>${item.pembahasan}</td>
-                        <td>${item.tindakLanjut}</td>
-                        <td>${item.pic} (Due: ${item.deadline || '-'})</td>
-                        <td>${item.status}</td>
-                    </tr>
-                `;
-            });
-
-            htmlContent += `</table></body></html>`;
-
-            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `Rekap_Notulen_BSS.xls`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function downloadAllWord() {
-            if (dataNotulen.length === 0) {
-                alert('Belum ada data notulen untuk diunduh.');
-                return;
-            }
-
-            let htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Laporan Notulen Rapat</title></head>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>
-                    <h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3>
-                    <hr style="border: 1px solid #0d9488;">
-            `;
-
-            dataNotulen.forEach((item, idx) => {
-                htmlContent += `
-                    (`+ (idx+1) + `) <strong>${item.periode}</strong> - ${item.topikUtama}<br>
-                    Lokasi: ${item.lokasi} | Tanggal: ${item.tanggal}<br>
-                    Pembahasan: ${item.pembahasan}<br>
-                    Tindak Lanjut: ${item.tindakLanjut}<br>
-                    PIC: ${item.pic} (Deadline: ${item.deadline}) [${item.status}]<br><br>
-                `;
-            });
-
-            htmlContent += `</body></html>`;
-
-            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `Laporan_Notulen_BSS.doc`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
     </script>
 </body>

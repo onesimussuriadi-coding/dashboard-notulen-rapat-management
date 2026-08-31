@@ -179,7 +179,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     
-                    <!-- FITUR PANGGIL ULANG SELURUH RAPAT SEBELUMNYA (CARRY OVER BERDASARKAN TANGGAL) -->
+                    <!-- FITUR PANGGIL ULANG / CARRY OVER -->
                     <div class="alert alert-warning p-3 mb-3 no-print border-warning">
                         <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
                         <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
@@ -235,6 +235,9 @@
                             </div>
                         </div>
                     </div>
+
+                    <hr class="my-3">
+                    <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
 
                     <div class="mb-3">
                         <label class="form-label">Topik Utama</label>
@@ -413,8 +416,6 @@
             const j = dataJadwal[idx];
             document.getElementById('notulenPeriode').value = j.periode;
             document.getElementById('notulenTanggal').value = j.tanggal;
-            document.getElementById('notulenPic').value = `${j.leader} (${j.jabatanLeader})`;
-            document.getElementById('notulenSelectPic').value = `${j.leader} (${j.jabatanLeader})`;
         }
 
         function pilihPicMaster(select) {
@@ -496,7 +497,10 @@
                     <div class="card-header bg-teal-header text-white py-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 fs-6">📅 ${periode} — Tanggal: ${tglFormatted}</h5>
-                            <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark">${grouped[key].length} Topik Pembahasan</span>
+                                <button class="btn btn-sm btn-light fw-bold text-teal py-0 px-2" style="font-size: 12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik Rapat Ini</button>
+                            </div>
                         </div>
                         <div class="small mt-1 text-light opacity-75">
                             📍 <strong>Lokasi:</strong> ${lokasi} | 💻 <strong>Media Peserta:</strong> ${media}
@@ -564,9 +568,71 @@
             isiDropdownTanggalLalu();
         }
 
+        // FITUR BARU: Menambahkan topik baru ke tanggal/rapat yang sudah ada tanpa mengetik ulang info umum
+        function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
+            document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
+            document.getElementById('editIndexNotulen').value = '-1';
+            
+            // Set otomatis informasi umum dan kunci agar tidak perlu diubah
+            document.getElementById('notulenPeriode').value = periode;
+            document.getElementById('notulenPeriode').readOnly = true;
+            
+            document.getElementById('notulenTanggal').value = tanggal;
+            document.getElementById('notulenTanggal').readOnly = true;
+            
+            const selectLokasi = document.getElementById('notulenLokasi');
+            const inputManual = document.getElementById('notulenLokasiManual');
+            let opsiTersedia = [
+                "Ruang Meeting di Pasar Tua", 
+                "Ruang Meeting di Sukarno", 
+                "Ruang Meeting di Office Utama", 
+                "Ruang Meeting di Office Surabaya"
+            ];
+
+            if(opsiTersedia.includes(lokasi)) {
+                selectLokasi.value = lokasi;
+                inputManual.style.display = 'none';
+            } else {
+                selectLokasi.value = 'LAINNYA';
+                inputManual.style.display = 'block';
+                inputManual.value = lokasi;
+            }
+            selectLokasi.disabled = true;
+            inputManual.readOnly = true;
+
+            let mediaArr = media ? media.split(', ') : [];
+            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
+            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
+            document.getElementById('mediaOffline').disabled = true;
+            document.getElementById('mediaOnline').disabled = true;
+
+            // Kosongkan khusus kolom topik baru
+            document.getElementById('notulenTopikUtama').value = '';
+            document.getElementById('notulenPembahasan').value = '';
+            document.getElementById('notulenTindakLanjut').value = '';
+            document.getElementById('notulenSelectPic').value = '';
+            document.getElementById('notulenPic').value = '';
+            document.getElementById('notulenDeadline').value = '';
+            document.getElementById('notulenStatus').value = 'Open';
+
+            isiDropdownJadwal();
+            isiDropdownMasterPic();
+            isiDropdownTanggalLalu();
+            new bootstrap.Modal(document.getElementById('modalNotulen')).show();
+        }
+
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
             document.getElementById('editIndexNotulen').value = '-1';
+            
+            // Buka kunci jika membuat rapat baru tanggal lain
+            document.getElementById('notulenPeriode').readOnly = false;
+            document.getElementById('notulenTanggal').readOnly = false;
+            document.getElementById('notulenLokasi').disabled = false;
+            document.getElementById('notulenLokasiManual').readOnly = false;
+            document.getElementById('mediaOffline').disabled = false;
+            document.getElementById('mediaOnline').disabled = false;
+
             document.getElementById('selectTanggalLalu').value = '';
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
@@ -595,6 +661,14 @@
         function bukaModalEditNotulen(index) {
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
+
+            // Buka kunci saat mengedit agar fleksibel
+            document.getElementById('notulenPeriode').readOnly = false;
+            document.getElementById('notulenTanggal').readOnly = false;
+            document.getElementById('notulenLokasi').disabled = false;
+            document.getElementById('notulenLokasiManual').readOnly = false;
+            document.getElementById('mediaOffline').disabled = false;
+            document.getElementById('mediaOnline').disabled = false;
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
@@ -749,14 +823,11 @@
 
             dataNotulen.forEach((item, idx) => {
                 htmlContent += `
-                    <div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
-                        <h4>${idx + 1}. [${item.periode}] ${item.topikUtama}</h4>
-                        <p><strong>Tanggal:</strong> ${item.tanggal} | <strong>Lokasi:</strong> ${item.lokasi || '-'} | <strong>Media:</strong> ${item.media || '-'}</p>
-                        <p><strong>Status:</strong> ${item.status}</p>
-                        <p><strong>Pembahasan:</strong> ${item.pembahasan || '-'}</p>
-                        <p><strong>Tindak Lanjut:</strong> ${item.tindakLanjut || '-'}</p>
-                        <p><strong>PIC:</strong> ${item.pic} | <strong>Deadline:</strong> ${item.deadline || '-'}</p>
-                    </div>
+                    (`+ (idx+1) + `) <strong>${item.periode}</strong> - ${item.topikUtama}<br>
+                    Lokasi: ${item.lokasi} | Tanggal: ${item.tanggal}<br>
+                    Pembahasan: ${item.pembahasan}<br>
+                    Tindak Lanjut: ${item.tindakLanjut}<br>
+                    PIC: ${item.pic} (Deadline: ${item.deadline}) [${item.status}]<br><br>
                 `;
             });
 

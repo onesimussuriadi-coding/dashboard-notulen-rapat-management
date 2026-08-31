@@ -179,64 +179,68 @@
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     
-                    <!-- FITUR PANGGIL ULANG / CARRY OVER -->
-                    <div class="alert alert-warning p-3 mb-3 no-print border-warning">
-                        <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
-                        <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
-                        <div class="input-group input-group-sm">
-                            <select id="selectTanggalLalu" class="form-select">
-                                <option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>
-                            </select>
-                            <button class="btn btn-dark fw-bold px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses Panggil Ulang</button>
+                    <!-- BAGIAN INFORMASI UMUM (Akan disembunyikan saat tambah topik rapat ke tanggal yang sama) -->
+                    <div id="sectionInfoUmum">
+                        <!-- FITUR PANGGIL ULANG / CARRY OVER -->
+                        <div class="alert alert-warning p-3 mb-3 no-print border-warning">
+                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Seluruh Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
+                            <p class="small text-muted mb-2">Pilih tanggal rapat sebelumnya untuk memanggil dan menyalin semua topik yang masih <strong>Open</strong> ke rapat hari ini.</p>
+                            <div class="input-group input-group-sm">
+                                <select id="selectTanggalLalu" class="form-select">
+                                    <option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>
+                                </select>
+                                <button class="btn btn-dark fw-bold px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses Panggil Ulang</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Pilih Jadwal / Periode Rapat (Menentukan Tanggal Otomatis)</label>
-                        <select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)">
-                            <option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Periode Rapat</label>
-                            <input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Rapat Baru</label>
-                            <input type="date" id="notulenTanggal" class="form-control">
-                        </div>
-                    </div>
-
-                    <!-- Lokasi & Media Peserta -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
-                            <select id="notulenLokasi" class="form-select mb-2" onchange="cekPilihanLokasi(this)">
-                                <option value="Ruang Meeting di Pasar Tua">Ruang Meeting di Pasar Tua</option>
-                                <option value="Ruang Meeting di Sukarno">Ruang Meeting di Sukarno</option>
-                                <option value="Ruang Meeting di Office Utama" selected>Ruang Meeting di Office Utama</option>
-                                <option value="Ruang Meeting di Office Surabaya">Ruang Meeting di Office Surabaya</option>
-                                <option value="LAINNYA">➕ Ketik Lokasi Lainnya (Manual)</option>
+                        <div class="mb-3">
+                            <label class="form-label">Pilih Jadwal / Periode Rapat (Menentukan Tanggal Otomatis)</label>
+                            <select id="notulenPilihJadwal" class="form-select" onchange="pilihJadwalOtomatis(this)">
+                                <option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>
                             </select>
-                            <input type="text" id="notulenLokasiManual" class="form-control form-control-sm" style="display: none;" placeholder="Ketik nama lokasi rapat secara bebas...">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
-                            <div class="d-flex gap-4 mt-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
-                                    <label class="form-check-label fw-bold" for="mediaOffline">Offline (Tatap Muka)</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="mediaOnline" value="Online">
-                                    <label class="form-check-label fw-bold" for="mediaOnline">Online (Virtual / Jitsi)</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Periode Rapat</label>
+                                <input type="text" id="notulenPeriode" class="form-control" placeholder="Contoh: Minggu ke-2">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tanggal Rapat Baru</label>
+                                <input type="date" id="notulenTanggal" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Lokasi & Media Peserta -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
+                                <select id="notulenLokasi" class="form-select mb-2" onchange="cekPilihanLokasi(this)">
+                                    <option value="Ruang Meeting di Pasar Tua">Ruang Meeting di Pasar Tua</option>
+                                    <option value="Ruang Meeting di Sukarno">Ruang Meeting di Sukarno</option>
+                                    <option value="Ruang Meeting di Office Utama" selected>Ruang Meeting di Office Utama</option>
+                                    <option value="Ruang Meeting di Office Surabaya">Ruang Meeting di Office Surabaya</option>
+                                    <option value="LAINNYA">➕ Ketik Lokasi Lainnya (Manual)</option>
+                                </select>
+                                <input type="text" id="notulenLokasiManual" class="form-control form-control-sm" style="display: none;" placeholder="Ketik nama lokasi rapat secara bebas...">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
+                                <div class="d-flex gap-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
+                                        <label class="form-check-label fw-bold" for="mediaOffline">Offline (Tatap Muka)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="mediaOnline" value="Online">
+                                        <label class="form-check-label fw-bold" for="mediaOnline">Online (Virtual / Jitsi)</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <hr class="my-3">
                     </div>
 
-                    <hr class="my-3">
+                    <!-- BAGIAN DETAIL TOPIK (Selalu Tampil) -->
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
 
                     <div class="mb-3">
@@ -245,11 +249,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Pembahasan & Arahan</label>
-                        <textarea id="notulenPembahasan" class="form-control" rows="2" placeholder="Tuliskan detail pembahasan dan arahan pimpinan rapat..."></textarea>
+                        <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan detail pembahasan dan arahan pimpinan rapat..."></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tindak Lanjut & Penyelesaian</label>
-                        <textarea id="notulenTindakLanjut" class="form-control" rows="3" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
+                        <textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan rencana tindakan atau langkah penyelesaian..."></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -568,44 +572,19 @@
             isiDropdownTanggalLalu();
         }
 
-        // FITUR BARU: Menambahkan topik baru ke tanggal/rapat yang sudah ada tanpa mengetik ulang info umum
+        // FITUR TAMBAH TOPIK (Menyembunyikan bagian atas & mengunci data rapat)
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
             
-            // Set otomatis informasi umum dan kunci agar tidak perlu diubah
+            // Sembunyikan bagian informasi umum di atas
+            document.getElementById('sectionInfoUmum').style.display = 'none';
+
+            // Simpan data tersembunyi untuk proses simpan
             document.getElementById('notulenPeriode').value = periode;
-            document.getElementById('notulenPeriode').readOnly = true;
-            
             document.getElementById('notulenTanggal').value = tanggal;
-            document.getElementById('notulenTanggal').readOnly = true;
+            document.getElementById('notulenLokasi').value = lokasi;
             
-            const selectLokasi = document.getElementById('notulenLokasi');
-            const inputManual = document.getElementById('notulenLokasiManual');
-            let opsiTersedia = [
-                "Ruang Meeting di Pasar Tua", 
-                "Ruang Meeting di Sukarno", 
-                "Ruang Meeting di Office Utama", 
-                "Ruang Meeting di Office Surabaya"
-            ];
-
-            if(opsiTersedia.includes(lokasi)) {
-                selectLokasi.value = lokasi;
-                inputManual.style.display = 'none';
-            } else {
-                selectLokasi.value = 'LAINNYA';
-                inputManual.style.display = 'block';
-                inputManual.value = lokasi;
-            }
-            selectLokasi.disabled = true;
-            inputManual.readOnly = true;
-
-            let mediaArr = media ? media.split(', ') : [];
-            document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
-            document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
-            document.getElementById('mediaOffline').disabled = true;
-            document.getElementById('mediaOnline').disabled = true;
-
             // Kosongkan khusus kolom topik baru
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
@@ -615,9 +594,6 @@
             document.getElementById('notulenDeadline').value = '';
             document.getElementById('notulenStatus').value = 'Open';
 
-            isiDropdownJadwal();
-            isiDropdownMasterPic();
-            isiDropdownTanggalLalu();
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -625,13 +601,8 @@
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen & Tindak Lanjut Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             
-            // Buka kunci jika membuat rapat baru tanggal lain
-            document.getElementById('notulenPeriode').readOnly = false;
-            document.getElementById('notulenTanggal').readOnly = false;
-            document.getElementById('notulenLokasi').disabled = false;
-            document.getElementById('notulenLokasiManual').readOnly = false;
-            document.getElementById('mediaOffline').disabled = false;
-            document.getElementById('mediaOnline').disabled = false;
+            // Tampilkan kembali bagian informasi umum untuk rapat baru
+            document.getElementById('sectionInfoUmum').style.display = 'block';
 
             document.getElementById('selectTanggalLalu').value = '';
             document.getElementById('notulenPilihJadwal').value = '';
@@ -662,13 +633,8 @@
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
 
-            // Buka kunci saat mengedit agar fleksibel
-            document.getElementById('notulenPeriode').readOnly = false;
-            document.getElementById('notulenTanggal').readOnly = false;
-            document.getElementById('notulenLokasi').disabled = false;
-            document.getElementById('notulenLokasiManual').readOnly = false;
-            document.getElementById('mediaOffline').disabled = false;
-            document.getElementById('mediaOnline').disabled = false;
+            // Tampilkan kembali bagian informasi umum saat mengedit
+            document.getElementById('sectionInfoUmum').style.display = 'block';
 
             isiDropdownJadwal();
             isiDropdownMasterPic();
@@ -714,17 +680,32 @@
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
-            const periode = document.getElementById('notulenPeriode').value.trim();
-            const tanggal = document.getElementById('notulenTanggal').value;
             
-            const selectLokasiVal = document.getElementById('notulenLokasi').value;
-            const manualLokasiVal = document.getElementById('notulenLokasiManual').value.trim();
-            const lokasi = (selectLokasiVal === 'LAINNYA') ? (manualLokasiVal || 'Ruang Meeting di Office Utama') : selectLokasiVal;
-            
-            let mediaList = [];
-            if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-            if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-            const media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+            // Cek apakah sedang mode tambah topik cepat (bagian info umum disembunyikan)
+            const isQuickAdd = document.getElementById('sectionInfoUmum').style.display === 'none';
+
+            let periode, tanggal, lokasi, media;
+
+            if (isQuickAdd) {
+                periode = document.getElementById('notulenPeriode').value;
+                tanggal = document.getElementById('notulenTanggal').value;
+                // Ambil data lokasi & media dari baris rapat yang sedang diklik
+                let matchedGroup = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
+                lokasi = matchedGroup ? matchedGroup.lokasi : 'Ruang Meeting di Office Utama';
+                media = matchedGroup ? matchedGroup.media : 'Offline';
+            } else {
+                periode = document.getElementById('notulenPeriode').value.trim();
+                tanggal = document.getElementById('notulenTanggal').value;
+                
+                const selectLokasiVal = document.getElementById('notulenLokasi').value;
+                const manualLokasiVal = document.getElementById('notulenLokasiManual').value.trim();
+                lokasi = (selectLokasiVal === 'LAINNYA') ? (manualLokasiVal || 'Ruang Meeting di Office Utama') : selectLokasiVal;
+                
+                let mediaList = [];
+                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+            }
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
@@ -733,8 +714,8 @@
             const deadline = document.getElementById('notulenDeadline').value;
             const status = document.getElementById('notulenStatus').value;
 
-            if(!periode || !tanggal || !topikUtama || !pic) {
-                alert('Silakan lengkapi Periode, Tanggal, Topik Utama dan PIC!');
+            if(!topikUtama || !pic) {
+                alert('Silakan lengkapi Topik Utama dan PIC!');
                 return;
             }
 

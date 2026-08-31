@@ -58,19 +58,46 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        .formatted-list { padding-left: 0; margin-bottom: 0; list-style-type: none; }
-        .formatted-list li { position: relative; padding-left: 20px; margin-bottom: 4px; }
-        .formatted-list li span.num { position: absolute; left: 0; top: 0; font-weight: bold; }
+        /* GARIS PEMISAH SEPERTI EXCEL (GRID) UNTUK SETIAP POIN NOMOR */
+        .excel-grid-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin: -8px; /* Menyesuaikan padding sel tabel Bootstrap */
+        }
+        .excel-row {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            padding: 8px 10px;
+            align-items: flex-start;
+        }
+        .excel-row:last-child {
+            border-bottom: none;
+        }
+        .excel-num {
+            font-weight: bold;
+            min-width: 25px;
+            flex-shrink: 0;
+        }
+        .excel-text {
+            flex-grow: 1;
+        }
+
+        /* MEMBUAT GARIS VERTIKAL ANTAR KOLOM TABEL */
+        .table-bordered-grid th, .table-bordered-grid td {
+            border: 1px solid #dee2e6 !important;
+            vertical-align: middle;
+        }
 
         @media print {
-            body { background: white !important; font-size: 12pt; color: #000; }
+            body { background: white !important; font-size: 11pt; color: #000; }
             .navbar, .btn, .card.mb-4.bg-white, .modal, footer { display: none !important; }
             .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
             .print-header { display: block !important; text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
             .card { border: none !important; box-shadow: none !important; margin-bottom: 20px !important; }
             .card-header { background-color: #f8f9fa !important; color: #000 !important; border: 1px solid #dee2e6 !important; font-weight: bold; }
             table { width: 100% !important; border-collapse: collapse !important; }
-            th, td { border: 1px solid #dee2e6 !important; padding: 8px !important; font-size: 11pt !important; }
+            th, td { border: 1px solid #dee2e6 !important; padding: 6px !important; font-size: 10pt !important; }
             .no-print { display: none !important; }
         }
         .print-header { display: none; }
@@ -352,24 +379,25 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        function formatTeksPenomoran(teks) {
+        // FUNGSI FORMAT GRID EXCEL HORIZONTAL & VERTIKAL
+        function formatTeksExcelGrid(teks) {
             if (!teks) return '-';
             let parts = teks.split(/(?=\d+\.\s*)/);
             if (parts.length <= 1) return teks;
 
-            let html = '<ul class="formatted-list">';
+            let html = '<div class="excel-grid-container">';
             parts.forEach(part => {
                 part = part.trim();
                 if (part) {
                     let match = part.match(/^(\d+\.)\s*(.*)$/);
                     if (match) {
-                        html += `<li><span class="num">${match[1]}</span>${match[2]}</li>`;
+                        html += `<div class="excel-row"><div class="excel-num">${match[1]}</div><div class="excel-text">${match[2]}</div></div>`;
                     } else {
-                        html += `<li>${part}</li>`;
+                        html += `<div class="excel-row"><div class="excel-text">${part}</div></div>`;
                     }
                 }
             });
-            html += '</ul>';
+            html += '</div>';
             return html;
         }
 
@@ -414,14 +442,14 @@
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
-                    <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>
+                    <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
                     <th style="width:25%;">Topik Utama</th><th style="width:25%;">Pembahasan & Arahan</th><th style="width:30%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:0%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
                     
-                    let pembahasanRapi = formatTeksPenomoran(n.pembahasan);
-                    let tindakLanjutRapi = formatTeksPenomoran(n.tindakLanjut);
+                    let pembahasanRapi = formatTeksExcelGrid(n.pembahasan);
+                    let tindakLanjutRapi = formatTeksExcelGrid(n.tindakLanjut);
                     
                     let picFormatted = '-';
                     if (Array.isArray(n.pic)) {
@@ -546,7 +574,7 @@
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
-            const tindakLanjut = document.getElementById('notulenTestTindakLanjut') ? document.getElementById('notulenTestTindakLanjut').value.trim() : document.getElementById('notulenTindakLanjut').value.trim();
+            const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             
             let selectedPics = [];
             document.querySelectorAll('.checkbox-pic:checked').forEach(cb => {

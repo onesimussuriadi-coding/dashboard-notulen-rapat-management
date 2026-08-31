@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visi & Misi - PT Banggai Sentral Sulawesi</title>
+    <title>Sistem Manajemen Rapat - PT Banggai Sentral Sulawesi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <script type="module">
@@ -47,7 +47,7 @@
         .btn-teal:hover { background-color: #0f766e; color: white; }
         .card-vision { border: 2px solid #134e4a; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
         
-        body { font-size: 13px; overflow-x: hidden; background-color: #f8f9fa; }
+        body { font-size: 13px; background-color: #f8f9fa; }
         .container-compact { max-width: 900px; padding-top: 8px; padding-bottom: 8px; }
         .compact-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 0px; }
         .compact-subtitle { font-size: 0.75rem; margin-bottom: 6px; }
@@ -56,94 +56,234 @@
         .mission-text { font-size: 0.8rem; line-height: 1.3; margin-bottom: 3px; }
     </style>
 </head>
-<body onload="muatVisiMisi()">
+<body onload="cekSesiLogin()">
 
-    <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
-        <div class="container">
-            <span class="navbar-brand mb-0 fs-6">🏢 PT Banggai Sentral Sulawesi</span>
-            <div>
-                <button class="btn btn-outline-light btn-sm py-0 px-2 fw-bold" style="font-size: 11px;" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit</button>
-                <a href="index.html" class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;">Continue →</a>
+    <!-- 1. TAMPILAN HALAMAN LOGIN (MUNCUL PERTAMA KALI) -->
+    <div id="sectionLogin" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card shadow-lg border-0 p-4" style="width: 400px; border-radius: 10px;">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-teal" style="color: #134e4a;">PT Banggai Sentral Sulawesi</h4>
+                <p class="text-muted small">Silakan Login untuk Masuk ke Sistem Rapat</p>
             </div>
-        </div>
-    </nav>
-
-    <div class="container container-compact">
-        <div class="text-center mb-1">
-            <h3 class="compact-title text-dark">Visi & Misi Perusahaan</h3>
-            <p class="compact-subtitle text-muted">PT Banggai Sentral Sulawesi</p>
-        </div>
-
-        <!-- KOTAK VISION -->
-        <div class="card card-vision mb-2 bg-white">
-            <div class="card-body text-center">
-                <h5 class="text-uppercase fw-bold text-decoration-underline" style="color: #134e4a;">Vision</h5>
-                
-                <div id="viewVision">
-                    <p class="fst-italic mb-1" id="teksVisionEn" style="font-size: 0.85rem;">"To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity."</p>
-                    <hr class="w-25 mx-auto my-1">
-                    <p class="text-secondary mb-0" id="teksVisionId" style="font-size: 0.8rem;">Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.</p>
-                </div>
-
-                <div id="editVision" style="display: none;">
-                    <div class="mb-1 text-start">
-                        <label class="form-label small fw-bold mb-0">English Vision:</label>
-                        <textarea id="inputVisionEn" class="form-control form-control-sm" rows="2"></textarea>
-                    </div>
-                    <div class="mb-1 text-start">
-                        <label class="form-label small fw-bold mb-0">Bahasa Indonesia:</label>
-                        <textarea id="inputVisionId" class="form-control form-control-sm" rows="2"></textarea>
-                    </div>
-                </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Username</label>
+                <input type="text" id="inputUsername" class="form-control" placeholder="Masukkan username...">
             </div>
-        </div>
-
-        <!-- KOTAK MISSION -->
-        <div class="card card-vision mb-2 bg-white">
-            <div class="card-body">
-                <h5 class="text-uppercase fw-bold text-decoration-underline text-center" style="color: #134e4a;">Mission</h5>
-                
-                <div class="row" id="viewMission">
-                    <div class="col-md-6">
-                        <ol class="mb-0 ps-3" id="listMissionEn"></ol>
-                    </div>
-                    <div class="col-md-6">
-                        <ol class="mb-0 ps-3" id="listMissionId"></ol>
-                    </div>
-                </div>
-
-                <div id="editMission" style="display: none;">
-                    <div class="row">
-                        <div class="col-md-6 mb-1">
-                            <label class="form-label small fw-bold mb-0">Mission (English):</label>
-                            <textarea id="inputMissionEn" class="form-control form-control-sm" rows="5"></textarea>
-                        </div>
-                        <div class="col-md-6 mb-1">
-                            <label class="form-label small fw-bold mb-0">Misi (Indonesia):</label>
-                            <textarea id="inputMissionId" class="form-control form-control-sm" rows="5"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="text-center mt-2" id="divBtnSimpan" style="display: none;">
-                    <button class="btn btn-success btn-sm fw-bold px-3 py-1" onclick="simpanPerubahanVisiMisi()">💾 Simpan</button>
-                    <button class="btn btn-secondary btn-sm fw-bold px-3 py-1 ms-1" onclick="toggleModeEdit()">Batal</button>
-                </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Password</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password..." onkeypress="if(event.key === 'Enter') prosesLogin()">
             </div>
-        </div>
-
-        <!-- TOMBOL CONTINUE KE DASHBOARD -->
-        <div class="text-center pb-1">
-            <a href="index.html" class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;">
-                Continue / Lanjut ke Dashboard →
-            </a>
+            <button class="btn btn-teal w-100 fw-bold py-2" onclick="prosesLogin()">Masuk / Login →</button>
         </div>
     </div>
 
-    <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 10px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
+    <!-- 2. TAMPILAN HALAMAN VISI & MISI (MUNCUL SETELAH LOGIN BERHASIL) -->
+    <div id="sectionVisiMisi" style="display: none;" onload="muatVisiMisi()">
+        <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
+            <div class="container">
+                <span class="navbar-brand mb-0 fs-6">🏢 PT Banggai Sentral Sulawesi</span>
+                <div>
+                    <button class="btn btn-outline-light btn-sm py-0 px-2 fw-bold" style="font-size: 11px;" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit</button>
+                    <button class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;" onclick="lanjutKeDashboard()">Continue →</button>
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 ms-2" style="font-size: 11px;" onclick="logoutSistem()">Keluar</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container container-compact">
+            <div class="text-center mb-1">
+                <h3 class="compact-title text-dark">Visi & Misi Perusahaan</h3>
+                <p class="compact-subtitle text-muted">PT Banggai Sentral Sulawesi</p>
+            </div>
+
+            <!-- KOTAK VISION -->
+            <div class="card card-vision mb-2 bg-white">
+                <div class="card-body text-center">
+                    <h5 class="text-uppercase fw-bold text-decoration-underline" style="color: #134e4a;">Vision</h5>
+                    
+                    <div id="viewVision">
+                        <p class="fst-italic mb-1" id="teksVisionEn" style="font-size: 0.85rem;">"To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity."</p>
+                        <hr class="w-25 mx-auto my-1">
+                        <p class="text-secondary mb-0" id="teksVisionId" style="font-size: 0.8rem;">Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.</p>
+                    </div>
+
+                    <div id="editVision" style="display: none;">
+                        <div class="mb-1 text-start">
+                            <label class="form-label small fw-bold mb-0">English Vision:</label>
+                            <textarea id="inputVisionEn" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                        <div class="mb-1 text-start">
+                            <label class="form-label small fw-bold mb-0">Bahasa Indonesia:</label>
+                            <textarea id="inputVisionId" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KOTAK MISSION -->
+            <div class="card card-vision mb-2 bg-white">
+                <div class="card-body">
+                    <h5 class="text-uppercase fw-bold text-decoration-underline text-center" style="color: #134e4a;">Mission</h5>
+                    
+                    <div class="row" id="viewMission">
+                        <div class="col-md-6">
+                            <ol class="mb-0 ps-3" id="listMissionEn"></ol>
+                        </div>
+                        <div class="col-md-6">
+                            <ol class="mb-0 ps-3" id="listMissionId"></ol>
+                        </div>
+                    </div>
+
+                    <div id="editMission" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-1">
+                                <label class="form-label small fw-bold mb-0">Mission (English):</label>
+                                <textarea id="inputMissionEn" class="form-control form-control-sm" rows="5"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-1">
+                                <label class="form-label small fw-bold mb-0">Misi (Indonesia):</label>
+                                <textarea id="inputMissionId" class="form-control form-control-sm" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-2" id="divBtnSimpan" style="display: none;">
+                        <button class="btn btn-success btn-sm fw-bold px-3 py-1" onclick="simpanPerubahanVisiMisi()">💾 Simpan</button>
+                        <button class="btn btn-secondary btn-sm fw-bold px-3 py-1 ms-1" onclick="toggleModeEdit()">Batal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOMBOL CONTINUE KE DASHBOARD UTAMA -->
+            <div class="text-center pb-1">
+                <button class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;" onclick="lanjutKeDashboard()">
+                    Continue / Lanjut ke Dashboard →
+                </button>
+            </div>
+        </div>
+
+        <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 10px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
+    </div>
+
+    <!-- 3. TAMPILAN MENU UTAMA DASHBOARD RAPAT (MUNCUL SETELAH KLIK CONTINUE) -->
+    <div id="sectionDashboard" style="display: none;">
+        <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
+            <div class="container">
+                <span class="navbar-brand mb-0 h1">🏢 PT Banggai Sentral Sulawesi</span>
+                <div>
+                    <button class="btn btn-outline-light btn-sm me-2" onclick="kembaliKeVisiMisi()">← Visi & Misi</button>
+                    <button class="btn btn-danger btn-sm" onclick="logoutSistem()">Keluar</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container my-5 text-center">
+            <h2 class="fw-bold mb-2">Selamat Datang di Sistem Pengelolaan Rapat</h2>
+            <p class="text-muted mb-4">Pilih modul di bawah untuk mengelola jadwal, absensi, dan notulen.</p>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center p-4">
+                            <h5 class="fw-bold text-teal">📅 Jadwal & Rotasi</h5>
+                            <p class="text-muted small">Kelola giliran Pemimpin Rapat dan jadwal operasional.</p>
+                            <a href="jadwal.html" class="btn btn-teal w-100">Buka Modul</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center p-4">
+                            <h5 class="fw-bold text-teal">📝 Daftar Absen</h5>
+                            <p class="text-muted small">Pencatatan daftar hadir peserta rapat secara digital.</p>
+                            <a href="absen.html" class="btn btn-teal w-100">Buka Modul</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center p-4">
+                            <h5 class="fw-bold text-teal">📁 Notulen & Tindak Lanjut</h5>
+                            <p class="text-muted small">Pencatatan hasil rapat lengkap dengan action items.</p>
+                            <a href="notulen.html" class="btn btn-teal w-100">Buka Modul</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Logika Pengaturan Alur Tampilan (Login -> Visi Misi -> Dashboard)
+        function cekSesiLogin() {
+            let statusLogin = localStorage.getItem('bss_logged_in');
+            let statusStep = localStorage.getItem('bss_step');
+
+            if (statusLogin === 'true') {
+                if (statusStep === 'dashboard') {
+                    tampilkanDashboard();
+                } else {
+                    tampilkanVisiMisi();
+                }
+            } else {
+                tampilkanLogin();
+            }
+        }
+
+        function prosesLogin() {
+            let u = document.getElementById('inputUsername').value.trim();
+            let p = document.getElementById('inputPassword').value.trim();
+
+            // Anda bisa sesuaikan validasi username & password di sini
+            if (p !== "") { 
+                localStorage.setItem('bss_logged_in', 'true');
+                localStorage.setItem('bss_step', 'visimisi');
+                tampilkanVisiMisi();
+            } else {
+                alert('Masukkan password dengan benar!');
+            }
+        }
+
+        function tampilkanLogin() {
+            document.getElementById('sectionLogin').style.display = 'flex';
+            document.getElementById('sectionVisiMisi').style.display = 'none';
+            document.getElementById('sectionDashboard').style.display = 'none';
+        }
+
+        function tampilkanVisiMisi() {
+            document.getElementById('sectionLogin').style.display = 'none';
+            document.getElementById('sectionVisiMisi').style.display = 'block';
+            document.getElementById('sectionDashboard').style.display = 'none';
+            muatVisiMisi();
+        }
+
+        function lanjutKeDashboard() {
+            localStorage.setItem('bss_step', 'dashboard');
+            tampilkanDashboard();
+        }
+
+        function tampilkanDashboard() {
+            document.getElementById('sectionLogin').style.display = 'none';
+            document.getElementById('sectionVisiMisi').style.display = 'none';
+            document.getElementById('sectionDashboard').style.display = 'block';
+        }
+
+        function kembaliKeVisiMisi() {
+            localStorage.setItem('bss_step', 'visimisi');
+            tampilkanVisiMisi();
+        }
+
+        function logoutSistem() {
+            localStorage.removeItem('bss_logged_in');
+            localStorage.removeItem('bss_step');
+            document.getElementById('inputUsername').value = '';
+            document.getElementById('inputPassword').value = '';
+            tampilkanLogin();
+        }
+
+        // Data & Editor Visi Misi Dinamis
         let defaultVisiMisi = {
             visionEn: "To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity.",
             visionId: "Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.",
@@ -171,26 +311,32 @@
         }
 
         function tampilkanDataVisiMisi(data) {
-            document.getElementById('teksVisionEn').textContent = `"${data.visionEn}"`;
-            document.getElementById('teksVisionId').textContent = data.visionId;
+            let vEn = document.getElementById('teksVisionEn');
+            let vId = document.getElementById('teksVisionId');
+            if(vEn) vEn.textContent = `"${data.visionEn}"`;
+            if(vId) vId.textContent = data.visionId;
 
             let listEn = document.getElementById('listMissionEn');
-            listEn.innerHTML = '';
-            data.missionEn.forEach(item => {
-                let li = document.createElement('li');
-                li.className = 'mission-text';
-                li.textContent = item;
-                listEn.appendChild(li);
-            });
+            if(listEn) {
+                listEn.innerHTML = '';
+                data.missionEn.forEach(item => {
+                    let li = document.createElement('li');
+                    li.className = 'mission-text';
+                    li.textContent = item;
+                    listEn.appendChild(li);
+                });
+            }
 
             let listId = document.getElementById('listMissionId');
-            listId.innerHTML = '';
-            data.missionId.forEach(item => {
-                let li = document.createElement('li');
-                li.className = 'mission-text';
-                li.textContent = item;
-                listId.appendChild(li);
-            });
+            if(listId) {
+                listId.innerHTML = '';
+                data.missionId.forEach(item => {
+                    let li = document.createElement('li');
+                    li.className = 'mission-text';
+                    li.textContent = item;
+                    listId.appendChild(li);
+                });
+            }
         }
 
         let isEditing = false;

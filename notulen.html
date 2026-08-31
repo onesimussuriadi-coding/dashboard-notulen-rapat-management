@@ -11,7 +11,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Anda (Ganti dengan konfigurasi dari Firebase Console Anda)
         const firebaseConfig = {
             apiKey: "MASUKKAN_API_KEY_ANDA",
             authDomain: "PROJECT_ID.firebaseapp.com",
@@ -25,7 +24,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Fungsi Global untuk Sinkronisasi Real-Time ke Firebase
         window.simpanKeFirebaseCloud = function(callback) {
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
@@ -43,7 +41,6 @@
                 });
         };
 
-        // Real-time Listener (Mendengar perubahan data dari komputer lain secara otomatis)
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
             if (serverData) {
@@ -53,7 +50,6 @@
                 if (serverData.notulen) {
                     localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
                     dataNotulen = serverData.notulen;
-                    // Render ulang tampilan secara otomatis saat komputer lain mengubah data
                     if (typeof renderNotulen === 'function') {
                         renderNotulen();
                         isiDropdownTanggalLalu();
@@ -217,8 +213,14 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">📍 Lokasi Tempat Rapat</label>
-                            <input type="text" id="notulenLokasi" class="form-control" list="listLokasiRapat" placeholder="Ketik atau pilih lokasi...">
-                            <datalist id="listLokasiRapat"></datalist>
+                            <!-- Menggunakan Datalist & Select Kombinasi agar bisa dipilih dari opsi default maupun diketik bebas -->
+                            <input type="text" id="notulenLokasi" class="form-control" list="listLokasiRapat" placeholder="Pilih atau ketik lokasi rapat...">
+                            <datalist id="listLokasiRapat">
+                                <option value="Ruang Meeting di Pasar Tua">
+                                <option value="Ruang Meeting di Sukarno">
+                                <option value="Ruang Meeting di Office Utama">
+                                <option value="Ruang Meeting di Office Surabaya">
+                            </datalist>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">💻 Media Peserta Rapat</label>
@@ -376,7 +378,7 @@
                 let duplikat = {
                     periode: periodeBaru,
                     tanggal: tglBaru,
-                    lokasi: item.lokasi || 'Kantor Utama BSS',
+                    lokasi: item.lokasi || 'Ruang Meeting di Office Utama',
                     media: item.media || 'Offline',
                     topikUtama: item.topikUtama,
                     pembahasan: item.pembahasan,
@@ -398,14 +400,13 @@
         function updateDatalistLokasi() {
             const datalist = document.getElementById('listLokasiRapat');
             if(!datalist) return;
-            datalist.innerHTML = '';
-            let lokasiSet = new Set(["Ruang Meeting Utama", "Kantor Senoro", "Site Office BSS", "Meeting Room Online"]);
-            dataNotulen.forEach(n => { if(n.lokasi) lokasiSet.add(n.lokasi); });
-            lokasiSet.forEach(loc => {
-                let opt = document.createElement('option');
-                opt.value = loc;
-                datalist.appendChild(opt);
-            });
+            datalist.innerHTML = `
+                <option value="Ruang Meeting di Pasar Tua">
+                <option value="Ruang Meeting di Sukarno">
+                <option value="Ruang Meeting di Office Utama">
+                <option value="Ruang Meeting di Office Surabaya">
+            `;
+            dataNotulen.forEach(n => { if(n.lokasi) datalist.innerHTML += `<option value="${n.lokasi}">`; });
         }
 
         function pilihJadwalOtomatis(select) {
@@ -573,7 +574,7 @@
             document.getElementById('notulenPilihJadwal').value = '';
             document.getElementById('notulenPeriode').value = '';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
-            document.getElementById('notulenLokasi').value = '';
+            document.getElementById('notulenLokasi').value = 'Ruang Meeting di Office Utama';
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
             document.getElementById('notulenTopikUtama').value = '';
@@ -622,7 +623,7 @@
             const index = parseInt(document.getElementById('editIndexNotulen').value);
             const periode = document.getElementById('notulenPeriode').value.trim();
             const tanggal = document.getElementById('notulenTanggal').value;
-            const lokasi = document.getElementById('notulenLokasi').value.trim() || 'Kantor Utama BSS';
+            const lokasi = document.getElementById('notulenLokasi').value.trim() || 'Ruang Meeting di Office Utama';
             
             let mediaList = [];
             if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');

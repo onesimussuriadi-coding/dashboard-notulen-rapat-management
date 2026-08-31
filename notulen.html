@@ -13,7 +13,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
             authDomain: "bss-dashboard-73681.firebaseapp.com",
-            databaseURL: "https://bss-dashboard-73681-default-rtdb.firebaseio.com",
+            databaseURL: "https://bss-dashboard-73681-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "bss-dashboard-73681",
             storageBucket: "bss-dashboard-73681.appspot.com",
             messagingSenderId: "252320657377",
@@ -59,7 +59,7 @@
         .btn-teal:hover { background-color: #0f766e; color: white; }
     </style>
 </head>
-<body class="bg-light" onload="cekKeamananDanMuatNotulen()">
+<body class="bg-light" onload="muatDataNotulen()">
 
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
         <div class="container">
@@ -148,20 +148,9 @@
     </div>
 
     <footer class="text-center py-4 text-muted"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Notulen Rapat</small></footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function cekKeamananDanMuatNotulen() {
-            let statusLogin = localStorage.getItem('bss_logged_in');
-            if (statusLogin !== 'true') {
-                alert('Sesi Anda belum terverifikasi. Silakan masukkan password di halaman utama.');
-                window.location.href = 'index.html';
-                return;
-            }
-            muatDataNotulen();
-        }
-
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];

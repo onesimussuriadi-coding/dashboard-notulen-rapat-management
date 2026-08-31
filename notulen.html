@@ -58,7 +58,6 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        /* PENGATURAN KHUSUS CETAK / PRINT PDF */
         @media print {
             body { background: white !important; font-size: 12pt; color: #000; }
             .navbar, .btn, .card.mb-4.bg-white, .modal, footer { display: none !important; }
@@ -86,7 +85,6 @@
     </nav>
 
     <div class="container my-5">
-        <!-- KOP SURAT KHUSUS CETAK -->
         <div class="print-header">
             <h4 class="fw-bold mb-1">PT BANGGAI SENTRAL SULAWESI</h4>
             <p class="mb-1 small">Jalan Urip Sumoharjo Nomor 53, Luwuk</p>
@@ -200,7 +198,7 @@
                     
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
-                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan..."></textarea></div>
+                    <div class="mb-3"><label class="form-label">Pembahasan & Arahan</label><textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Tuliskan pembahasan (Contoh: 1. Sertifikasi... 2. Meeting...)"></textarea></div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
                     
                     <div class="row">
@@ -330,6 +328,18 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
+        // FUNGSI UNTUK MEMBUAT PENOMORAN OTOMATIS TERSUSUN KE BAWAH SECARA RAPI
+        function formatTeksPenomoran(teks) {
+            if (!teks) return '-';
+            // Mencari pola angka penomoran seperti "1.", "2.", "3.", dst lalu disisipkan baris baru (<br>) di depannya
+            let formatted = teks.replace(/(\s|^)(\d+\.)/g, '<br>$2').trim();
+            // Jika diawali dengan <br> di baris pertama, hapus agar rapi
+            if (formatted.startsWith('<br>')) {
+                formatted = formatted.substring(4);
+            }
+            return formatted;
+        }
+
         function renderNotulen() {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
@@ -368,7 +378,6 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
-                // Header card yang rapi saat diprint memuat Periode, Tanggal, dan Lokasi
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
@@ -377,11 +386,22 @@
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
-                    html += `<tr><td><strong>${n.topikUtama}</strong></td><td>${n.pembahasan || '-'}</td><td>${n.tindakLanjut || '-'}</td>
+                    
+                    // Menerapkan format pembersihan baris penomoran otomatis
+                    let pembahasanRapi = formatTeksPenomoran(n.pembahasan);
+                    let tindakLanjutRapi = formatTeksPenomoran(n.tindakLanjut);
+
+                    html += `<tr>
+                        <td><strong>${n.topikUtama}</strong></td>
+                        <td>${pembahasanRapi}</td>
+                        <td>${tindakLanjutRapi}</td>
                         <td><strong>${n.pic}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
                         <td><span class="badge ${badge}">${n.status}</span></td>
-                        <td class="text-center no-print"><button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button></td></tr>`;
+                        <td class="text-center no-print">
+                            <button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
+                        </td>
+                    </tr>`;
                 });
                 html += `</tbody></table></div></div>`;
                 card.innerHTML = html;

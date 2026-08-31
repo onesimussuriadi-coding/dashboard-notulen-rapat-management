@@ -58,7 +58,7 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        /* FORMAT GRID EXCEL DENGAN DUKUNGAN SUB-POIN MENJOROK KE DALAM */
+        /* FORMAT GRID EXCEL DENGAN WARNA SERAGAM UNTUK SUB-POIN */
         .excel-grid-container {
             display: flex;
             flex-direction: column;
@@ -70,6 +70,7 @@
             border-bottom: 1px solid #dee2e6;
             padding: 8px 10px;
             align-items: flex-start;
+            background-color: transparent; /* Mengikuti warna latar belakang sel tabel utama */
         }
         .excel-row:last-child {
             border-bottom: none;
@@ -82,9 +83,9 @@
         .excel-text {
             flex-grow: 1;
         }
-        /* Kelas khusus untuk sub-poin (anak nomor) agar masuk ke dalam */
+        /* Sub-poin sekarang warnanya transparan / sama persis dengan baris induknya */
         .excel-row.sub-item {
-            background-color: #fcfcfc;
+            background-color: transparent !important; 
         }
         .excel-row.sub-item .excel-num {
             padding-left: 15px;
@@ -240,7 +241,7 @@
                     <h6 class="text-teal-custom fw-bold mb-3">📝 Masukkan Detail Topik Pembahasan</h6>
                     <div class="mb-3"><label class="form-label">Topik Utama</label><input type="text" id="notulenTopikUtama" class="form-control" placeholder="Contoh: Pengadaan Unit..."></div>
                     <div class="mb-3">
-                        <label class="form-label">Pembahasan & Arahan <small class="text-muted">(Gunakan spasi/indentasi atau ketik sub-nomor seperti 1., 2. untuk anak poin)</small></label>
+                        <label class="form-label">Pembahasan & Arahan</label>
                         <textarea id="notulenPembahasan" class="form-control" rows="3" placeholder="Contoh: 4. SPDA Expired&#10;   1. Perpanjangan SPDA&#10;   2. Update KBLI"></textarea>
                     </div>
                     <div class="mb-3"><label class="form-label">Tindak Lanjut & Penyelesaian</label><textarea id="notulenTindakLanjut" class="form-control" rows="4" placeholder="Tuliskan langkah penyelesaian..."></textarea></div>
@@ -392,7 +393,6 @@
             document.getElementById('notulenTanggal').value = j.tanggal;
         }
 
-        // FUNGSI PINTAR UNTUK MENDETEKSI SUB-POIN (ANAK NOMOR) AGAR MENJOROK KE DALAM
         function formatTeksExcelGrid(teks) {
             if (!teks) return '-';
             let lines = teks.split('\n');
@@ -402,7 +402,6 @@
                 let trimmed = line.trim();
                 if (!trimmed) return;
                 
-                // Cek apakah baris ini adalah sub-poin (diawali spasi/indentasi di textarea ATAU berupa nomor urut anak)
                 let isSub = line.startsWith(' ') || line.startsWith('\t') || trimmed.match(/^[a-z]\./) || (line.match(/^\s+/) && trimmed.match(/^\d+\./));
                 
                 let matchNum = trimmed.match(/^(\d+\.|[a-z]\.|•|-)\s*(.*)$/);

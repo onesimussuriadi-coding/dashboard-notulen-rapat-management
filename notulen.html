@@ -45,8 +45,11 @@
                 if (serverData.absen) localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
                 if (serverData.notulen && serverData.notulen.length > 0) {
                     localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
-                    dataNotulen = serverData.notulen;
-                    if (typeof renderNotulen === 'function') { renderNotulen(); isiDropdownTanggalLalu(); }
+                    window.dataNotulenGlobal = serverData.notulen;
+                    if (typeof renderNotulen === 'function') { 
+                        renderNotulen(); 
+                        if(typeof isiDropdownTanggalLalu === 'function') isiDropdownTanggalLalu(); 
+                    }
                 }
             }
         });
@@ -151,8 +154,8 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">Pilih Tahun</label>
                         <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Tahun</option>
-                            <option value="2026" selected>2026</option>
+                            <option value="ALL" selected>Semua Tahun</option>
+                            <option value="2026">2026</option>
                             <option value="2027">2027</option>
                             <option value="2028">2028</option>
                         </select>
@@ -160,10 +163,10 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">Pilih Bulan</label>
                         <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Bulan</option>
+                            <option value="ALL" selected>Semua Bulan</option>
                             <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
                             <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
-                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                            <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
                             <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                         </select>
                     </div>
@@ -274,6 +277,7 @@
 
     <script>
         let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
+        window.dataNotulenGlobal = dataNotulen;
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
@@ -297,6 +301,7 @@
 
         function isiDropdownJadwal() {
             const select = document.getElementById('notulenPilihJadwal');
+            if(!select) return;
             select.innerHTML = '<option value="">-- Pilih dari Jadwal Rapat Terdaftar --</option>';
             dataJadwal.forEach((j, idx) => {
                 let opt = document.createElement('option'); opt.value = idx;
@@ -375,9 +380,10 @@
                 dataNotulen.unshift({
                     periode: periodeBaru, tanggal: tglBaru, lokasi: item.lokasi || 'Ruang Meeting Kantor Utama',
                     media: item.media || 'Offline', topikUtama: item.topikUtama, pembahasan: item.pembahasan,
-                    tindakLanjut: item.tindakLanjut, pic: item.pic, deadline: item.deadline, status: 'Open'
+                    tindakLanjut: item.tindakLanjut, pic: item.pic || '-', deadline: item.deadline || '-', status: 'Open'
                 });
             });
+            window.dataNotulenGlobal = dataNotulen;
             renderNotulen();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
@@ -420,6 +426,11 @@
             const container = document.getElementById('containerNotulen');
             if(!container) return;
             container.innerHTML = '';
+            
+            if(window.dataNotulenGlobal && window.dataNotulenGlobal.length > 0) {
+                dataNotulen = window.dataNotulenGlobal;
+            }
+
             const fT = document.getElementById('filterTahun').value;
             const fB = document.getElementById('filterBulan').value;
             const fS = document.getElementById('filterStatus').value;
@@ -454,11 +465,18 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
+                // RESTORED: Kolom tabel lengkap mencakup Topik, Pembahasan, Tindak Lanjut, PIC & Deadline, Status, dan Tombol Aksi (Edit/Hapus)
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
-                    <th style="width:15%;">Topik Utama</th><th style="width:15%;">Pembahasan & Arahan</th><th style="width:40%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:10%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
+                    <th style="width:15%;">Topik Utama</th>
+                    <th style="width:20%;">Pembahasan & Arahan</th>
+                    <th style="width:30%;">Tindak Lanjut</th>
+                    <th style="width:15%;">PIC & Deadline</th>
+                    <th style="width:5%;">Status</th>
+                    <th style="width:15%;" class="text-center no-print">Aksi</th>
+                    </tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
@@ -495,14 +513,27 @@
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'none';
+            document.getElementById('sectionInfoUmum').style.display = 'block';
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
+            
+            const selectLokasi = document.getElementById('notulenLokasi');
+            selectLokasi.value = lokasi;
+            if(!selectLokasi.value) {
+                selectLokasi.value = 'OPSIONAL_LAINNYA';
+                document.getElementById('notulenLokasiManual').style.display = 'block';
+                document.getElementById('notulenLokasiManual').value = lokasi;
+            } else {
+                document.getElementById('notulenLokasiManual').style.display = 'none';
+            }
+
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
             inisialisasiDaftarPic([]);
             document.getElementById('notulenDeadline').value = '';
+            document.getElementById('notulenStatus').value = 'Open';
+            
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -519,6 +550,7 @@
             document.getElementById('notulenTindakLanjut').value = '';
             inisialisasiDaftarPic([]);
             document.getElementById('notulenDeadline').value = '';
+            document.getElementById('notulenStatus').value = 'Open';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
@@ -559,33 +591,25 @@
             }
             inisialisasiDaftarPic(currentPics);
 
-            document.getElementById('notulenDeadline').value = n.deadline;
-            document.getElementById('notulenStatus').value = n.status;
+            document.getElementById('notulenDeadline').value = n.deadline || '';
+            document.getElementById('notulenStatus').value = n.status || 'Open';
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
-            const isQuick = document.getElementById('sectionInfoUmum').style.display === 'none';
-            let periode, tanggal, lokasi = 'Ruang Meeting Kantor Utama', media = 'Offline';
             
-            if(isQuick) {
-                periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value;
-                let match = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
-                if(match) { lokasi = match.lokasi; media = match.media; }
-            } else {
-                periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value;
-                const selLoc = document.getElementById('notulenLokasi').value;
-                lokasi = selLoc === 'OPSIONAL_LAINNYA' ? (document.getElementById('notulenLokasiManual').value.trim() || 'Kantor Utama') : selLoc;
-                
-                let mOff = document.getElementById('mediaOffline').checked;
-                let mOn = document.getElementById('mediaOnline').checked;
-                if(mOff && mOn) media = 'Offline & Online';
-                else if(mOff) media = 'Offline';
-                else if(mOn) media = 'Online';
-            }
+            const periode = document.getElementById('notulenPeriode').value;
+            const tanggal = document.getElementById('notulenTanggal').value;
+            const selLoc = document.getElementById('notulenLokasi').value;
+            let lokasi = selLoc === 'OPSIONAL_LAINNYA' ? (document.getElementById('notulenLokasiManual').value.trim() || 'Kantor Utama') : selLoc;
+            
+            let mOff = document.getElementById('mediaOffline').checked;
+            let mOn = document.getElementById('mediaOnline').checked;
+            let media = 'Offline';
+            if(mOff && mOn) media = 'Offline & Online';
+            else if(mOff) media = 'Offline';
+            else if(mOn) media = 'Online';
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
@@ -603,6 +627,7 @@
             
             const dataBaru = { periode, tanggal, lokasi, media, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
             if(index === -1) dataNotulen.unshift(dataBaru); else dataNotulen[index] = dataBaru;
+            window.dataNotulenGlobal = dataNotulen;
             renderNotulen();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
@@ -611,6 +636,7 @@
         function hapusNotulen(index) {
             if(confirm('Hapus notulen ini?')) {
                 dataNotulen.splice(index, 1);
+                window.dataNotulenGlobal = dataNotulen;
                 renderNotulen();
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }

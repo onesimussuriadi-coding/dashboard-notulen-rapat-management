@@ -61,6 +61,12 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
+        /* Membatasi tinggi bodi modal agar bisa digulir vertikal dengan rapi */
+        .modal-body {
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
         .excel-grid-container {
             display: flex;
             flex-direction: column;
@@ -199,7 +205,6 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
-                    <!-- Bagian atas ini otomatis disembunyikan saat klik "+ Tambah Topik" -->
                     <div id="sectionInfoUmum">
                         <div class="alert alert-warning p-3 mb-3 border-warning">
                             <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Sebelumnya (Panggil Ulang Berdasarkan Tanggal):</label>
@@ -517,11 +522,10 @@
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
         }
 
-        // KETIKA KLIK TAMBAH TOPIK: Bagian atas (panggil ulang, jadwal, periode, tanggal, lokasi) disembunyikan
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian atas
+            document.getElementById('sectionInfoUmum').style.display = 'none';
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             
@@ -535,11 +539,10 @@
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
-        // KETIKA KLIK BUAT NOTULEN BARU: Bagian atas tetap ditampilkan lengkap
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'block'; // Tampilkan bagian atas
+            document.getElementById('sectionInfoUmum').style.display = 'block';
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('notulenLokasi').value = 'Ruang Meeting Kantor Utama';

@@ -201,7 +201,7 @@
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     <div id="sectionInfoUmum">
                         <div class="alert alert-warning p-3 mb-3 border-warning">
-                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
+                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Sebelumnya (Panggil Ulang Berdasarkan Tanggal):</label>
                             <div class="input-group input-group-sm">
                                 <select id="selectTanggalLalu" class="form-select"><option value="">-- Pilih Tanggal Rapat Sebelumnya --</option></select>
                                 <button class="btn btn-dark fw-bold px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses Panggil Ulang</button>
@@ -249,7 +249,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">PIC / Penanggung Jawab (Bisa Pilih Banyak)</label>
+                            <label class="form-label fw-bold">PIC / Personal in Charge (Bisa Pilih Banyak)</label>
                             <div class="border rounded p-2 bg-white" style="max-height: 150px; overflow-y: auto;" id="containerCheckboxPic"></div>
                             <div class="input-group input-group-sm mt-2">
                                 <input type="text" id="inputPicManualNama" class="form-control" placeholder="Nama Pihak Ketiga / Vendor...">
@@ -257,12 +257,19 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Deadline</label>
+                            <label class="form-label fw-bold">Deadline / Jatuh Tempo</label>
                             <input type="date" id="notulenDeadline" class="form-control">
                         </div>
                     </div>
 
-                    <div class="mb-3"><label class="form-label">Status</label><select id="notulenStatus" class="form-select"><option value="Open">Open</option><option value="Info">Info</option><option value="Closing">Closing</option></select></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status Tindak Lanjut</label>
+                        <select id="notulenStatus" class="form-select">
+                            <option value="Open">Open</option>
+                            <option value="Info">Info</option>
+                            <option value="Closing">Closing</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -387,7 +394,7 @@
             renderNotulen();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
-            alert(`Berhasil menarik ${topikLalu.length} topik!`);
+            alert(`Berhasil memanggil ulang ${topikLalu.length} topik!`);
         }
 
         function pilihJadwalOtomatis(sel) {
@@ -465,17 +472,17 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
-                // RESTORED: Kolom tabel lengkap mencakup Topik, Pembahasan, Tindak Lanjut, PIC & Deadline, Status, dan Tombol Aksi (Edit/Hapus)
+                // STRUKTUR KOLOM TABEL LENGKAP: Topik, Pembahasan, Tindak Lanjut, PIC & Deadline, Status (Open/Info/Closing), dan Tombol Aksi (Edit, Hapus)
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
                     <th style="width:15%;">Topik Utama</th>
                     <th style="width:20%;">Pembahasan & Arahan</th>
-                    <th style="width:30%;">Tindak Lanjut</th>
-                    <th style="width:15%;">PIC & Deadline</th>
-                    <th style="width:5%;">Status</th>
-                    <th style="width:15%;" class="text-center no-print">Aksi</th>
+                    <th style="width:25%;">Tindak Lanjut</th>
+                    <th style="width:15%;">Personal in Charge & Due Date</th>
+                    <th style="width:10%;" class="text-center">Status</th>
+                    <th style="width:15%;" class="text-center no-print">Aksi (Edit / Hapus)</th>
                     </tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
@@ -496,10 +503,10 @@
                         <td>${pembahasanRapi}</td>
                         <td>${tindakLanjutRapi}</td>
                         <td><strong>${picFormatted}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
-                        <td><span class="badge ${badge}">${n.status}</span></td>
+                        <td class="text-center"><span class="badge ${badge}">${n.status}</span></td>
                         <td class="text-center no-print">
-                            <button class="btn btn-sm btn-outline-warning mb-1 px-2" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
-                            <button class="btn btn-sm btn-outline-danger px-2" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>
+                            <button class="btn btn-sm btn-outline-warning mb-1 px-2 fw-bold" onclick="bukaModalEditNotulen(${n.originalIndex})">✏️ Edit</button>
+                            <button class="btn btn-sm btn-outline-danger px-2 fw-bold" onclick="hapusNotulen(${n.originalIndex})">🗑️ Hapus</button>
                         </td>
                     </tr>`;
                 });

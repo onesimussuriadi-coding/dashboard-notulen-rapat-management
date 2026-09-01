@@ -321,7 +321,7 @@
                 let div = document.createElement('div');
                 div.className = 'form-check';
                 div.innerHTML = `<input class="form-check-input checkbox-pic" type="checkbox" value="${namaPic}" id="pic_${idx}" ${isChecked}>
-                                 <label class="form-check-label small" for="pic_${idx}">${namaPic}</label>`;
+                               <label class="form-check-label small" for="pic_${idx}">${namaPic}</label>`;
                 container.appendChild(div);
             });
         }
@@ -336,7 +336,7 @@
             let div = document.createElement('div');
             div.className = 'form-check';
             div.innerHTML = `<input class="form-check-input checkbox-pic" type="checkbox" value="${val}" id="pic_m_${idx}" checked>
-                             <label class="form-check-label small fw-bold text-primary" for="pic_m_${idx}">${val} (Pihak Ketiga)</label>`;
+                           <label class="form-check-label small fw-bold text-primary" for="pic_m_${idx}">${val} (Pihak Ketiga)</label>`;
             container.appendChild(div);
             input.value = '';
         }
@@ -455,12 +455,12 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
-                // PENGATURAN LEBAR KOLOM (TOPIK UTAMA 15%, PEMBAHASAN 15%, TINDAK LANJUT 50%, PIC 15%, STATUS 5%)
+                // RESTORED: Lebar kolom dikembalikan agar kolom PIC, Due Date, dan Tombol Aksi/Edit tampil sempurna kembali
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
-                    <th style="width:15%;">Topik Utama</th><th style="width:15%;">Pembahasan & Arahan</th><th style="width:50%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:0%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
+                    <th style="width:15%;">Topik Utama</th><th style="width:15%;">Pembahasan & Arahan</th><th style="width:40%;">Tindak Lanjut</th><th style="width:15%;">PIC & Deadline</th><th style="width:5%;">Status</th><th style="width:10%;" class="text-center no-print">Aksi</th></tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
                     let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';

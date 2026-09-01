@@ -39,28 +39,10 @@
 
         onValue(ref(db, 'ptbss_rapat_data'), (snapshot) => {
             const serverData = snapshot.val();
-            if (serverData) {
-                if (serverData.personel) localStorage.setItem('bss_personel', JSON.stringify(serverData.personel));
-                if (serverData.jadwal) localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
-                if (serverData.absen) localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
-                if (serverData.notulen && serverData.notulen.length > 0) {
-                    // Paksa perbaiki data lama agar memiliki struktur lengkap
-                    let normalized = serverData.notulen.map(n => ({
-                        periode: n.periode || 'Minggu ke-3',
-                        tanggal: n.tanggal || '2026-08-19',
-                        lokasi: n.lokasi || 'Ruang Meeting Kantor Operasional Pasar Tua',
-                        media: n.media || 'Offline',
-                        topikUtama: n.topikUtama || '-',
-                        pembahasan: n.pembahasan || '-',
-                        tindakLanjut: n.tindakLanjut || '-',
-                        pic: n.pic || ['Belum ditentukan'],
-                        deadline: n.deadline || '2026-09-05',
-                        status: n.status || 'Open'
-                    }));
-                    localStorage.setItem('bss_notulen', JSON.stringify(normalized));
-                    window.dataNotulenGlobal = normalized;
-                    if (typeof renderNotulen === 'function') { renderNotulen(); }
-                }
+            if (serverData && serverData.notulen) {
+                localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
+                window.dataNotulenGlobal = serverData.notulen;
+                if (typeof renderNotulen === 'function') { renderNotulen(); }
             }
         });
     </script>
@@ -74,11 +56,7 @@
         .excel-grid-container { display: flex; flex-direction: column; width: 100%; margin: -8px; }
         .excel-row { display: flex; border-bottom: 1px solid #dee2e6; padding: 8px 10px; align-items: flex-start; background-color: transparent; }
         .excel-row:last-child { border-bottom: none; }
-        .excel-num { font-weight: bold; min-width: 25px; flex-shrink: 0; }
         .excel-text { flex-grow: 1; }
-        .excel-row.sub-item { background-color: transparent !important; }
-        .excel-row.sub-item .excel-num { padding-left: 15px; min-width: 40px; }
-        .excel-row.sub-item .excel-text { padding-left: 5px; }
         .table-bordered-grid th, .table-bordered-grid td { border: 1px solid #dee2e6 !important; vertical-align: middle; }
     </style>
 </head>
@@ -478,7 +456,7 @@
             }
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
-            const pembahasan = document.getElementById('notulenPembahasan').value.trim();
+            const pembahasan = document.getElementById('notulusanPembahasan') ? document.getElementById('notulusanPembahasan').value.trim() : document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             
             let selectedPics = [];

@@ -187,6 +187,7 @@
         </div>
     </div>
 
+    <!-- MODAL NOTULEN -->
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -454,17 +455,16 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
-                // TABEL DITAMBAHKAN KOLOM PIC & DEADLINE SERTA STATUS DAN AKSI EDIT/HAPUS SECARA UTUH
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
                     <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 table-bordered-grid"><thead class="table-light"><tr>
                     <th style="width:15%;">Topik Utama</th>
-                    <th style="width:20%;">Pembahasan & Arahan</th>
+                    <th style="width:15%;">Pembahasan & Arahan</th>
                     <th style="width:30%;">Tindak Lanjut</th>
-                    <th style="width:15%;">Personal in Charge & Deadline</th>
-                    <th style="width:10%;" class="text-center">Status</th>
-                    <th style="width:10%;" class="text-center no-print">Aksi</th>
+                    <th style="width:15%;">PIC & Deadline</th>
+                    <th style="width:10%;">Status</th>
+                    <th style="width:15%;" class="text-center no-print">Aksi</th>
                     </tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
@@ -485,7 +485,7 @@
                         <td>${pembahasanRapi}</td>
                         <td>${tindakLanjutRapi}</td>
                         <td><strong>${picFormatted}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
-                        <td class="text-center"><span class="badge ${badge}">${n.status}</span></td>
+                        <td><span class="badge ${badge}">${n.status || 'Open'}</span></td>
                         <td class="text-center no-print">
                             <button class="btn btn-sm btn-outline-warning mb-1 px-2 fw-bold" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>
                             <button class="btn btn-sm btn-outline-danger px-2 fw-bold" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>

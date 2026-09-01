@@ -61,7 +61,6 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
 
-        /* Membatasi tinggi bodi modal agar bisa digulir vertikal dengan rapi */
         .modal-body {
             max-height: 75vh;
             overflow-y: auto;
@@ -393,7 +392,7 @@
                 dataNotulen.unshift({
                     periode: periodeBaru, tanggal: tglBaru, lokasi: item.lokasi || 'Ruang Meeting Kantor Utama',
                     media: item.media || 'Offline', topikUtama: item.topikUtama, pembahasan: item.pembahasan,
-                    tindakLanjut: item.tindakLanjut, pic: item.pic || '-', deadline: item.deadline || '-', status: 'Open'
+                    tindakLanjut: item.tindakLanjut, pic: item.pic || '-', deadline: item.deadline || '-', status: item.status || 'Open'
                 });
             });
             window.dataNotulenGlobal = dataNotulen;
@@ -478,6 +477,7 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
+                // STRUKTUR TABEL LENGKAP 6 KOLOM
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
@@ -491,7 +491,8 @@
                     </tr></thead><tbody>`;
 
                 grouped[key].forEach(n => {
-                    let badge = n.status === 'Open' ? 'bg-warning text-dark' : n.status === 'Closing' ? 'bg-success' : 'bg-info text-dark';
+                    let statusVal = n.status || 'Open';
+                    let badge = statusVal === 'Open' ? 'bg-warning text-dark' : statusVal === 'Closing' ? 'bg-success' : 'bg-info text-dark';
                     
                     let pembahasanRapi = formatTeksExcelGrid(n.pembahasan);
                     let tindakLanjutRapi = formatTeksExcelGrid(n.tindakLanjut);
@@ -508,7 +509,7 @@
                         <td>${pembahasanRapi}</td>
                         <td>${tindakLanjutRapi}</td>
                         <td><strong>${picFormatted}</strong><br><small class="text-danger">Due: ${n.deadline || '-'}</small></td>
-                        <td class="text-center"><span class="badge ${badge}">${n.status}</span></td>
+                        <td class="text-center"><span class="badge ${badge}">${statusVal}</span></td>
                         <td class="text-center no-print">
                             <button class="btn btn-sm btn-outline-warning mb-1 px-2 fw-bold" onclick="bukaModalEditNotulen(${n.originalIndex})">✏️ Edit</button>
                             <button class="btn btn-sm btn-outline-danger px-2 fw-bold" onclick="hapusNotulen(${n.originalIndex})">🗑️ Hapus</button>

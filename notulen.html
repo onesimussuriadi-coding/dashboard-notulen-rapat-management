@@ -199,6 +199,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editIndexNotulen" value="-1">
+                    <!-- Bagian atas ini otomatis disembunyikan saat klik "+ Tambah Topik" -->
                     <div id="sectionInfoUmum">
                         <div class="alert alert-warning p-3 mb-3 border-warning">
                             <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Sebelumnya (Panggil Ulang Berdasarkan Tanggal):</label>
@@ -257,7 +258,7 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Deadline / Jatuh Tempo</label>
+                            <label class="form-label fw-bold">Deadline / Due Date</label>
                             <input type="date" id="notulenDeadline" class="form-control">
                         </div>
                     </div>
@@ -472,7 +473,6 @@
                 let card = document.createElement('div');
                 card.className = 'card mb-4 shadow-sm border-0';
                 
-                // STRUKTUR KOLOM TABEL LENGKAP: Topik, Pembahasan, Tindak Lanjut, PIC & Deadline, Status (Open/Info/Closing), dan Tombol Aksi (Edit, Hapus)
                 let html = `<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fs-6">📅 Periode: ${periode} | Tanggal: ${tglF} | 📍 Lokasi: ${lokasi}</h5>
                     <button class="btn btn-sm btn-light text-teal fw-bold px-2 no-print" style="font-size:12px;" onclick="tambahTopikKeRapat('${periode}', '${tanggal}', '${lokasi}', '${media}')">+ Tambah Topik</button></div>
@@ -517,23 +517,14 @@
             localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
         }
 
+        // KETIKA KLIK TAMBAH TOPIK: Bagian atas (panggil ulang, jadwal, periode, tanggal, lokasi) disembunyikan
         function tambahTopikKeRapat(periode, tanggal, lokasi, media) {
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Baru untuk Rapat Ini';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'block';
+            document.getElementById('sectionInfoUmum').style.display = 'none'; // Sembunyikan bagian atas
             document.getElementById('notulenPeriode').value = periode;
             document.getElementById('notulenTanggal').value = tanggal;
             
-            const selectLokasi = document.getElementById('notulenLokasi');
-            selectLokasi.value = lokasi;
-            if(!selectLokasi.value) {
-                selectLokasi.value = 'OPSIONAL_LAINNYA';
-                document.getElementById('notulenLokasiManual').style.display = 'block';
-                document.getElementById('notulenLokasiManual').value = lokasi;
-            } else {
-                document.getElementById('notulenLokasiManual').style.display = 'none';
-            }
-
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
@@ -544,10 +535,11 @@
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
+        // KETIKA KLIK BUAT NOTULEN BARU: Bagian atas tetap ditampilkan lengkap
         function bukaModalNotulen() {
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
-            document.getElementById('sectionInfoUmum').style.display = 'block';
+            document.getElementById('sectionInfoUmum').style.display = 'block'; // Tampilkan bagian atas
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('notulenLokasi').value = 'Ruang Meeting Kantor Utama';
@@ -605,18 +597,27 @@
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
+            const isQuickAdd = document.getElementById('sectionInfoUmum').style.display === 'none';
             
-            const periode = document.getElementById('notulenPeriode').value;
-            const tanggal = document.getElementById('notulenTanggal').value;
-            const selLoc = document.getElementById('notulenLokasi').value;
-            let lokasi = selLoc === 'OPSIONAL_LAINNYA' ? (document.getElementById('notulenLokasiManual').value.trim() || 'Kantor Utama') : selLoc;
+            let periode, tanggal, lokasi, media = 'Offline';
             
-            let mOff = document.getElementById('mediaOffline').checked;
-            let mOn = document.getElementById('mediaOnline').checked;
-            let media = 'Offline';
-            if(mOff && mOn) media = 'Offline & Online';
-            else if(mOff) media = 'Offline';
-            else if(mOn) media = 'Online';
+            if (isQuickAdd) {
+                periode = document.getElementById('notulenPeriode').value;
+                tanggal = document.getElementById('notulenTanggal').value;
+                let match = dataNotulen.find(n => n.periode === periode && n.tanggal === tanggal);
+                lokasi = match ? (match.lokasi || 'Ruang Meeting Kantor Utama') : 'Ruang Meeting Kantor Utama';
+            } else {
+                periode = document.getElementById('notulenPeriode').value;
+                tanggal = document.getElementById('notulenTanggal').value;
+                const selLoc = document.getElementById('notulenLokasi').value;
+                lokasi = selLoc === 'OPSIONAL_LAINNYA' ? (document.getElementById('notulenLokasiManual').value.trim() || 'Kantor Utama') : selLoc;
+                
+                let mOff = document.getElementById('mediaOffline').checked;
+                let mOn = document.getElementById('mediaOnline').checked;
+                if(mOff && mOn) media = 'Offline & Online';
+                else if(mOff) media = 'Offline';
+                else if(mOn) media = 'Online';
+            }
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();

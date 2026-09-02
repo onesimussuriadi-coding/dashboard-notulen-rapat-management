@@ -51,7 +51,7 @@
         <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body py-3">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Tahun</label>
                         <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Tahun (All)</option>
@@ -59,7 +59,7 @@
                             <option value="2027">2027</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
                         <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Bulan (All)</option>
@@ -68,7 +68,17 @@
                             <option value="10">Oktober</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold mb-1">Filter Periode Minggu</label>
+                        <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL">Semua Minggu</option>
+                            <option value="Minggu ke-1">Minggu ke-1</option>
+                            <option value="Minggu ke-2">Minggu ke-2</option>
+                            <option value="Minggu ke-3">Minggu ke-3</option>
+                            <option value="Minggu ke-4">Minggu ke-4</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Status Tindak Lanjut</label>
                         <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Status Aktif</option>
@@ -99,7 +109,6 @@
                     <input type="hidden" id="editIndexNotulen" value="-1">
                     <input type="hidden" id="modeFormNotulen" value="baru">
                     
-                    <!-- Bagian Metadata Rapat (Hanya tampil saat Buat Notulen Baru) -->
                     <div id="wrapperMetadataRapat">
                         <div class="alert alert-warning p-2 mb-3 no-print border-warning small">
                             <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
@@ -160,11 +169,9 @@
                                 <option value="">-- Pilih Pemimpin Rapat --</option>
                             </select>
                         </div>
-
                         <hr class="my-3">
                     </div>
 
-                    <!-- Input Inti Topik Rapat (Selalu Tampil untuk Buat, Tambah Topik, maupun Edit) -->
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Topik Utama</label>
                         <input type="text" id="notulenTopikUtama" class="form-control form-control-sm" placeholder="Topik rapat...">
@@ -180,10 +187,8 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Klik centang untuk memilih lebih dari satu)</label>
-                            <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;">
-                                <!-- Checkbox terisi otomatis -->
-                            </div>
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab</label>
+                            <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold">Deadline Penyelesaian</label>
@@ -201,6 +206,40 @@
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulen()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Save As / Salin ke Periode Baru -->
+    <div class="modal fade" id="modalSaveAs" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-teal-custom text-white py-2">
+                    <h5 class="modal-title fs-6">Simpan Sebagai (Save As) / Salin Rapat</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="saveAsSourceKey" value="">
+                    <p class="small text-muted mb-3">Fitur ini menduplikasi seluruh topik dari rapat ini ke periode atau tanggal baru sehingga catatan asli minggu sebelumnya tetap aman.</p>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
+                        <select id="saveAsPeriode" class="form-select form-select-sm">
+                            <option value="Minggu ke-1">Minggu ke-1</option>
+                            <option value="Minggu ke-2">Minggu ke-2</option>
+                            <option value="Minggu ke-3">Minggu ke-3</option>
+                            <option value="Minggu ke-4">Minggu ke-4</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
+                        <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="prosesSaveAsRapat()">Proses Save As</button>
                 </div>
             </div>
         </div>
@@ -351,6 +390,7 @@
 
             const filterTahun = document.getElementById('filterTahun').value;
             const filterBulan = document.getElementById('filterBulan').value;
+            const filterPeriodeMinggu = document.getElementById('filterPeriodeMinggu').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
             let filteredData = dataNotulen.filter((n, idx) => {
@@ -358,9 +398,10 @@
                 let p = n.tanggal.split('-');
                 let matchTahun = (filterTahun === 'ALL' || p[0] === filterTahun);
                 let matchBulan = (filterBulan === 'ALL' || p[1] === filterBulan);
+                let matchMinggu = (filterPeriodeMinggu === 'ALL' || n.periode === filterPeriodeMinggu);
                 let matchStatus = (filterStatus === 'ALL' || n.status === filterStatus);
                 n.originalIndex = idx;
-                return matchTahun && matchBulan && matchStatus;
+                return matchTahun && matchBulan && matchMinggu && matchStatus;
             });
 
             if(filteredData.length === 0) {
@@ -396,8 +437,10 @@
                 let headerHtml = '<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Pemimpin:</strong> ' + (leader || '-') + '</div></div>' +
-                    '<div><button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\')">+ Tambah Topik</button></div>' +
-                    '</div>' +
+                    '<div class="d-flex gap-2">' +
+                    '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
+                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\')">+ Tambah Topik</button>' +
+                    '</div></div>' +
                     '<div class="card-body p-0"><div class="table-responsive"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
                     '<th style="width: 5%;">No.</th>' +
@@ -449,8 +492,6 @@
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
-            
-            // Tampilkan bagian metadata rapat
             document.getElementById('wrapperMetadataRapat').style.display = 'block';
 
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
@@ -468,8 +509,6 @@
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
-            
-            // Sembunyikan bagian metadata rapat
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
 
             document.getElementById('notulenPeriode').value = periode;
@@ -488,6 +527,55 @@
             new bootstrap.Modal(document.getElementById('modalNotulen')).show();
         }
 
+        function bukaModalSaveAs(groupKey) {
+            document.getElementById('saveAsSourceKey').value = groupKey;
+            document.getElementById('saveAsTanggal').value = new Date().toISOString().split('T')[0];
+            new bootstrap.Modal(document.getElementById('modalSaveAs')).show();
+        }
+
+        function prosesSaveAsRapat() {
+            let groupKey = document.getElementById('saveAsSourceKey').value;
+            let targetPeriode = document.getElementById('saveAsPeriode').value;
+            let targetTanggal = document.getElementById('saveAsTanggal').value;
+
+            if(!targetTanggal) {
+                alert('Tentukan tanggal rapat baru terlebih dahulu!');
+                return;
+            }
+
+            let itemsToCopy = dataNotulen.filter(item => {
+                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-');
+                return key === groupKey;
+            });
+
+            if(itemsToCopy.length === 0) {
+                alert('Tidak ada topik ditemukan untuk disalin.');
+                return;
+            }
+
+            itemsToCopy.forEach(src => {
+                let clonedItem = {
+                    periode: targetPeriode,
+                    tanggal: targetTanggal,
+                    lokasi: src.lokasi,
+                    media: src.media,
+                    leader: src.leader,
+                    topikUtama: src.topikUtama,
+                    pembahasan: src.pembahasan,
+                    tindakLanjut: src.tindakLanjut,
+                    pic: src.pic,
+                    deadline: src.deadline,
+                    status: src.status
+                };
+                dataNotulen.unshift(clonedItem);
+            });
+
+            renderNotulen();
+            syncDataToCloud();
+            bootstrap.Modal.getInstance(document.getElementById('modalSaveAs')).hide();
+            alert(`Berhasil melakukan Save As ${itemsToCopy.length} topik ke ${targetPeriode} (${targetTanggal})!`);
+        }
+
         function resetFormInti() {
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
@@ -501,8 +589,6 @@
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';
-            
-            // SEMBUNYIKAN bagian metadata rapat saat Edit (persis seperti tambah topik)
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
 
             const n = dataNotulen[index];
@@ -535,7 +621,6 @@
             const index = parseInt(document.getElementById('editIndexNotulen').value);
             const mode = document.getElementById('modeFormNotulen').value;
 
-            // Jika mode edit, ambil nilai periode/tanggal/lokasi dari data lama yang tersimpan agar tidak berubah
             let periode, tanggal, lokasi, media, leader;
             if (index !== -1 && mode === 'edit') {
                 const itemLama = dataNotulen[index];
@@ -594,6 +679,79 @@
                 renderNotulen();
                 syncDataToCloud();
             }
+        }
+
+        // FUNGSI UNDUH EXCEL YANG DIPERBAIKI SECARA UTUH
+        function downloadAllExcel() {
+            if (dataNotulen.length === 0) {
+                alert('Belum ada data notulen untuk diunduh.');
+                return;
+            }
+
+            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head><body>' +
+                '<table border="1"><tr><th colspan="10" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
+                '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Pemimpin</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th></tr>';
+
+            dataNotulen.forEach(item => {
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
+                htmlContent += '<tr>' +
+                    '<td>' + item.periode + '</td>' +
+                    '<td>' + item.tanggal + '</td>' +
+                    '<td>' + (item.lokasi || '-') + '</td>' +
+                    '<td>' + (item.media || '-') + '</td>' +
+                    '<td>' + (item.leader || '-') + '</td>' +
+                    '<td>' + item.topikUtama + '</td>' +
+                    '<td>' + (item.pembahasan || '-') + '</td>' +
+                    '<td>' + (item.tindakLanjut || '-') + '</td>' +
+                    '<td>' + picStr + ' (Due: ' + (item.deadline || '-') + ')</td>' +
+                    '<td>' + item.status + '</td></tr>';
+            });
+
+            htmlContent += '</table></body></html>';
+            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'Rekap_Notulen_BSS.xls';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // FUNGSI UNDUH WORD YANG DIPERBAIKI SECARA UTUH
+        function downloadAllWord() {
+            if (dataNotulen.length === 0) {
+                alert('Belum ada data notulen untuk diunduh.');
+                return;
+            }
+
+            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head><meta charset="utf-8"><title>Laporan Notulen Rapat</title></head>' +
+                '<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">' +
+                '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>' +
+                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3><hr style="border: 1px solid #0d9488;">';
+
+            dataNotulen.forEach((item, idx) => {
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
+                htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
+                    '<h4>' + (idx + 1) + '. [' + item.periode + '] ' + item.topikUtama + '</h4>' +
+                    '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Media:</strong> ' + (item.media || '-') + '</p>' +
+                    '<p><strong>Pemimpin:</strong> ' + (item.leader || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
+                    '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
+                    '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p>' +
+                    '<p><strong>PIC:</strong> ' + picStr + ' | <strong>Deadline:</strong> ' + (item.deadline || '-') + '</p></div>';
+            });
+
+            htmlContent += '</body></html>';
+            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'Laporan_Notulen_BSS.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>

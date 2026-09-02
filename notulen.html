@@ -22,7 +22,7 @@
 </head>
 <body class="bg-light" onload="muatDataNotulen()">
 
-    <!-- NAVBAR KONSISTEN (MEMUDAHKAN PINDAH MODUL TANPA KELUAR) -->
+    <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
         <div class="container-fluid px-4">
             <span class="navbar-brand mb-0 h1 fs-6">📁 Modul Notulen & Tindak Lanjut Rapat</span>
@@ -42,7 +42,7 @@
                 <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="syncDataToCloud(true)">🔄 Sinkron Cloud</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="muatDataNotulen(true)">🔄 Sinkron Cloud</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -99,7 +99,7 @@
         </div>
     </div>
 
-    <!-- Modal Form Notulen, Tambah Topik & Edit -->
+    <!-- Modal Form Notulen -->
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -179,11 +179,11 @@
                         <input type="text" id="notulenTopikUtama" class="form-control form-control-sm" placeholder="Topik rapat...">
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Pembahasan & Arahan (Bisa gunakan nomor 1., 2., dst)</label>
+                        <label class="form-label small fw-bold">Pembahasan & Arahan</label>
                         <textarea id="notulenPembahasan" class="form-control form-control-sm" rows="3" placeholder="Detail pembahasan..."></textarea>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Tindak Lanjut & Penyelesaian (Bisa gunakan nomor 1., 2., dst)</label>
+                        <label class="form-label small fw-bold">Tindak Lanjut & Penyelesaian</label>
                         <textarea id="notulenTindakLanjut" class="form-control form-control-sm" rows="5" placeholder="Tindakan penyelesaian..."></textarea>
                     </div>
                     
@@ -213,7 +213,7 @@
         </div>
     </div>
 
-    <!-- Modal Save As / Salin Rapat dengan Pengaturan Lengkap -->
+    <!-- Modal Save As -->
     <div class="modal fade" id="modalSaveAs" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -223,7 +223,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="saveAsSourceKey" value="">
-                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru beserta penyesuaian lokasi, media, dan pemimpin rapat.</p>
+                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru.</p>
                     
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
@@ -284,17 +284,9 @@
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
-        function muatDataNotulen() {
-            fetchDataFromCloud(() => {
-                renderNotulen();
-                isiDropdownTanggalLalu();
-                isiDropdownLeaderJadwal();
-                renderPicCheckboxes();
-            });
-        }
-
-        function fetchDataFromCloud(callback) {
-            fetch(WEB_APP_URL + "?action=load")
+        function muatDataNotulen(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan data terbaru dari server...');
+            fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
                     if (data.personel && data.personel.length > 0) {
@@ -309,14 +301,23 @@
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                     }
+                    renderNotulen();
+                    isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
-                    if(callback) callback();
+                    renderPicCheckboxes();
+                    if(showNotification) alert('Sinkronisasi Berhasil!');
                 })
-                .catch(err => { if(callback) callback(); });
+                .catch(err => {
+                    renderNotulen();
+                    isiDropdownTanggalLalu();
+                    isiDropdownLeaderJadwal();
+                    renderPicCheckboxes();
+                    if(showNotification) alert('Gagal terhubung ke cloud, menggunakan data lokal.');
+                });
         }
 
         function syncDataToCloud(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan data ke Google Sheets...');
+            if(showNotification) alert('Menyinkronkan data ke Cloud...');
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
                 jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
@@ -337,11 +338,10 @@
         function isiDropdownLeaderJadwal() {
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
-            
             let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
-            currentJadwal.forEach((j, idx) => {
+            currentJadwal.forEach((j) => {
                 let namaLeader = j.leader || j.namaLeader || '-';
                 let jabatanLeader = j.jabatanLeader || '';
                 optionsHtml += `<option value="${namaLeader}">${j.periode} (${j.tanggal}) — Pemimpin: ${namaLeader} ${jabatanLeader ? '('+jabatanLeader+')' : ''}</option>`;
@@ -354,20 +354,15 @@
         function pilihLeaderDariJadwal(select) {
             const selectedNama = select.value;
             if(selectedNama === "") return;
-            
             let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
             const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNama);
-            
             if(j) {
                 if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
                 if(j.tanggal) document.getElementById('notulenTanggal').value = j.tanggal;
                 if(j.lokasi) {
                     let lokSelect = document.getElementById('notulenLokasi');
                     for(let i=0; i<lokSelect.options.length; i++) {
-                        if(lokSelect.options[i].value === j.lokasi) {
-                            lokSelect.selectedIndex = i;
-                            break;
-                        }
+                        if(lokSelect.options[i].value === j.lokasi) { lokSelect.selectedIndex = i; break; }
                     }
                 }
             }
@@ -377,7 +372,6 @@
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
             container.innerHTML = '';
-
             let listPersonel = JSON.parse(localStorage.getItem('bss_personel')) || dataPersonel;
             if(listPersonel.length === 0) {
                 listPersonel = [
@@ -387,17 +381,13 @@
                     { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" }
                 ];
             }
-
             listPersonel.forEach((p, idx) => {
                 let identifier = p.nama + ' — ' + p.jabatan;
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
-
                 let div = document.createElement('div');
                 div.className = 'form-check mb-1';
-                div.innerHTML = `
-                    <input class="form-check-input pic-checkbox" type="checkbox" value="${identifier}" id="picCheck_${idx}" ${isChecked}>
-                    <label class="form-check-label small" for="picCheck_${idx}">${identifier}</label>
-                `;
+                div.innerHTML = `<input class="form-check-input pic-checkbox" type="checkbox" value="${identifier}" id="picCheck_${idx}" ${isChecked}>
+                    <label class="form-check-label small" for="picCheck_${idx}">${identifier}</label>`;
                 container.appendChild(div);
             });
         }
@@ -423,10 +413,7 @@
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
                     let htmlList = '<ol class="ps-3 mb-0" style="text-align: left;">';
-                    parts.forEach(part => {
-                        let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
-                        htmlList += '<li>' + cleanText + '</li>';
-                    });
+                    parts.forEach(part => { htmlList += '<li>' + part.replace(/^\d+[\.\)]\s*/, '') + '</li>'; });
                     htmlList += '</ol>';
                     return htmlList;
                 }
@@ -441,10 +428,7 @@
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
                     let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
-                    parts.forEach(part => {
-                        let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
-                        htmlList += '<li>' + cleanText + '</li>';
-                    });
+                    parts.forEach(part => { htmlList += '<li>' + part.replace(/^\d+[\.\)]\s*/, '') + '</li>'; });
                     htmlList += '</ol>';
                     return htmlList;
                 }
@@ -664,7 +648,7 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenDeadline').value = '';
+            document.getElementById('notulenDeadline').value = new Date().toISOString().split('T')[0];
             document.getElementById('notulenStatus').value = 'Open';
             renderPicCheckboxes([]);
         }
@@ -677,7 +661,7 @@
 
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
-            document.getElementById('notulenTanggal').value = n.tanggal;
+            document.getElementById('notulenTanggal').value = n.tanggal || new Date().toISOString().split('T')[0];
             
             let lokSelect = document.getElementById('notulenLokasi');
             for(let i=0; i<lokSelect.options.length; i++) {
@@ -694,7 +678,7 @@
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
             document.getElementById('notulenPembahasan').value = n.pembahasan || '';
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
-            document.getElementById('notulenDeadline').value = n.deadline || '';
+            document.getElementById('notulenDeadline').value = n.deadline || new Date().toISOString().split('T')[0];
             document.getElementById('notulenStatus').value = n.status || 'Open';
 
             let savedPics = Array.isArray(n.pic) ? n.pic : (n.pic ? [n.pic] : []);
@@ -729,7 +713,7 @@
                 leader = leaderSelect.value ? leaderSelect.value : '-';
             } else {
                 periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value;
+                tanggal = document.getElementById('notulenTanggal').value || new Date().toISOString().split('T')[0];
                 lokasi = document.getElementById('notulenLokasi').value;
                 
                 let mediaList = [];
@@ -745,7 +729,6 @@
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
             
-            // Konversi format tanggal deadline dengan aman
             let rawDeadline = document.getElementById('notulenDeadline').value;
             let deadline = rawDeadline;
             if (rawDeadline && rawDeadline.includes('/')) {
@@ -770,10 +753,6 @@
                 return; 
             }
 
-            if(!tanggal) {
-                tanggal = new Date().toISOString().split('T')[0];
-            }
-
             const dataBaru = { periode, tanggal, lokasi, media, leader, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
 
             if(index === -1) { 
@@ -783,9 +762,7 @@
             }
 
             renderNotulen();
-            if(typeof syncDataToCloud === 'function') {
-                syncDataToCloud(false);
-            }
+            syncDataToCloud(false);
             
             let modalEl = document.getElementById('modalNotulen');
             let modalObj = bootstrap.Modal.getInstance(modalEl);

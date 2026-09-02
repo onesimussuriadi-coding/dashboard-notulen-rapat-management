@@ -303,7 +303,8 @@
                         dataJadwal = data.jadwal;
                         localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
                     }
-                    if (data.notulen && data.notulen.length > 0) {
+                    // Diperbarui agar array kosong / data yang dihapus ikut tersinkron dengan benar
+                    if (data.notulen) {
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                     }
@@ -400,7 +401,6 @@
             });
         }
 
-        // Format Pembahasan & Arahan agar otomatis rapi berbentuk list vertikal
         function formatPembahasan(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -419,7 +419,6 @@
             return '<span>' + teks + '</span>';
         }
 
-        // Format Tindak Lanjut: ukuran lebih kecil sedikit (hierarki anak tangga)
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -740,9 +739,11 @@
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
         }
 
+        // PENTING: Fungsi hapus yang langsung memperbarui memori lokal dan cloud secara permanen
         function hapusNotulen(index) {
-            if(confirm('Hapus notulen ini?')) {
+            if(confirm('Hapus notulen ini secara permanen?')) {
                 dataNotulen.splice(index, 1);
+                localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                 renderNotulen();
                 syncDataToCloud(false);
             }

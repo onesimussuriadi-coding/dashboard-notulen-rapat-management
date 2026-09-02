@@ -284,7 +284,7 @@
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
-        // Fungsi bantu mendapatkan tanggal lokal hari ini (Format YYYY-MM-DD tanpa selisih zona waktu)
+        // Fungsi bantu mendapatkan tanggal lokal hari ini secara akurat (Format YYYY-MM-DD)
         function getTodayLocalDate() {
             const d = new Date();
             const year = d.getFullYear();
@@ -558,7 +558,6 @@
             document.getElementById('wrapperMetadataRapat').style.display = 'block';
 
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
-            // Menggunakan tanggal real-time lokal hari ini (Today)
             document.getElementById('notulenTanggal').value = getTodayLocalDate();
             document.getElementById('notulenLokasi').selectedIndex = 0;
             document.getElementById('mediaOffline').checked = false;

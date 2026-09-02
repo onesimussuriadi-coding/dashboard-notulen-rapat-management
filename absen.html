@@ -58,12 +58,15 @@
 </head>
 <body class="bg-light" onload="muatDataAbsen()">
 
+    <!-- NAVBAR KONSISTEN (PINDAH MODUL DENGAN MUDAH) -->
     <nav class="navbar navbar-dark bg-success shadow-sm">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">📝 Modul Daftar Absen & Kehadiran Rapat</span>
-            <div>
-                <a href="jadwal.html" class="btn btn-outline-light btn-sm me-2">← Jadwal Rapat</a>
-                <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fs-6">📝 Modul Daftar Absen & Kehadiran Rapat</span>
+            <div class="d-flex gap-2">
+                <a href="jadwal.html" class="btn btn-outline-light btn-sm">📅 Jadwal Rapat</a>
+                <a href="absen.html" class="btn btn-light btn-sm fw-bold text-success">📝 Daftar Absen</a>
+                <a href="notulen.html" class="btn btn-outline-light btn-sm">📁 Notulen Rapat</a>
+                <a href="buletin.html" class="btn btn-outline-warning btn-sm fw-bold">← Buletin Utama</a>
             </div>
         </div>
     </nav>
@@ -77,7 +80,7 @@
             <div class="col-auto">
                 <button class="btn btn-outline-dark me-2 fw-bold" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAbsen">+ Isi Absen</button>
+                <button class="btn btn-success" onclick="bukaModalAbsen()">+ Isi Absen</button>
             </div>
         </div>
 
@@ -87,7 +90,7 @@
                     <table class="table table-hover align-middle" id="tabelAbsen">
                         <thead class="table-success">
                             <tr>
-                                <th>Waktu Check-in</th>
+                                <th>Waktu & Tanggal Rapat</th>
                                 <th>Nama Peserta & Jabatan</th>
                                 <th>Status & Keterangan</th>
                                 <th class="text-center">Aksi</th>
@@ -100,7 +103,7 @@
         </div>
     </div>
 
-    <!-- MODAL ABSEN -->
+    <!-- MODAL ABSEN DENGAN PILIHAN TANGGAL BACKDATE -->
     <div class="modal fade" id="modalAbsen" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -109,6 +112,10 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanggal Rapat / Kehadiran (Bisa Backdate):</label>
+                        <input type="date" id="absenTanggal" class="form-control">
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Peserta Rapat</label>
                         <select id="absenNama" class="form-select" onchange="pilihAbsenPersonel(this)">
@@ -126,7 +133,10 @@
                     <div class="mb-3">
                         <label class="form-label">Status Kehadiran</label>
                         <select id="absenStatus" class="form-select" onchange="cekStatusAbsen(this)">
-                            <option value="Hadir">Hadir</option><option value="Izin">Izin</option><option value="Sakit">Sakit</option><option value="Tugas Luar">Tugas Luar</option>
+                            <option value="Hadir">Hadir</option>
+                            <option value="Izin">Izin</option>
+                            <option value="Sakit">Sakit</option>
+                            <option value="Tugas Luar">Tugas Luar</option>
                         </select>
                     </div>
                     <div class="mb-3" id="divKeterangan" style="display: none;"><label class="form-label">Keterangan / Alasan</label><input type="text" id="absenKeterangan" class="form-control" placeholder="Tuliskan keterangan..."></div>
@@ -172,6 +182,17 @@
             });
         }
 
+        function bukaModalAbsen() {
+            document.getElementById('absenTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('absenNama').value = '';
+            document.getElementById('absenJabatan').value = '';
+            document.getElementById('divInputManual').style.display = 'none';
+            document.getElementById('absenStatus').value = 'Hadir';
+            document.getElementById('absenKeterangan').value = '';
+            document.getElementById('divKeterangan').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('modalAbsen')).show();
+        }
+
         function pilihAbsenPersonel(select) {
             const val = select.value;
             const divManual = document.getElementById('divInputManual');
@@ -209,18 +230,35 @@
         }
 
         function simpanAbsen() {
+            const tanggalInput = document.getElementById('absenTanggal').value;
             const selectNama = document.getElementById('absenNama').value;
             let nama = selectNama, jabatan = document.getElementById('absenJabatan').value;
+
+            if(!tanggalInput) {
+                alert('Silakan tentukan tanggal kehadiran/rapat!');
+                return;
+            }
+
             if(selectNama === 'MANUAL_TAMU') {
                 nama = document.getElementById('manualNama').value.trim();
                 jabatan = document.getElementById('manualJabatan').value.trim() || 'Tamu / Pihak Ketiga';
                 if(!nama) { alert('Silakan ketik nama tamu!'); return; }
             }
             if(!nama) { alert('Silakan pilih atau isi nama peserta!'); return; }
+
             const status = document.getElementById('absenStatus').value;
             const keterangan = document.getElementById('absenKeterangan').value.trim();
+            
+            // Format Tanggal (mendukung backdate) & Jam saat ini
+            let tglFormatted = tanggalInput;
+            try {
+                const p = tanggalInput.split('-');
+                tglFormatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch(e) {}
+
             const now = new Date();
-            const waktuString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' | ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            const jamString = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            const waktuString = tglFormatted + ' | ' + jamString;
 
             dataAbsen.unshift({ waktu: waktuString, nama, jabatan, status, keterangan });
             renderAbsen();

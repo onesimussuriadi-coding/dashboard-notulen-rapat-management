@@ -22,13 +22,15 @@
 </head>
 <body class="bg-light" onload="muatDataNotulen()">
 
+    <!-- NAVBAR KONSISTEN (MEMUDAHKAN PINDAH MODUL TANPA KELUAR) -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">📁 Modul Notulen & Tindak Lanjut Rapat</span>
-            <div>
-                <a href="jadwal.html" class="btn btn-outline-light btn-sm me-2">← Jadwal Rapat</a>
-                <a href="absen.html" class="btn btn-outline-light btn-sm me-2">Daftar Absen</a>
-                <a href="index.html" class="btn btn-outline-light btn-sm">Dashboard Utama</a>
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fs-6">📁 Modul Notulen & Tindak Lanjut Rapat</span>
+            <div class="d-flex gap-2">
+                <a href="jadwal.html" class="btn btn-outline-light btn-sm">📅 Jadwal Rapat</a>
+                <a href="absen.html" class="btn btn-outline-light btn-sm">📝 Daftar Absen</a>
+                <a href="notulen.html" class="btn btn-light btn-sm fw-bold text-teal">📁 Notulen Rapat</a>
+                <a href="buletin.html" class="btn btn-outline-warning btn-sm fw-bold">← Buletin Utama</a>
             </div>
         </div>
     </nav>
@@ -303,11 +305,12 @@
                         dataJadwal = data.jadwal;
                         localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
                     }
-                    // Diperbarui agar array kosong / data yang dihapus ikut tersinkron dengan benar
                     if (data.notulen) {
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                     }
+                    // Pastikan dropdown leader langsung terisi setelah data jadwal ditarik dari cloud
+                    isiDropdownLeaderJadwal();
                     if(callback) callback();
                 })
                 .catch(err => { if(callback) callback(); });
@@ -335,26 +338,38 @@
         function isiDropdownLeaderJadwal() {
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
+            
+            // Ambil data jadwal terbaru dari localStorage jika ada pembaruan
+            let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
+            
             let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
-            dataJadwal.forEach((j, idx) => {
-                optionsHtml += `<option value="${idx}">${j.periode} (${j.tanggal}) — Pemimpin: ${j.leader} (${j.jabatanLeader})</option>`;
+            currentJadwal.forEach((j, idx) => {
+                let namaLeader = j.leader || j.namaLeader || '-';
+                let jabatanLeader = j.jabatanLeader || '';
+                optionsHtml += `<option value="${namaLeader}">${j.periode} (${j.tanggal}) — Pemimpin: ${namaLeader} ${jabatanLeader ? '('+jabatanLeader+')' : ''}</option>`;
             });
-            select.innerHTML = optionsHtml;
-            saveAsLeaderSelect.innerHTML = optionsHtml;
+            
+            if(select) select.innerHTML = optionsHtml;
+            if(saveAsLeaderSelect) saveAsLeaderSelect.innerHTML = optionsHtml;
         }
 
         function pilihLeaderDariJadwal(select) {
-            const idx = select.value;
-            if(idx === "") return;
-            const j = dataJadwal[idx];
-            document.getElementById('notulenPeriode').value = j.periode;
-            document.getElementById('notulenTanggal').value = j.tanggal;
-            if(j.lokasi) {
-                let lokSelect = document.getElementById('notulenLokasi');
-                for(let i=0; i<lokSelect.options.length; i++) {
-                    if(lokSelect.options[i].value === j.lokasi) {
-                        lokSelect.selectedIndex = i;
-                        break;
+            const selectedNama = select.value;
+            if(selectedNama === "") return;
+            
+            let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
+            const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNama);
+            
+            if(j) {
+                if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
+                if(j.tanggal) document.getElementById('notulenTanggal').value = j.tanggal;
+                if(j.lokasi) {
+                    let lokSelect = document.getElementById('notulenLokasi');
+                    for(let i=0; i<lokSelect.options.length; i++) {
+                        if(lokSelect.options[i].value === j.lokasi) {
+                            lokSelect.selectedIndex = i;
+                            break;
+                        }
                     }
                 }
             }
@@ -362,9 +377,10 @@
 
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
+            if(!container) return;
             container.innerHTML = '';
 
-            let listPersonel = dataPersonel;
+            let listPersonel = JSON.parse(localStorage.getItem('bss_personel')) || dataPersonel;
             if(listPersonel.length === 0) {
                 listPersonel = [
                     { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
@@ -390,6 +406,7 @@
 
         function isiDropdownTanggalLalu() {
             const select = document.getElementById('selectTanggalLalu');
+            if(!select) return;
             select.innerHTML = '<option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>';
             let tglSet = [...new Set(dataNotulen.map(n => n.tanggal))].filter(Boolean);
             tglSet.sort().reverse();
@@ -439,6 +456,7 @@
 
         function renderNotulen() {
             const container = document.getElementById('containerNotulen');
+            if(!container) return;
             container.innerHTML = '';
 
             const filterTahun = document.getElementById('filterTahun').value;
@@ -553,6 +571,9 @@
             document.getElementById('notulenLokasi').selectedIndex = 0;
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
+            
+            // Pastikan dropdown leader terisi saat modal dibuka
+            isiDropdownLeaderJadwal();
             document.getElementById('notulenLeader').selectedIndex = 0;
             
             resetFormInti();
@@ -586,6 +607,7 @@
             document.getElementById('saveAsTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('saveAsMediaOffline').checked = false;
             document.getElementById('saveAsMediaOnline').checked = false;
+            isiDropdownLeaderJadwal();
             document.getElementById('saveAsLeader').selectedIndex = 0;
             new bootstrap.Modal(document.getElementById('modalSaveAs')).show();
         }
@@ -602,8 +624,7 @@
             let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
             let leaderSelect = document.getElementById('saveAsLeader');
-            let targetLeader = leaderSelect.options[leaderSelect.selectedIndex] ? leaderSelect.options[leaderSelect.selectedIndex].text : '-';
-            if(leaderSelect.value === "") targetLeader = '-';
+            let targetLeader = leaderSelect.value ? leaderSelect.value : '-';
 
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
@@ -669,6 +690,8 @@
             let mediaArr = n.media ? n.media.split(', ') : [];
             document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
             document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
+            
+            isiDropdownLeaderJadwal();
             document.getElementById('notulenLeader').value = n.leader || '';
 
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
@@ -706,8 +729,7 @@
                 media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
                 let leaderSelect = document.getElementById('notulenLeader');
-                leader = leaderSelect.options[leaderSelect.selectedIndex] ? leaderSelect.options[leaderSelect.selectedIndex].text : '-';
-                if(leaderSelect.value === "") leader = '-';
+                leader = leaderSelect.value ? leaderSelect.value : '-';
             }
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
@@ -739,7 +761,6 @@
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
         }
 
-        // PENTING: Fungsi hapus yang langsung memperbarui memori lokal dan cloud secara permanen
         function hapusNotulen(index) {
             if(confirm('Hapus notulen ini secara permanen?')) {
                 dataNotulen.splice(index, 1);

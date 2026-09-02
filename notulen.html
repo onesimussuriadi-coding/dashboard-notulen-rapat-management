@@ -400,13 +400,14 @@
             });
         }
 
+        // Format tindak lanjut: ukuran lebih kecil sedikit (hierarki anak tangga)
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
             if (regex.test(teks)) {
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
-                    let htmlList = '<ol class="ps-3 mb-0 text-secondary" style="text-align: left;">';
+                    let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
                     parts.forEach(part => {
                         let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
                         htmlList += '<li>' + cleanText + '</li>';
@@ -415,7 +416,7 @@
                     return htmlList;
                 }
             }
-            return '<span class="text-secondary">' + teks + '</span>';
+            return '<span class="text-secondary small">' + teks + '</span>';
         }
 
         function renderNotulen() {
@@ -503,12 +504,13 @@
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
+                    // Topik Utama dibold, PIC & Deadline dibuat normal (tidak bold)
                     headerHtml += '<tr>' +
                         '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + (n.pembahasan || '-') + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
-                        '<td style="word-wrap: break-word;"><strong>' + picDisplay + '</strong><br><small class="text-danger">Due: ' + deadFormatted + '</small><br><span class="badge ' + badgeClass + ' mt-1">' + n.status + '</span></td>' +
+                        '<td style="word-wrap: break-word;">' + picDisplay + '<br><small class="text-danger">Due: ' + deadFormatted + '</small><br><span class="badge ' + badgeClass + ' mt-1">' + n.status + '</span></td>' +
                         '<td class="text-center no-print" style="word-wrap: break-word;">' +
                         '<button class="btn btn-sm btn-outline-warning mb-1 px-1 w-100" style="font-size: 11px;" onclick="bukaModalEditNotulen(' + n.originalIndex + ')">Edit</button>' +
                         '<button class="btn btn-sm btn-outline-danger px-1 w-100" style="font-size: 11px;" onclick="hapusNotulen(' + n.originalIndex + ')">Hapus</button>' +

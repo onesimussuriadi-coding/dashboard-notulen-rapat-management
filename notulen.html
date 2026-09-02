@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <!-- Modal Form Notulen & Tambah Topik -->
+    <!-- Modal Form Notulen, Tambah Topik & Edit -->
     <div class="modal fade" id="modalNotulen" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -164,7 +164,7 @@
                         <hr class="my-3">
                     </div>
 
-                    <!-- Input Inti Topik Rapat -->
+                    <!-- Input Inti Topik Rapat (Selalu Tampil untuk Buat, Tambah Topik, maupun Edit) -->
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Topik Utama</label>
                         <input type="text" id="notulenTopikUtama" class="form-control form-control-sm" placeholder="Topik rapat...">
@@ -400,13 +400,15 @@
                     '</div>' +
                     '<div class="card-body p-0"><div class="table-responsive"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
-                    '<th style="width: 18%;">Topik Utama</th>' +
-                    '<th style="width: 22%;">Pembahasan & Arahan</th>' +
-                    '<th style="width: 40%;">Tindak Lanjut</th>' +
+                    '<th style="width: 5%;">No.</th>' +
+                    '<th style="width: 17%;">Topik Utama</th>' +
+                    '<th style="width: 21%;">Pembahasan & Arahan</th>' +
+                    '<th style="width: 37%;">Tindak Lanjut</th>' +
                     '<th style="width: 12%;">PIC & Deadline</th>' +
                     '<th style="width: 8%;" class="no-print">Aksi</th>' +
                     '</tr></thead><tbody>';
 
+                let noUrut = 1;
                 grouped[key].forEach(n => {
                     let badgeClass = 'bg-primary';
                     if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
@@ -425,6 +427,7 @@
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
                     headerHtml += '<tr>' +
+                        '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + (n.pembahasan || '-') + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
@@ -446,6 +449,8 @@
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
+            
+            // Tampilkan bagian metadata rapat
             document.getElementById('wrapperMetadataRapat').style.display = 'block';
 
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
@@ -463,6 +468,8 @@
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
+            
+            // Sembunyikan bagian metadata rapat
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
 
             document.getElementById('notulenPeriode').value = periode;
@@ -494,7 +501,9 @@
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';
-            document.getElementById('wrapperMetadataRapat').style.display = 'block';
+            
+            // SEMBUNYIKAN bagian metadata rapat saat Edit (persis seperti tambah topik)
+            document.getElementById('wrapperMetadataRapat').style.display = 'none';
 
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
@@ -524,18 +533,31 @@
 
         function simpanNotulen() {
             const index = parseInt(document.getElementById('editIndexNotulen').value);
-            const periode = document.getElementById('notulenPeriode').value;
-            const tanggal = document.getElementById('notulenTanggal').value;
-            const lokasi = document.getElementById('notulenLokasi').value;
-            
-            let mediaList = [];
-            if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-            if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-            const media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+            const mode = document.getElementById('modeFormNotulen').value;
 
-            let leaderSelect = document.getElementById('notulenLeader');
-            let leader = leaderSelect.options[leaderSelect.selectedIndex] ? leaderSelect.options[leaderSelect.selectedIndex].text : '-';
-            if(leaderSelect.value === "") leader = '-';
+            // Jika mode edit, ambil nilai periode/tanggal/lokasi dari data lama yang tersimpan agar tidak berubah
+            let periode, tanggal, lokasi, media, leader;
+            if (index !== -1 && mode === 'edit') {
+                const itemLama = dataNotulen[index];
+                periode = itemLama.periode;
+                tanggal = itemLama.tanggal;
+                lokasi = itemLama.lokasi;
+                media = itemLama.media;
+                leader = itemLama.leader;
+            } else {
+                periode = document.getElementById('notulenPeriode').value;
+                tanggal = document.getElementById('notulenTanggal').value;
+                lokasi = document.getElementById('notulenLokasi').value;
+                
+                let mediaList = [];
+                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+                let leaderSelect = document.getElementById('notulenLeader');
+                leader = leaderSelect.options[leaderSelect.selectedIndex] ? leaderSelect.options[leaderSelect.selectedIndex].text : '-';
+                if(leaderSelect.value === "") leader = '-';
+            }
 
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();

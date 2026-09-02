@@ -177,12 +177,12 @@
                         <input type="text" id="notulenTopikUtama" class="form-control form-control-sm" placeholder="Topik rapat...">
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Pembahasan & Arahan</label>
+                        <label class="form-label small fw-bold">Pembahasan & Arahan (Bisa gunakan nomor 1., 2., dst)</label>
                         <textarea id="notulenPembahasan" class="form-control form-control-sm" rows="3" placeholder="Detail pembahasan..."></textarea>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Tindak Lanjut & Penyelesaian</label>
-                        <textarea id="notulenTindakLanjut" class="form-control form-control-sm" rows="5" placeholder="Tindakan penyelesaian (bisa gunakan angka 1., 2., dst)..."></textarea>
+                        <label class="form-label small fw-bold">Tindak Lanjut & Penyelesaian (Bisa gunakan nomor 1., 2., dst)</label>
+                        <textarea id="notulenTindakLanjut" class="form-control form-control-sm" rows="5" placeholder="Tindakan penyelesaian..."></textarea>
                     </div>
                     
                     <div class="row">
@@ -400,7 +400,26 @@
             });
         }
 
-        // Format tindak lanjut: ukuran lebih kecil sedikit (hierarki anak tangga)
+        // Format Pembahasan & Arahan agar otomatis rapi berbentuk list vertikal
+        function formatPembahasan(teks) {
+            if (!teks) return '-';
+            let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
+            if (regex.test(teks)) {
+                let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
+                if (parts.length > 1) {
+                    let htmlList = '<ol class="ps-3 mb-0" style="text-align: left;">';
+                    parts.forEach(part => {
+                        let cleanText = part.replace(/^\d+[\.\)]\s*/, '');
+                        htmlList += '<li>' + cleanText + '</li>';
+                    });
+                    htmlList += '</ol>';
+                    return htmlList;
+                }
+            }
+            return '<span>' + teks + '</span>';
+        }
+
+        // Format Tindak Lanjut: ukuran lebih kecil sedikit (hierarki anak tangga)
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -501,14 +520,14 @@
                         }
                     } catch(e) {}
 
+                    let formattedPembahasanHTML = formatPembahasan(n.pembahasan);
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
-                    // Topik Utama dibold, PIC & Deadline dibuat normal (tidak bold)
                     headerHtml += '<tr>' +
                         '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
-                        '<td style="word-wrap: break-word;">' + (n.pembahasan || '-') + '</td>' +
+                        '<td style="word-wrap: break-word;">' + formattedPembahasanHTML + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
                         '<td style="word-wrap: break-word;">' + picDisplay + '<br><small class="text-danger">Due: ' + deadFormatted + '</small><br><span class="badge ' + badgeClass + ' mt-1">' + n.status + '</span></td>' +
                         '<td class="text-center no-print" style="word-wrap: break-word;">' +

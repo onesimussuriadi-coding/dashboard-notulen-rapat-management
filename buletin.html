@@ -35,9 +35,7 @@
             const serverData = snapshot.val();
             if (serverData) {
                 localStorage.setItem('bss_buletin', JSON.stringify(serverData));
-                if (typeof tampilkanDataBuletin === 'function') {
-                    tampilkanDataBuletin(serverData);
-                }
+                tampilkanDataBuletin(serverData);
             }
         });
     </script>
@@ -47,7 +45,6 @@
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
         body { font-size: 13px; background-color: #f8f9fa; }
-        .card-hover:hover { transform: translateY(-3px); transition: all 0.3s ease; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
     </style>
 </head>
 <body onload="muatBuletin()">
@@ -58,13 +55,13 @@
             <span class="navbar-brand mb-0 fs-6">📰 Buletin & Pengumuman Manajemen</span>
             <div>
                 <a href="index.html" class="btn btn-outline-light btn-sm me-2">← Visi & Misi</a>
-                <button class="btn btn-outline-warning text-white btn-sm me-2 fw-bold" onclick="authAdminBuletin()" id="btnAdminMode">⚙️ Mode Admin / Upload</button>
+                <button class="btn btn-outline-warning text-white btn-sm me-2 fw-bold" onclick="authAdminBuletin()" id="btnAdminMode">⚙️ Mode Admin / Edit</button>
                 <button class="btn btn-warning text-dark btn-sm fw-bold" onclick="cekPasswordDashboard()">🔐 Masuk Dashboard Rapat</button>
             </div>
         </div>
     </nav>
 
-    <!-- PANEL ADMIN (DINAMIS UNTUK SEMUA BAGIAN) -->
+    <!-- PANEL ADMIN (FORM EDIT DINAMIS) -->
     <div class="container my-3" id="panelAdminBuletin" style="display: none; max-width: 900px;">
         <div class="card border-warning shadow-sm bg-warning bg-opacity-10">
             <div class="card-body">
@@ -86,13 +83,13 @@
                 <div class="row">
                     <div class="col-md-6 mb-2">
                         <label class="form-label small fw-bold">Judul Kolom Kiri:</label>
-                        <input type="text" id="inputJudulKolom1" class="form-control form-control-sm mb-1" placeholder="Misal: Rencana Proyek (Project Pipeline)">
+                        <input type="text" id="inputJudulKolom1" class="form-control form-control-sm mb-1">
                         <label class="form-label small fw-bold">Isi Poin Kiri (Setiap baris / Enter = 1 poin):</label>
                         <textarea id="inputProyek" class="form-control form-control-sm" rows="4"></textarea>
                     </div>
                     <div class="col-md-6 mb-2">
                         <label class="form-label small fw-bold">Judul Kolom Kanan:</label>
-                        <input type="text" id="inputJudulKolom2" class="form-control form-control-sm mb-1" placeholder="Misal: Rencana Libur & Kalender Kerja">
+                        <input type="text" id="inputJudulKolom2" class="form-control form-control-sm mb-1">
                         <label class="form-label small fw-bold">Isi Poin Kanan (Setiap baris / Enter = 1 poin):</label>
                         <textarea id="inputLibur" class="form-control form-control-sm" rows="4"></textarea>
                     </div>
@@ -191,9 +188,7 @@
             agenda: "Rapat evaluasi mingguan akan dilaksanakan setiap hari Senin pukul 09.00 WITA.",
             judulKolom1: "🚀 Rencana Proyek (Project Pipeline)",
             proyek: [
-                "Blok Senoro-Toili: Mobilisasi peralatan Slickline (Juli - Oktober 2026).",
-                "Pengadaan Unit: Verifikasi TKDN dan penjadwalan 10-ton vacuum truck unit.",
-                "Fasilitas Kantor: Peningkatan jaringan internet operasional menggunakan Starlink."
+                "Mengingat pekerjaan General Services untuk support Migas, maka diharapkan setiap departemen supporting untuk selalu siaga dan ikut memantau dan memberikan layanan pada saat diperlukan dengan maksimal."
             ],
             judulKolom2: "🏖️ Rencana Libur & Kalender Kerja",
             libur: [
@@ -206,7 +201,11 @@
         };
 
         function muatBuletin() {
-            let dataStored = JSON.parse(localStorage.getItem('bss_buletin')) || defaultBuletin;
+            let dataStored = JSON.parse(localStorage.getItem('bss_buletin'));
+            if (!dataStored) {
+                dataStored = defaultBuletin;
+                localStorage.setItem('bss_buletin', JSON.stringify(dataStored));
+            }
             tampilkanDataBuletin(dataStored);
         }
 
@@ -255,12 +254,11 @@
             let panel = document.getElementById('panelAdminBuletin');
             if (!isAdminOpen) {
                 let pass = prompt("Masukkan Password Admin untuk Mengedit Buletin:");
-                if (pass === "bss2026") { // Password admin
+                if (pass === "bss2026") {
                     isAdminOpen = true;
                     panel.style.display = 'block';
                     document.getElementById('btnAdminMode').innerText = '✖ Tutup Panel Admin';
                     
-                    // Masukkan data saat ini ke dalam form input
                     let dataStored = JSON.parse(localStorage.getItem('bss_buletin')) || defaultBuletin;
                     document.getElementById('inputJudul').value = dataStored.judul || defaultBuletin.judul;
                     document.getElementById('inputIsi').value = dataStored.isi || defaultBuletin.isi;
@@ -280,7 +278,7 @@
             } else {
                 isAdminOpen = false;
                 panel.style.display = 'none';
-                document.getElementById('btnAdminMode').innerText = '⚙️ Mode Admin / Upload';
+                document.getElementById('btnAdminMode').innerText = '⚙️ Mode Admin / Edit';
             }
         }
 
@@ -310,13 +308,13 @@
 
             if (typeof window.simpanBuletinCloud === 'function') {
                 window.simpanBuletinCloud(updatedBuletin, () => {
-                    alert("Buletin dan Pengumuman berhasil diperbarui dan disinkronkan ke cloud!");
+                    alert("Buletin berhasil diperbarui dan disinkronkan ke cloud!");
                 });
             } else {
-                alert("Buletin berhasil diperbarui secara lokal!");
+                alert("Buletin berhasil diperbarui!");
             }
 
-            authAdminBuletin(); // Tutup panel
+            authAdminBuletin();
         }
 
         function cekPasswordDashboard() {
@@ -327,7 +325,7 @@
 
             if (passwordInput === passwordResmi) {
                 alert("Password benar! Mengarahkan ke Dashboard Rapat...");
-                window.location.href = "notulen.html"; // Atau halaman utama modul rapat
+                window.location.href = "notulen.html";
             } else {
                 alert("Password salah! Akses ditolak.");
             }

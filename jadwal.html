@@ -62,12 +62,16 @@
 </head>
 <body class="bg-light" onload="muatDataAwal()">
 
+    <!-- NAVBAR KONSISTEN (MEMUDAHKAN PINDAH MODUL TANPA KELUAR) -->
     <nav class="navbar navbar-dark bg-primary shadow-sm">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">🗓️ Modul Jadwal & Rotasi Pemimpin Rapat</span>
-            <div>
-                <a href="http://bit.ly/bss-meeting" target="_blank" class="btn btn-warning btn-sm fw-bold me-2">🎥 Buka Link Meeting Jitsi</a>
-                <a href="index.html" class="btn btn-outline-light btn-sm">← Kembali ke Dashboard</a>
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fs-6">🗓️ Modul Jadwal & Rotasi Rapat</span>
+            <div class="d-flex gap-2">
+                <a href="jadwal.html" class="btn btn-light btn-sm fw-bold text-primary">📅 Jadwal Rapat</a>
+                <a href="absen.html" class="btn btn-outline-light btn-sm">📝 Daftar Absen</a>
+                <a href="notulen.html" class="btn btn-outline-light btn-sm">📁 Notulen Rapat</a>
+                <a href="http://bit.ly/bss-meeting" target="_blank" class="btn btn-warning btn-sm fw-bold">🎥 Jitsi</a>
+                <a href="buletin.html" class="btn btn-outline-warning btn-sm fw-bold">← Buletin Utama</a>
             </div>
         </div>
     </nav>
@@ -123,7 +127,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-secondary mb-3">⚙️ Keterangan Akses Online</h5>
                         <ul class="text-muted small ps-3">
-                            <li><strong>Tombol Meeting Utama:</strong> Tersedia di pojok kanan atas navbar.</li>
+                            <li><strong>Navigasi Cepat:</strong> Gunakan menu di atas untuk berpindah modul Absen dan Notulis dengan mudah.</li>
                             <li><strong>Akses per Jadwal:</strong> Setiap baris jadwal dilengkapi tombol menuju ruang Jitsi.</li>
                             <li><strong>Penyimpanan Cloud:</strong> Data tersinkronisasi otomatis dengan Real-Time Database.</li>
                         </ul>
@@ -197,7 +201,6 @@
             } else { alert('Modul Cloud sedang dimuat.'); }
         }
 
-        // MENGGUNAKAN SATU TOMBOL DROPDOWN "AKSI" YANG BERISI PILIHAN (NAIK, TURUN, EDIT, HAPUS)
         function renderPersonel() {
             const list = document.getElementById('listPersonel');
             if(!list) return;

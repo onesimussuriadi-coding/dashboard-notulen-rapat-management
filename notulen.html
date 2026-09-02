@@ -284,7 +284,6 @@
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
-        // Fungsi bantu mendapatkan tanggal lokal hari ini secara akurat (Format YYYY-MM-DD)
         function getTodayLocalDate() {
             const d = new Date();
             const year = d.getFullYear();
@@ -701,6 +700,14 @@
             const mode = document.getElementById('modeFormNotulen').value;
 
             let periode, tanggal, lokasi, media, leader;
+            
+            let rawTglRapat = document.getElementById('notulenTanggal').value;
+            if (rawTglRapat && rawTglRapat.includes('/')) {
+                let p = rawTglRapat.split('/');
+                if(p.length === 3) rawTglRapat = p[2] + '-' + p[1] + '-' + p[0];
+            }
+            if(!rawTglRapat) rawTglRapat = getTodayLocalDate();
+
             if (index !== -1 && mode === 'edit') {
                 const itemLama = dataNotulen[index];
                 periode = itemLama.periode;
@@ -710,7 +717,7 @@
                 leader = itemLama.leader;
             } else if (mode === 'tambah_topik') {
                 periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value || getTodayLocalDate();
+                tanggal = rawTglRapat;
                 lokasi = document.getElementById('notulenLokasi').value;
                 
                 let mediaList = [];
@@ -722,7 +729,7 @@
                 leader = leaderSelect.value ? leaderSelect.value : '-';
             } else {
                 periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value || getTodayLocalDate();
+                tanggal = rawTglRapat;
                 lokasi = document.getElementById('notulenLokasi').value;
                 
                 let mediaList = [];

@@ -211,7 +211,7 @@
         </div>
     </div>
 
-    <!-- Modal Save As / Salin ke Periode Baru -->
+    <!-- Modal Save As / Salin Rapat dengan Pengaturan Lengkap -->
     <div class="modal fade" id="modalSaveAs" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -221,7 +221,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="saveAsSourceKey" value="">
-                    <p class="small text-muted mb-3">Fitur ini menduplikasi seluruh topik dari rapat ini ke periode atau tanggal baru sehingga catatan asli minggu sebelumnya tetap aman.</p>
+                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru beserta penyesuaian lokasi, media, dan pemimpin rapat.</p>
                     
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
@@ -235,6 +235,36 @@
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
                         <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
+                        <select id="saveAsLokasi" class="form-select form-select-sm">
+                            <option value="Kantor Utama">Kantor Utama</option>
+                            <option value="Kantor Pasar Tua">Kantor Pasar Tua</option>
+                            <option value="Kantor Soekarno">Kantor Soekarno</option>
+                            <option value="Kantor Surabaya">Kantor Surabaya</option>
+                            <option value="Kantor Jakarta">Kantor Jakarta</option>
+                            <option value="Opsional">Opsional / Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
+                        <div class="d-flex gap-3 mt-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
+                                <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
+                                <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Pemimpin Rapat Baru</label>
+                        <select id="saveAsLeader" class="form-select form-select-sm">
+                            <option value="">-- Pilih Pemimpin Rapat --</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer py-2">
@@ -299,13 +329,13 @@
 
         function isiDropdownLeaderJadwal() {
             const select = document.getElementById('notulenLeader');
-            select.innerHTML = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
+            const saveAsLeaderSelect = document.getElementById('saveAsLeader');
+            let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
             dataJadwal.forEach((j, idx) => {
-                let opt = document.createElement('option');
-                opt.value = idx;
-                opt.textContent = `${j.periode} (${j.tanggal}) — Pemimpin: ${j.leader} (${j.jabatanLeader})`;
-                select.appendChild(opt);
+                optionsHtml += `<option value="${idx}">${j.periode} (${j.tanggal}) — Pemimpin: ${j.leader} (${j.jabatanLeader})</option>`;
             });
+            select.innerHTML = optionsHtml;
+            saveAsLeaderSelect.innerHTML = optionsHtml;
         }
 
         function pilihLeaderDariJadwal(select) {
@@ -530,6 +560,9 @@
         function bukaModalSaveAs(groupKey) {
             document.getElementById('saveAsSourceKey').value = groupKey;
             document.getElementById('saveAsTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('saveAsMediaOffline').checked = false;
+            document.getElementById('saveAsMediaOnline').checked = false;
+            document.getElementById('saveAsLeader').selectedIndex = 0;
             new bootstrap.Modal(document.getElementById('modalSaveAs')).show();
         }
 
@@ -537,6 +570,16 @@
             let groupKey = document.getElementById('saveAsSourceKey').value;
             let targetPeriode = document.getElementById('saveAsPeriode').value;
             let targetTanggal = document.getElementById('saveAsTanggal').value;
+            let targetLokasi = document.getElementById('saveAsLokasi').value;
+
+            let mediaList = [];
+            if(document.getElementById('saveAsMediaOffline').checked) mediaList.push('Offline');
+            if(document.getElementById('saveAsMediaOnline').checked) mediaList.push('Online');
+            let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+            let leaderSelect = document.getElementById('saveAsLeader');
+            let targetLeader = leaderSelect.options[leaderSelect.selectedIndex] ? leaderSelect.options[leaderSelect.selectedIndex].text : '-';
+            if(leaderSelect.value === "") targetLeader = '-';
 
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
@@ -557,9 +600,9 @@
                 let clonedItem = {
                     periode: targetPeriode,
                     tanggal: targetTanggal,
-                    lokasi: src.lokasi,
-                    media: src.media,
-                    leader: src.leader,
+                    lokasi: targetLokasi,
+                    media: targetMedia,
+                    leader: targetLeader,
                     topikUtama: src.topikUtama,
                     pembahasan: src.pembahasan,
                     tindakLanjut: src.tindakLanjut,
@@ -573,7 +616,7 @@
             renderNotulen();
             syncDataToCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalSaveAs')).hide();
-            alert(`Berhasil melakukan Save As ${itemsToCopy.length} topik ke ${targetPeriode} (${targetTanggal})!`);
+            alert(`Berhasil melakukan Save As ${itemsToCopy.length} topik ke ${targetPeriode} (${targetTanggal}) dengan Pemimpin: ${targetLeader}!`);
         }
 
         function resetFormInti() {
@@ -681,7 +724,6 @@
             }
         }
 
-        // FUNGSI UNDUH EXCEL YANG DIPERBAIKI SECARA UTUH
         function downloadAllExcel() {
             if (dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');
@@ -719,7 +761,6 @@
             document.body.removeChild(a);
         }
 
-        // FUNGSI UNDUH WORD YANG DIPERBAIKI SECARA UTUH
         function downloadAllWord() {
             if (dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');

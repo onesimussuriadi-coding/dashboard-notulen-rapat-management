@@ -284,6 +284,15 @@
         let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
 
+        // Fungsi bantu mendapatkan tanggal lokal hari ini (Format YYYY-MM-DD tanpa selisih zona waktu)
+        function getTodayLocalDate() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function muatDataNotulen(showNotification = false) {
             if(showNotification) alert('Menyinkronkan data terbaru dari server...');
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
@@ -549,7 +558,8 @@
             document.getElementById('wrapperMetadataRapat').style.display = 'block';
 
             document.getElementById('notulenPeriode').value = 'Minggu ke-1';
-            document.getElementById('notulenTanggal').value = new Date().toISOString().split('T')[0];
+            // Menggunakan tanggal real-time lokal hari ini (Today)
+            document.getElementById('notulenTanggal').value = getTodayLocalDate();
             document.getElementById('notulenLokasi').selectedIndex = 0;
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
@@ -585,7 +595,7 @@
 
         function bukaModalSaveAs(groupKey) {
             document.getElementById('saveAsSourceKey').value = groupKey;
-            document.getElementById('saveAsTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('saveAsTanggal').value = getTodayLocalDate();
             document.getElementById('saveAsMediaOffline').checked = false;
             document.getElementById('saveAsMediaOnline').checked = false;
             isiDropdownLeaderJadwal();
@@ -648,7 +658,7 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
-            document.getElementById('notulenDeadline').value = new Date().toISOString().split('T')[0];
+            document.getElementById('notulenDeadline').value = getTodayLocalDate();
             document.getElementById('notulenStatus').value = 'Open';
             renderPicCheckboxes([]);
         }
@@ -661,7 +671,7 @@
 
             const n = dataNotulen[index];
             document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
-            document.getElementById('notulenTanggal').value = n.tanggal || new Date().toISOString().split('T')[0];
+            document.getElementById('notulenTanggal').value = n.tanggal || getTodayLocalDate();
             
             let lokSelect = document.getElementById('notulenLokasi');
             for(let i=0; i<lokSelect.options.length; i++) {
@@ -678,7 +688,7 @@
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
             document.getElementById('notulenPembahasan').value = n.pembahasan || '';
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
-            document.getElementById('notulenDeadline').value = n.deadline || new Date().toISOString().split('T')[0];
+            document.getElementById('notulenDeadline').value = n.deadline || getTodayLocalDate();
             document.getElementById('notulenStatus').value = n.status || 'Open';
 
             let savedPics = Array.isArray(n.pic) ? n.pic : (n.pic ? [n.pic] : []);
@@ -701,7 +711,7 @@
                 leader = itemLama.leader;
             } else if (mode === 'tambah_topik') {
                 periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value || new Date().toISOString().split('T')[0];
+                tanggal = document.getElementById('notulenTanggal').value || getTodayLocalDate();
                 lokasi = document.getElementById('notulenLokasi').value;
                 
                 let mediaList = [];
@@ -713,7 +723,7 @@
                 leader = leaderSelect.value ? leaderSelect.value : '-';
             } else {
                 periode = document.getElementById('notulenPeriode').value;
-                tanggal = document.getElementById('notulenTanggal').value || new Date().toISOString().split('T')[0];
+                tanggal = document.getElementById('notulenTanggal').value || getTodayLocalDate();
                 lokasi = document.getElementById('notulenLokasi').value;
                 
                 let mediaList = [];
@@ -738,7 +748,7 @@
                 }
             }
             if(!deadline) {
-                deadline = new Date().toISOString().split('T')[0];
+                deadline = getTodayLocalDate();
             }
 
             const status = document.getElementById('notulenStatus').value;

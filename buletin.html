@@ -5,6 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buletin & Pengumuman - PT Banggai Sentral Sulawesi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCvWgark6nWZuBQjdgYiwX_v3bXvRBXlR0",
+            authDomain: "bss-dashboard-73681.firebaseapp.com",
+            databaseURL: "https://bss-dashboard-73681-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bss-dashboard-73681",
+            storageBucket: "bss-dashboard-73681.appspot.com",
+            messagingSenderId: "252320657377",
+            appId: "1:252320657377:web:6144074f593ffd5d46aca0",
+            measurementId: "G-0DZTBMCJ1H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.simpanBuletinCloud = function(dataBuletin, callback) {
+            set(ref(db, 'ptbss_buletin_data'), dataBuletin)
+                .then(() => { if(callback) callback(); })
+                .catch(err => console.error("Gagal sinkron buletin ke cloud: ", err));
+        };
+
+        onValue(ref(db, 'ptbss_buletin_data'), (snapshot) => {
+            const serverData = snapshot.val();
+            if (serverData) {
+                localStorage.setItem('bss_buletin', JSON.stringify(serverData));
+                if (typeof tampilkanDataBuletin === 'function') {
+                    tampilkanDataBuletin(serverData);
+                }
+            }
+        });
+    </script>
+
     <style>
         .bg-teal-custom { background-color: #134e4a !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
@@ -13,7 +50,7 @@
         .card-hover:hover { transform: translateY(-3px); transition: all 0.3s ease; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
     </style>
 </head>
-<body class="bg-light">
+<body onload="muatBuletin()">
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-dark bg-teal-custom py-2 shadow-sm">
@@ -21,12 +58,63 @@
             <span class="navbar-brand mb-0 fs-6">📰 Buletin & Pengumuman Manajemen</span>
             <div>
                 <a href="index.html" class="btn btn-outline-light btn-sm me-2">← Visi & Misi</a>
+                <button class="btn btn-outline-warning text-white btn-sm me-2 fw-bold" onclick="authAdminBuletin()" id="btnAdminMode">⚙️ Mode Admin / Upload</button>
                 <button class="btn btn-warning text-dark btn-sm fw-bold" onclick="cekPasswordDashboard()">🔐 Masuk Dashboard Rapat</button>
             </div>
         </div>
     </nav>
 
-    <!-- KONTEN BULETIN & PENGUMUMAN -->
+    <!-- PANEL ADMIN (TERSEMBUNYI KECUALI MASUK PASSWORD) -->
+    <div class="container my-3" id="panelAdminBuletin" style="display: none; max-width: 900px;">
+        <div class="card border-warning shadow-sm bg-warning bg-opacity-10">
+            <div class="card-body">
+                <h5 class="fw-bold text-dark mb-3">🛠️ Panel Admin: Upload & Edit Pengumuman / Dokumen</h5>
+                
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Judul Pengumuman Utama:</label>
+                    <input type="text" id="inputJudul" class="form-control form-control-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Isi Pesan / Pengumuman:</label>
+                    <textarea id="inputIsi" class="form-control form-control-sm" rows="3"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Agenda Terdekat (Info Box):</label>
+                    <input type="text" id="inputAgenda" class="form-control form-control-sm">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Rencana Proyek (Poin-poin):</label>
+                        <textarea id="inputProyek" class="form-control form-control-sm" rows="3" placeholder="Pisahkan dengan baris baru (Enter)"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Rencana Libur & Kalender Kerja:</label>
+                        <textarea id="inputLibur" class="form-control form-control-sm" rows="3" placeholder="Pisahkan dengan baris baru (Enter)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Bagian Upload File untuk Download -->
+                <div class="row border-top pt-2 mt-2">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Nama File Dokumen (Contoh: Surat Edaran K3L.pdf):</label>
+                        <input type="text" id="inputNamaFile" class="form-control form-control-sm" placeholder="Nama file untuk tombol download...">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Tautan / Link Download File (Google Drive / URL):</label>
+                        <input type="text" id="inputLinkFile" class="form-control form-control-sm" placeholder="https://drive.google.com/...">
+                    </div>
+                </div>
+
+                <div class="text-end mt-2">
+                    <button class="btn btn-secondary btn-sm" onclick="authAdminBuletin()">Tutup Panel</button>
+                    <button class="btn btn-success btn-sm fw-bold ms-1" onclick="simpanBuletin()">💾 Publikasikan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KONTEN BULETIN & PENGUMUMAN UTAMA -->
     <div class="container my-4" style="max-width: 900px;">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-dark">Papan Informasi & Pengumuman Perusahaan</h3>
@@ -36,15 +124,20 @@
         <!-- Kartu 1: Pengumuman Penting / Pesan Manajemen -->
         <div class="card shadow-sm border-0 mb-4 bg-white">
             <div class="card-header bg-teal-custom text-white py-2">
-                <h5 class="mb-0 fs-6">📌 Pengumuman & Arahan Manajemen Terbaru</h5>
+                <h5 class="mb-0 fs-6" id="viewJudul">📌 Pengumuman & Arahan Manajemen Terbaru</h5>
             </div>
             <div class="card-body">
-                <p class="text-dark mb-2"><strong>Perhatian Seluruh Tim Operasional & Proyek:</strong></p>
-                <p class="text-secondary small mb-3">
-                    Sehubungan dengan dimulainya koordinasi proyek Slickline dan TRSSV Maintenance di Blok Senoro-Toili, seluruh manager dan penanggung jawab lapangan diminta untuk memastikan kesiapan dokumen K3L serta kelengkapan unit pendukung sesuai jadwal yang telah ditentukan.
+                <p class="text-secondary small mb-3" id="viewIsi" style="line-height: 1.5; font-size: 0.9rem !important;">
+                    Memuat informasi pengumuman perusahaan...
                 </p>
-                <div class="alert alert-info py-2 small mb-0">
-                    📅 <strong>Agenda Terdekat:</strong> Rapat evaluasi mingguan akan dilaksanakan setiap hari Senin pukul 09.00 WITA.
+                <div class="alert alert-info py-2 small mb-3" id="viewAgendaBox">
+                    📅 <strong>Agenda Terdekat:</strong> <span id="viewAgenda">-</span>
+                </div>
+
+                <!-- Tombol Download Dokumen Lampiran (Muncul jika ada link file) -->
+                <div id="containerDownload" style="display: none;" class="p-2 border rounded bg-light text-end">
+                    <span class="small text-muted me-2" id="labelNamaFile">Lampiran Dokumen:</span>
+                    <a href="#" id="linkDownloadFile" target="_blank" class="btn btn-sm btn-teal fw-bold">📥 Download Dokumen Resmi</a>
                 </div>
             </div>
         </div>
@@ -55,11 +148,7 @@
                 <div class="card shadow-sm border-0 h-100 bg-white">
                     <div class="card-body">
                         <h6 class="fw-bold text-teal mb-2">🚀 Rencana Proyek (Project Pipeline)</h6>
-                        <ul class="small text-secondary ps-3 mb-0">
-                            <li class="mb-2"><strong>Blok Senoro-Toili:</strong> Mobilisasi peralatan Slickline (Juli - Oktober 2026).</li>
-                            <li class="mb-2"><strong>Pengadaan Unit:</strong> Verifikasi TKDN dan penjadwalan 10-ton vacuum truck unit.</li>
-                            <li><strong>Fasilitas Kantor:</strong> Peningkatan jaringan internet operasional menggunakan Starlink.</li>
-                        </ul>
+                        <ul class="small text-secondary ps-3 mb-0" id="viewProyekList"></ul>
                     </div>
                 </div>
             </div>
@@ -67,11 +156,7 @@
                 <div class="card shadow-sm border-0 h-100 bg-white">
                     <div class="card-body">
                         <h6 class="fw-bold text-teal mb-2">🏖️ Rencana Libur & Kalender Kerja</h6>
-                        <ul class="small text-secondary ps-3 mb-0">
-                            <li class="mb-2"><strong>Cuti Bersama / Libur Nasional:</strong> Mengikuti Surat Keputusan Bersama (SKB) Menteri terkait kalender libur 2026.</li>
-                            <li class="mb-2"><strong>Rotasi Shift Lapangan:</strong> Sesuai jadwal operasional masing-masing divisi (Luwuk, Jakarta, & Surabaya).</li>
-                            <li><strong>Absensi & Kehadiran:</strong> Wajib diisi melalui modul digital perusahaan.</li>
-                        </ul>
+                        <ul class="small text-secondary ps-3 mb-0" id="viewLiburList"></ul>
                     </div>
                 </div>
             </div>
@@ -94,23 +179,139 @@
         <small>&copy; 2026 PT Banggai Sentral Sulawesi - Buletin Internal</small>
     </footer>
 
-    <!-- SKRIP PROTEKSI PASSWORD -->
+    <!-- SKRIP LOGIKA BULETIN & ADMIN -->
     <script>
+        const defaultBuletin = {
+            judul: "📌 Pengumuman & Arahan Manajemen Terbaru",
+            isi: "Sehubungan dengan dimulainya koordinasi proyek Slickline dan TRSSV Maintenance di Blok Senoro-Toili, seluruh manager dan penanggung jawab lapangan diminta untuk memastikan kesiapan dokumen K3L serta kelengkapan unit pendukung sesuai jadwal yang telah ditentukan.",
+            agenda: "Rapat evaluasi mingguan akan dilaksanakan setiap hari Senin pukul 09.00 WITA.",
+            proyek: [
+                "Blok Senoro-Toili: Mobilisasi peralatan Slickline (Juli - Oktober 2026).",
+                "Pengadaan Unit: Verifikasi TKDN dan penjadwalan 10-ton vacuum truck unit.",
+                "Fasilitas Kantor: Peningkatan jaringan internet operasional menggunakan Starlink."
+            ],
+            libur: [
+                "Cuti Bersama / Libur Nasional: Mengikuti Surat Keputusan Bersama (SKB) Menteri terkait kalender libur 2026.",
+                "Rotasi Shift Lapangan: Sesuai jadwal operasional masing-masing divisi (Luwuk, Jakarta, & Surabaya).",
+                "Absensi & Kehadiran: Wajib diisi melalui modul digital perusahaan."
+            ],
+            namaFile: "",
+            linkFile: ""
+        };
+
+        function muatBuletin() {
+            let dataStored = JSON.parse(localStorage.getItem('bss_buletin')) || defaultBuletin;
+            tampilkanDataBuletin(dataStored);
+        }
+
+        function tampilkanDataBuletin(data) {
+            document.getElementById('viewJudul').innerText = data.judul || defaultBuletin.judul;
+            document.getElementById('viewIsi').innerText = data.isi || defaultBuletin.isi;
+            document.getElementById('viewAgenda').innerText = data.agenda || defaultBuletin.agenda;
+
+            // List Proyek
+            let ulProyek = document.getElementById('viewProyekList');
+            ulProyek.innerHTML = '';
+            let listP = data.proyek || defaultBuletin.proyek;
+            listP.forEach(item => {
+                let li = document.createElement('li');
+                li.className = 'mb-2';
+                li.textContent = item;
+                ulProyek.appendChild(li);
+            });
+
+            // List Libur
+            let ulLibur = document.getElementById('viewLiburList');
+            ulLibur.innerHTML = '';
+            let listL = data.libur || defaultBuletin.libur;
+            listL.forEach(item => {
+                let li = document.createElement('li');
+                li.className = 'mb-2';
+                li.textContent = item;
+                ulLibur.appendChild(li);
+            });
+
+            // Tombol Download Dokumen
+            let containerDl = document.getElementById('containerDownload');
+            if (data.linkFile && data.namaFile) {
+                containerDl.style.display = 'block';
+                document.getElementById('labelNamaFile').innerText = 'Lampiran: ' + data.namaFile;
+                document.getElementById('linkDownloadFile').href = data.linkFile;
+            } else {
+                containerDl.style.display = 'none';
+            }
+        }
+
+        let isAdminOpen = false;
+        function authAdminBuletin() {
+            let panel = document.getElementById('panelAdminBuletin');
+            if (!isAdminOpen) {
+                let pass = prompt("Masukkan Password Admin untuk Mengedit Buletin:");
+                if (pass === "bss2026") { // Password admin (bisa disesuaikan)
+                    isAdminOpen = true;
+                    panel.style.display = 'block';
+                    document.getElementById('btnAdminMode').innerText = '✖ Tutup Panel Admin';
+                    
+                    // Masukkan data saat ini ke dalam form input
+                    let dataStored = JSON.parse(localStorage.getItem('bss_buletin')) || defaultBuletin;
+                    document.getElementById('inputJudul').value = dataStored.judul;
+                    document.getElementById('inputIsi').value = dataStored.isi;
+                    document.getElementById('inputAgenda').value = dataStored.agenda;
+                    document.getElementById('inputProyek').value = (dataStored.proyek || []).join('\n');
+                    document.getElementById('inputLibur').value = (dataStored.libur || []).join('\n');
+                    document.getElementById('inputNamaFile').value = dataStored.namaFile || '';
+                    document.getElementById('inputLinkFile').value = dataStored.linkFile || '';
+                } else if (pass !== null) {
+                    alert("Password salah!");
+                }
+            } else {
+                isAdminOpen = false;
+                panel.style.display = 'none';
+                document.getElementById('btnAdminMode').innerText = '⚙️ Mode Admin / Upload';
+            }
+        }
+
+        function simpanBuletin() {
+            let judul = document.getElementById('inputJudul').value.trim();
+            let isi = document.getElementById('inputIsi').value.trim();
+            let agenda = document.getElementById('inputAgenda').value.trim();
+            let proyek = document.getElementById('inputProyek').value.split('\n').map(s => s.trim()).filter(Boolean);
+            let libur = document.getElementById('inputLibur').value.split('\n').map(s => s.trim()).filter(Boolean);
+            let namaFile = document.getElementById('inputNamaFile').value.trim();
+            let linkFile = document.getElementById('inputLinkFile').value.trim();
+
+            if (!judul || !isi) {
+                alert("Judul dan Isi pengumuman wajib diisi!");
+                return;
+            }
+
+            let updatedBuletin = { judul, isi, agenda, proyek, libur, namaFile, linkFile };
+
+            localStorage.setItem('bss_buletin', JSON.stringify(updatedBuletin));
+            tampilkanDataBuletin(updatedBuletin);
+
+            if (typeof window.simpanBuletinCloud === 'function') {
+                window.simpanBuletinCloud(updatedBuletin, () => {
+                    alert("Buletin dan Pengumuman berhasil diperbarui dan disinkronkan ke cloud!");
+                });
+            } else {
+                alert("Buletin berhasil diperbarui secara lokal!");
+            }
+
+            authAdminBuletin(); // Tutup panel
+        }
+
         function cekPasswordDashboard() {
             let passwordInput = prompt("Masukkan Password Akses Dashboard Rapat:");
-            
-            // PASSWORD KORPORAT ANDA (Bisa diubah sesuai keinginan)
             let passwordResmi = "bss2026"; 
 
-            if (passwordInput === null) {
-                return; // Jika dibatalkan
-            }
+            if (passwordInput === null) return;
 
             if (passwordInput === passwordResmi) {
                 alert("Password benar! Mengarahkan ke Dashboard Rapat...");
-                window.location.href = "notulen.html"; // Atau arahkan ke halaman modul utama Anda
+                window.location.href = "notulen.html"; // Atau halaman dashboard utama Anda
             } else {
-                alert("Password salah! Akses ditolak. Anda hanya memiliki izin membaca Buletin dan Visi Misi.");
+                alert("Password salah! Akses ditolak.");
             }
         }
     </script>

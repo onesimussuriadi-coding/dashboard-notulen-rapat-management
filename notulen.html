@@ -292,6 +292,18 @@
             return `${year}-${month}-${day}`;
         }
 
+        // Fungsi normalisasi tanggal khusus kompatibilitas Edge
+        function parseEdgeDate(val) {
+            if (!val) return getTodayLocalDate();
+            if (val.includes('/')) {
+                let parts = val.split('/');
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+            return val;
+        }
+
         function muatDataNotulen(showNotification = false) {
             if(showNotification) alert('Menyinkronkan data terbaru dari server...');
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
@@ -604,7 +616,7 @@
         function prosesSaveAsRapat() {
             let groupKey = document.getElementById('saveAsSourceKey').value;
             let targetPeriode = document.getElementById('saveAsPeriode').value;
-            let targetTanggal = document.getElementById('saveAsTanggal').value;
+            let targetTanggal = parseEdgeDate(document.getElementById('saveAsTanggal').value);
             let targetLokasi = document.getElementById('saveAsLokasi').value;
 
             let mediaList = [];
@@ -700,13 +712,7 @@
             const mode = document.getElementById('modeFormNotulen').value;
 
             let periode, tanggal, lokasi, media, leader;
-            
-            let rawTglRapat = document.getElementById('notulenTanggal').value;
-            if (rawTglRapat && rawTglRapat.includes('/')) {
-                let p = rawTglRapat.split('/');
-                if(p.length === 3) rawTglRapat = p[2] + '-' + p[1] + '-' + p[0];
-            }
-            if(!rawTglRapat) rawTglRapat = getTodayLocalDate();
+            let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
 
             if (index !== -1 && mode === 'edit') {
                 const itemLama = dataNotulen[index];
@@ -744,19 +750,7 @@
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
-            
-            let rawDeadline = document.getElementById('notulenDeadline').value;
-            let deadline = rawDeadline;
-            if (rawDeadline && rawDeadline.includes('/')) {
-                let pDate = rawDeadline.split('/');
-                if(pDate.length === 3) {
-                    deadline = pDate[2] + '-' + pDate[1] + '-' + pDate[0];
-                }
-            }
-            if(!deadline) {
-                deadline = getTodayLocalDate();
-            }
-
+            const deadline = parseEdgeDate(document.getElementById('notulenDeadline').value);
             const status = document.getElementById('notulenStatus').value;
 
             let selectedPics = [];
@@ -780,6 +774,7 @@
             renderNotulen();
             syncDataToCloud(false);
             
+            // PAKSA TUTUP MODAL & BERSIHKAN BACKDROP SECARA MUTLAK
             let modalEl = document.getElementById('modalNotulen');
             let modalInstance = bootstrap.Modal.getInstance(modalEl);
             if(modalInstance) {

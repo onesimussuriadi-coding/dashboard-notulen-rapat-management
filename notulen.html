@@ -40,7 +40,7 @@
                 <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="syncDataToCloud(true)">🔄 Sinkron Cloud</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -312,8 +312,8 @@
                 .catch(err => { if(callback) callback(); });
         }
 
-        function syncDataToCloud() {
-            alert('Menyinkronkan data ke Google Sheets...');
+        function syncDataToCloud(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan data ke Google Sheets...');
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
                 jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
@@ -324,7 +324,11 @@
                 method: 'POST', mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: "save", payload: payload })
-            }).then(() => alert('Sinkronisasi berhasil!')).catch(err => alert('Gagal: ' + err));
+            }).then(() => {
+                if(showNotification) alert('Sinkronisasi berhasil!');
+            }).catch(err => {
+                if(showNotification) alert('Gagal: ' + err);
+            });
         }
 
         function isiDropdownLeaderJadwal() {
@@ -614,9 +618,8 @@
             });
 
             renderNotulen();
-            syncDataToCloud();
+            syncDataToCloud(false);
             bootstrap.Modal.getInstance(document.getElementById('modalSaveAs')).hide();
-            alert(`Berhasil melakukan Save As ${itemsToCopy.length} topik ke ${targetPeriode} (${targetTanggal}) dengan Pemimpin: ${targetLeader}!`);
         }
 
         function resetFormInti() {
@@ -712,7 +715,7 @@
             }
 
             renderNotulen();
-            syncDataToCloud();
+            syncDataToCloud(false);
             bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
         }
 
@@ -720,7 +723,7 @@
             if(confirm('Hapus notulen ini?')) {
                 dataNotulen.splice(index, 1);
                 renderNotulen();
-                syncDataToCloud();
+                syncDataToCloud(false);
             }
         }
 

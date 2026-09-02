@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buletin & Pengumuman - PT Banggai Sentral Sulawesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .bg-teal-custom { background-color: #134e4a !important; }
+        .btn-teal { background-color: #0d9488; color: white; border: none; }
+        .btn-teal:hover { background-color: #0f766e; color: white; }
+        body { font-size: 13px; background-color: #f8f9fa; }
+        .card-hover:hover { transform: translateY(-3px); transition: all 0.3s ease; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-dark bg-teal-custom py-2 shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 fs-6">📰 Buletin & Pengumuman Manajemen</span>
+            <div>
+                <a href="index.html" class="btn btn-outline-light btn-sm me-2">← Visi & Misi</a>
+                <button class="btn btn-warning text-dark btn-sm fw-bold" onclick="cekPasswordDashboard()">🔐 Masuk Dashboard Rapat</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- KONTEN BULETIN & PENGUMUMAN -->
+    <div class="container my-4" style="max-width: 900px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark">Papan Informasi & Pengumuman Perusahaan</h3>
+            <p class="text-muted small">PT Banggai Sentral Sulawesi — Informasi Internal, Rencana Proyek, dan Jadwal Libur</p>
+        </div>
+
+        <!-- Kartu 1: Pengumuman Penting / Pesan Manajemen -->
+        <div class="card shadow-sm border-0 mb-4 bg-white">
+            <div class="card-header bg-teal-custom text-white py-2">
+                <h5 class="mb-0 fs-6">📌 Pengumuman & Arahan Manajemen Terbaru</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-dark mb-2"><strong>Perhatian Seluruh Tim Operasional & Proyek:</strong></p>
+                <p class="text-secondary small mb-3">
+                    Sehubungan dengan dimulainya koordinasi proyek Slickline dan TRSSV Maintenance di Blok Senoro-Toili, seluruh manager dan penanggung jawab lapangan diminta untuk memastikan kesiapan dokumen K3L serta kelengkapan unit pendukung sesuai jadwal yang telah ditentukan.
+                </p>
+                <div class="alert alert-info py-2 small mb-0">
+                    📅 <strong>Agenda Terdekat:</strong> Rapat evaluasi mingguan akan dilaksanakan setiap hari Senin pukul 09.00 WITA.
+                </div>
+            </div>
+        </div>
+
+        <!-- Kartu 2: Rencana Proyek & Operasional -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100 bg-white">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-teal mb-2">🚀 Rencana Proyek (Project Pipeline)</h6>
+                        <ul class="small text-secondary ps-3 mb-0">
+                            <li class="mb-2"><strong>Blok Senoro-Toili:</strong> Mobilisasi peralatan Slickline (Juli - Oktober 2026).</li>
+                            <li class="mb-2"><strong>Pengadaan Unit:</strong> Verifikasi TKDN dan penjadwalan 10-ton vacuum truck unit.</li>
+                            <li><strong>Fasilitas Kantor:</strong> Peningkatan jaringan internet operasional menggunakan Starlink.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100 bg-white">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-teal mb-2">🏖️ Rencana Libur & Kalender Kerja</h6>
+                        <ul class="small text-secondary ps-3 mb-0">
+                            <li class="mb-2"><strong>Cuti Bersama / Libur Nasional:</strong> Mengikuti Surat Keputusan Bersama (SKB) Menteri terkait kalender libur 2026.</li>
+                            <li class="mb-2"><strong>Rotasi Shift Lapangan:</strong> Sesuai jadwal operasional masing-masing divisi (Luwuk, Jakarta, & Surabaya).</li>
+                            <li><strong>Absensi & Kehadiran:</strong> Wajib diisi melalui modul digital perusahaan.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOMBOL LANJUT KE DASHBOARD RAPAT (DIPROTEKSI PASSWORD) -->
+        <div class="card shadow-sm border-0 text-center p-4 bg-white">
+            <h5 class="fw-bold text-dark mb-2">Akses Khusus Manajemen & PIC Rapat</h5>
+            <p class="text-muted small mb-3">Modul Jadwal, Daftar Absen, serta Notulen & Tindak Lanjut memerlukan Password Akses Internal.</p>
+            <div>
+                <button class="btn btn-teal btn-lg fw-bold px-5 shadow-sm" onclick="cekPasswordDashboard()">
+                    🔐 Masuk ke Dashboard Rapat →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="text-center py-3 text-muted border-top bg-white mt-5">
+        <small>&copy; 2026 PT Banggai Sentral Sulawesi - Buletin Internal</small>
+    </footer>
+
+    <!-- SKRIP PROTEKSI PASSWORD -->
+    <script>
+        function cekPasswordDashboard() {
+            let passwordInput = prompt("Masukkan Password Akses Dashboard Rapat:");
+            
+            // PASSWORD KORPORAT ANDA (Bisa diubah sesuai keinginan)
+            let passwordResmi = "bss2026"; 
+
+            if (passwordInput === null) {
+                return; // Jika dibatalkan
+            }
+
+            if (passwordInput === passwordResmi) {
+                alert("Password benar! Mengarahkan ke Dashboard Rapat...");
+                window.location.href = "notulen.html"; // Atau arahkan ke halaman modul utama Anda
+            } else {
+                alert("Password salah! Akses ditolak. Anda hanya memiliki izin membaca Buletin dan Visi Misi.");
+            }
+        }
+    </script>
+</body>
+</html>

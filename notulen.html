@@ -309,7 +309,6 @@
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                     }
-                    // Pastikan dropdown leader langsung terisi setelah data jadwal ditarik dari cloud
                     isiDropdownLeaderJadwal();
                     if(callback) callback();
                 })
@@ -339,7 +338,6 @@
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
             
-            // Ambil data jadwal terbaru dari localStorage jika ada pembaruan
             let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
@@ -384,7 +382,7 @@
             if(listPersonel.length === 0) {
                 listPersonel = [
                     { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
-                    { nama: "Onesimus Suriadi", jabatan: "Manager General Services" },
+                    { nama: "Onesimus Suryadi", jabatan: "Manager General Services" },
                     { nama: "I Made Vridianto", jabatan: "Manager HSE" },
                     { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" }
                 ];
@@ -572,7 +570,6 @@
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
             
-            // Pastikan dropdown leader terisi saat modal dibuka
             isiDropdownLeaderJadwal();
             document.getElementById('notulenLeader').selectedIndex = 0;
             
@@ -718,6 +715,18 @@
                 lokasi = itemLama.lokasi;
                 media = itemLama.media;
                 leader = itemLama.leader;
+            } else if (mode === 'tambah_topik') {
+                periode = document.getElementById('notulenPeriode').value;
+                tanggal = document.getElementById('notulenTanggal').value || new Date().toISOString().split('T')[0];
+                lokasi = document.getElementById('notulenLokasi').value;
+                
+                let mediaList = [];
+                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+                let leaderSelect = document.getElementById('notulenLeader');
+                leader = leaderSelect.value ? leaderSelect.value : '-';
             } else {
                 periode = document.getElementById('notulenPeriode').value;
                 tanggal = document.getElementById('notulenTanggal').value;
@@ -743,9 +752,13 @@
             checkboxes.forEach(cb => { selectedPics.push(cb.value); });
             if(selectedPics.length === 0) { selectedPics.push("Belum ditentukan"); }
 
-            if(!tanggal || !topikUtama) { 
-                alert('Lengkapi Tanggal dan Topik Utama terlebih dahulu!'); 
+            if(!topikUtama) { 
+                alert('Topik Utama wajib diisi!'); 
                 return; 
+            }
+
+            if(!tanggal) {
+                tanggal = new Date().toISOString().split('T')[0];
             }
 
             const dataBaru = { periode, tanggal, lokasi, media, leader, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
@@ -758,7 +771,10 @@
 
             renderNotulen();
             syncDataToCloud(false);
-            bootstrap.Modal.getInstance(document.getElementById('modalNotulen')).hide();
+            
+            let modalEl = document.getElementById('modalNotulen');
+            let modalObj = bootstrap.Modal.getInstance(modalEl);
+            if(modalObj) modalObj.hide();
         }
 
         function hapusNotulen(index) {

@@ -765,16 +765,16 @@
             syncDataToCloud(false);
             
             let modalEl = document.getElementById('modalNotulen');
-            let modalObj = bootstrap.Modal.getInstance(modalEl);
-            if(modalObj) {
-                modalObj.hide();
-            } else {
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                modalEl.style.display = 'none';
+            let modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if(modalInstance) {
+                modalInstance.hide();
             }
+            
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            modalEl.style.display = 'none';
         }
 
         function hapusNotulen(index) {

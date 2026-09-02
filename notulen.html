@@ -744,7 +744,20 @@
             const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
             const pembahasan = document.getElementById('notulenPembahasan').value.trim();
             const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
-            const deadline = document.getElementById('notulenDeadline').value;
+            
+            // Konversi format tanggal deadline dengan aman
+            let rawDeadline = document.getElementById('notulenDeadline').value;
+            let deadline = rawDeadline;
+            if (rawDeadline && rawDeadline.includes('/')) {
+                let pDate = rawDeadline.split('/');
+                if(pDate.length === 3) {
+                    deadline = pDate[2] + '-' + pDate[1] + '-' + pDate[0];
+                }
+            }
+            if(!deadline) {
+                deadline = new Date().toISOString().split('T')[0];
+            }
+
             const status = document.getElementById('notulenStatus').value;
 
             let selectedPics = [];
@@ -770,11 +783,21 @@
             }
 
             renderNotulen();
-            syncDataToCloud(false);
+            if(typeof syncDataToCloud === 'function') {
+                syncDataToCloud(false);
+            }
             
             let modalEl = document.getElementById('modalNotulen');
             let modalObj = bootstrap.Modal.getInstance(modalEl);
-            if(modalObj) modalObj.hide();
+            if(modalObj) {
+                modalObj.hide();
+            } else {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                modalEl.style.display = 'none';
+            }
         }
 
         function hapusNotulen(index) {

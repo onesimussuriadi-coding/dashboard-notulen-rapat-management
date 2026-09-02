@@ -64,11 +64,11 @@
         </div>
     </nav>
 
-    <!-- PANEL ADMIN (TERSEMBUNYI KECUALI MASUK PASSWORD) -->
+    <!-- PANEL ADMIN (DINAMIS UNTUK SEMUA BAGIAN) -->
     <div class="container my-3" id="panelAdminBuletin" style="display: none; max-width: 900px;">
         <div class="card border-warning shadow-sm bg-warning bg-opacity-10">
             <div class="card-body">
-                <h5 class="fw-bold text-dark mb-3">🛠️ Panel Admin: Upload & Edit Pengumuman / Dokumen</h5>
+                <h5 class="fw-bold text-dark mb-3">🛠️ Panel Admin: Edit Seluruh Konten Buletin & Dokumen</h5>
                 
                 <div class="mb-2">
                     <label class="form-label small fw-bold">Judul Pengumuman Utama:</label>
@@ -85,12 +85,16 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-2">
-                        <label class="form-label small fw-bold">Rencana Proyek (Poin-poin):</label>
-                        <textarea id="inputProyek" class="form-control form-control-sm" rows="3" placeholder="Pisahkan dengan baris baru (Enter)"></textarea>
+                        <label class="form-label small fw-bold">Judul Kolom Kiri:</label>
+                        <input type="text" id="inputJudulKolom1" class="form-control form-control-sm mb-1" placeholder="Misal: Rencana Proyek (Project Pipeline)">
+                        <label class="form-label small fw-bold">Isi Poin Kiri (Setiap baris / Enter = 1 poin):</label>
+                        <textarea id="inputProyek" class="form-control form-control-sm" rows="4"></textarea>
                     </div>
                     <div class="col-md-6 mb-2">
-                        <label class="form-label small fw-bold">Rencana Libur & Kalender Kerja:</label>
-                        <textarea id="inputLibur" class="form-control form-control-sm" rows="3" placeholder="Pisahkan dengan baris baru (Enter)"></textarea>
+                        <label class="form-label small fw-bold">Judul Kolom Kanan:</label>
+                        <input type="text" id="inputJudulKolom2" class="form-control form-control-sm mb-1" placeholder="Misal: Rencana Libur & Kalender Kerja">
+                        <label class="form-label small fw-bold">Isi Poin Kanan (Setiap baris / Enter = 1 poin):</label>
+                        <textarea id="inputLibur" class="form-control form-control-sm" rows="4"></textarea>
                     </div>
                 </div>
 
@@ -134,7 +138,7 @@
                     📅 <strong>Agenda Terdekat:</strong> <span id="viewAgenda">-</span>
                 </div>
 
-                <!-- Tombol Download Dokumen Lampiran (Muncul jika ada link file) -->
+                <!-- Tombol Download Dokumen Lampiran -->
                 <div id="containerDownload" style="display: none;" class="p-2 border rounded bg-light text-end">
                     <span class="small text-muted me-2" id="labelNamaFile">Lampiran Dokumen:</span>
                     <a href="#" id="linkDownloadFile" target="_blank" class="btn btn-sm btn-teal fw-bold">📥 Download Dokumen Resmi</a>
@@ -142,12 +146,12 @@
             </div>
         </div>
 
-        <!-- Kartu 2: Rencana Proyek & Operasional -->
+        <!-- Kartu 2: Kolom Kiri & Kolom Kanan (Sepenuhnya Dinamis) -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="card shadow-sm border-0 h-100 bg-white">
                     <div class="card-body">
-                        <h6 class="fw-bold text-teal mb-2">🚀 Rencana Proyek (Project Pipeline)</h6>
+                        <h6 class="fw-bold text-teal mb-2" id="viewJudulKolom1">🚀 Rencana Proyek (Project Pipeline)</h6>
                         <ul class="small text-secondary ps-3 mb-0" id="viewProyekList"></ul>
                     </div>
                 </div>
@@ -155,7 +159,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm border-0 h-100 bg-white">
                     <div class="card-body">
-                        <h6 class="fw-bold text-teal mb-2">🏖️ Rencana Libur & Kalender Kerja</h6>
+                        <h6 class="fw-bold text-teal mb-2" id="viewJudulKolom2">🏖️ Rencana Libur & Kalender Kerja</h6>
                         <ul class="small text-secondary ps-3 mb-0" id="viewLiburList"></ul>
                     </div>
                 </div>
@@ -185,11 +189,13 @@
             judul: "📌 Pengumuman & Arahan Manajemen Terbaru",
             isi: "Sehubungan dengan dimulainya koordinasi proyek Slickline dan TRSSV Maintenance di Blok Senoro-Toili, seluruh manager dan penanggung jawab lapangan diminta untuk memastikan kesiapan dokumen K3L serta kelengkapan unit pendukung sesuai jadwal yang telah ditentukan.",
             agenda: "Rapat evaluasi mingguan akan dilaksanakan setiap hari Senin pukul 09.00 WITA.",
+            judulKolom1: "🚀 Rencana Proyek (Project Pipeline)",
             proyek: [
                 "Blok Senoro-Toili: Mobilisasi peralatan Slickline (Juli - Oktober 2026).",
                 "Pengadaan Unit: Verifikasi TKDN dan penjadwalan 10-ton vacuum truck unit.",
                 "Fasilitas Kantor: Peningkatan jaringan internet operasional menggunakan Starlink."
             ],
+            judulKolom2: "🏖️ Rencana Libur & Kalender Kerja",
             libur: [
                 "Cuti Bersama / Libur Nasional: Mengikuti Surat Keputusan Bersama (SKB) Menteri terkait kalender libur 2026.",
                 "Rotasi Shift Lapangan: Sesuai jadwal operasional masing-masing divisi (Luwuk, Jakarta, & Surabaya).",
@@ -209,7 +215,8 @@
             document.getElementById('viewIsi').innerText = data.isi || defaultBuletin.isi;
             document.getElementById('viewAgenda').innerText = data.agenda || defaultBuletin.agenda;
 
-            // List Proyek
+            // Judul & List Kolom Kiri
+            document.getElementById('viewJudulKolom1').innerText = data.judulKolom1 || defaultBuletin.judulKolom1;
             let ulProyek = document.getElementById('viewProyekList');
             ulProyek.innerHTML = '';
             let listP = data.proyek || defaultBuletin.proyek;
@@ -220,7 +227,8 @@
                 ulProyek.appendChild(li);
             });
 
-            // List Libur
+            // Judul & List Kolom Kanan
+            document.getElementById('viewJudulKolom2').innerText = data.judulKolom2 || defaultBuletin.judulKolom2;
             let ulLibur = document.getElementById('viewLiburList');
             ulLibur.innerHTML = '';
             let listL = data.libur || defaultBuletin.libur;
@@ -247,18 +255,23 @@
             let panel = document.getElementById('panelAdminBuletin');
             if (!isAdminOpen) {
                 let pass = prompt("Masukkan Password Admin untuk Mengedit Buletin:");
-                if (pass === "bss2026") { // Password admin (bisa disesuaikan)
+                if (pass === "bss2026") { // Password admin
                     isAdminOpen = true;
                     panel.style.display = 'block';
                     document.getElementById('btnAdminMode').innerText = '✖ Tutup Panel Admin';
                     
                     // Masukkan data saat ini ke dalam form input
                     let dataStored = JSON.parse(localStorage.getItem('bss_buletin')) || defaultBuletin;
-                    document.getElementById('inputJudul').value = dataStored.judul;
-                    document.getElementById('inputIsi').value = dataStored.isi;
-                    document.getElementById('inputAgenda').value = dataStored.agenda;
-                    document.getElementById('inputProyek').value = (dataStored.proyek || []).join('\n');
-                    document.getElementById('inputLibur').value = (dataStored.libur || []).join('\n');
+                    document.getElementById('inputJudul').value = dataStored.judul || defaultBuletin.judul;
+                    document.getElementById('inputIsi').value = dataStored.isi || defaultBuletin.isi;
+                    document.getElementById('inputAgenda').value = dataStored.agenda || defaultBuletin.agenda;
+                    
+                    document.getElementById('inputJudulKolom1').value = dataStored.judulKolom1 || defaultBuletin.judulKolom1;
+                    document.getElementById('inputProyek').value = (dataStored.proyek || defaultBuletin.proyek).join('\n');
+                    
+                    document.getElementById('inputJudulKolom2').value = dataStored.judulKolom2 || defaultBuletin.judulKolom2;
+                    document.getElementById('inputLibur').value = (dataStored.libur || defaultBuletin.libur).join('\n');
+                    
                     document.getElementById('inputNamaFile').value = dataStored.namaFile || '';
                     document.getElementById('inputLinkFile').value = dataStored.linkFile || '';
                 } else if (pass !== null) {
@@ -275,8 +288,13 @@
             let judul = document.getElementById('inputJudul').value.trim();
             let isi = document.getElementById('inputIsi').value.trim();
             let agenda = document.getElementById('inputAgenda').value.trim();
+            
+            let judulKolom1 = document.getElementById('inputJudulKolom1').value.trim();
             let proyek = document.getElementById('inputProyek').value.split('\n').map(s => s.trim()).filter(Boolean);
+            
+            let judulKolom2 = document.getElementById('inputJudulKolom2').value.trim();
             let libur = document.getElementById('inputLibur').value.split('\n').map(s => s.trim()).filter(Boolean);
+            
             let namaFile = document.getElementById('inputNamaFile').value.trim();
             let linkFile = document.getElementById('inputLinkFile').value.trim();
 
@@ -285,7 +303,7 @@
                 return;
             }
 
-            let updatedBuletin = { judul, isi, agenda, proyek, libur, namaFile, linkFile };
+            let updatedBuletin = { judul, isi, agenda, judulKolom1, proyek, judulKolom2, libur, namaFile, linkFile };
 
             localStorage.setItem('bss_buletin', JSON.stringify(updatedBuletin));
             tampilkanDataBuletin(updatedBuletin);
@@ -309,7 +327,7 @@
 
             if (passwordInput === passwordResmi) {
                 alert("Password benar! Mengarahkan ke Dashboard Rapat...");
-                window.location.href = "notulen.html"; // Atau halaman dashboard utama Anda
+                window.location.href = "notulen.html"; // Atau halaman utama modul rapat
             } else {
                 alert("Password salah! Akses ditolak.");
             }

@@ -54,11 +54,9 @@
         .card-vision .card-body { padding: 10px 15px !important; }
         .card-vision h5 { font-size: 0.95rem; margin-bottom: 4px !important; }
         .mission-text { font-size: 0.8rem; line-height: 1.3; margin-bottom: 3px; }
-        .quote-box { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 5px solid #0d9488; }
-        .card-hover:hover { transform: translateY(-3px); transition: all 0.3s ease; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
     </style>
 </head>
-<body onload="muatVisiMisi(); muatPesan();">
+<body onload="muatVisiMisi()">
 
     <!-- HALAMAN VISI & MISI -->
     <div id="sectionVisiMisi">
@@ -67,7 +65,7 @@
                 <span class="navbar-brand mb-0 fs-6">🏢 PT Banggai Sentral Sulawesi</span>
                 <div>
                     <button class="btn btn-outline-light btn-sm py-0 px-2 fw-bold" style="font-size: 11px;" onclick="toggleModeEdit()" id="btnEditMode">✏️ Edit</button>
-                    <button class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;" onclick="bukaDashboard()">Continue →</button>
+                    <a href="buletin.html" class="btn btn-light btn-sm py-0 px-2 fw-bold text-teal" style="font-size: 11px;">Continue ke Buletin →</a>
                 </div>
             </div>
         </nav>
@@ -136,172 +134,20 @@
                 </div>
             </div>
 
-            <!-- TOMBOL CONTINUE KE DASHBOARD -->
+            <!-- TOMBOL CONTINUE KE BULETIN -->
             <div class="text-center pb-1">
-                <button class="btn btn-teal fw-bold px-4 py-2 shadow-sm" style="font-size: 0.9rem;" onclick="bukaDashboard()">
-                    Continue / Lanjut ke Dashboard →
-                </button>
+                <a href="buletin.html" class="btn btn-teal fw-bold px-4 py-2 shadow-sm text-decoration-none" style="font-size: 0.9rem;">
+                    Continue / Lanjut ke Buletin & Pengumuman →
+                </a>
             </div>
         </div>
 
         <footer class="text-center py-1 text-muted border-top bg-white" style="font-size: 10px;"><small>&copy; 2026 PT Banggai Sentral Sulawesi</small></footer>
     </div>
 
-    <!-- TAMPILAN MENU UTAMA DASHBOARD RAPAT -->
-    <div id="sectionDashboard" style="display: none;">
-        <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
-            <div class="container">
-                <span class="navbar-brand mb-0 h1">🏢 PT Banggai Sentral Sulawesi</span>
-                <div>
-                    <button class="btn btn-outline-light btn-sm me-2" onclick="bukaVisiMisi()">← Visi & Misi</button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="container my-5">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold mb-2">Selamat Datang di Sistem Pengelolaan Rapat</h2>
-                <p class="text-muted">Pilih modul di bawah untuk mengelola jadwal, absensi, dan notulen.</p>
-            </div>
-
-            <!-- 3 Modul Utama -->
-            <div class="row g-4 justify-content-center mb-5">
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 card-hover h-100 text-center p-3">
-                        <div class="card-body">
-                            <div class="fs-1 mb-2">📅</div>
-                            <h5 class="fw-bold text-teal">Jadwal & Rotasi</h5>
-                            <p class="text-muted small mb-4">Kelola giliran Pemimpin Rapat dan jadwal operasional.</p>
-                            <a href="jadwal.html" class="btn btn-teal w-100 fw-bold">Buka Modul</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 card-hover h-100 text-center p-3">
-                        <div class="card-body">
-                            <div class="fs-1 mb-2">📝</div>
-                            <h5 class="fw-bold text-teal">Daftar Absen</h5>
-                            <p class="text-muted small mb-4">Pencatatan daftar hadir peserta rapat secara digital.</p>
-                            <a href="absen.html" class="btn btn-teal w-100 fw-bold">Buka Modul</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 card-hover h-100 text-center p-3">
-                        <div class="card-body">
-                            <div class="fs-1 mb-2">📁</div>
-                            <h5 class="fw-bold text-teal">Notulen & Tindak Lanjut</h5>
-                            <p class="text-muted small mb-4">Pencatatan hasil rapat lengkap dengan action items.</p>
-                            <a href="notulen.html" class="btn btn-teal w-100 fw-bold">Buka Modul</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PESAN PIMPINAN & MOTIVASI KERJA (DAPAT DIEDIT) -->
-            <div class="card shadow-sm border-0 quote-box p-4 p-md-5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold m-0" style="color: #0d9488;">💬 Pesan & Arahan Pimpinan Perusahaan</h5>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleEditPesan()" id="btnEditPesan">✏️ Edit Pesan</button>
-                </div>
-
-                <!-- Tampilan Pesan -->
-                <div id="viewPesanContainer">
-                    <blockquote class="blockquote mb-0">
-                        <p class="fs-6 text-dark fst-italic mb-3" id="teksPesanUtama">
-                            "Keberhasilan besar PT Banggai Sentral Sulawesi tidak dibangun dari kerja perorangan, melainkan dari kekuatan <strong>kerja sama</strong> tim yang solid. Mari kita junjung tinggi <strong>kerja jujur</strong> dan <strong>integritas</strong> di setiap lini operasional perusahaan. Ketulusan dalam bekerja serta kedisiplinan mengeksekusi setiap keputusan rapat adalah fondasi utama kita. Besar harapan saya, melalui komitmen bersama ini, kita dapat melampaui setiap tantangan dan meraih <strong>keberhasilan bersama</strong> yang gemilang."
-                        </p>
-                        <footer class="blockquote-footer mt-2 text-end">
-                            <strong class="text-dark" id="teksPemimpin">Manajemen / Pimpinan PT Banggai Sentral Sulawesi</strong>
-                        </footer>
-                    </blockquote>
-                </div>
-
-                <!-- Form Edit Pesan -->
-                <div id="editPesanContainer" style="display: none;">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Ubah Isi Pesan Motivasi & Komitmen Bersama:</label>
-                        <textarea id="inputEditPesan" class="form-control" rows="5"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Nama / Jabatan Pimpinan:</label>
-                        <input type="text" id="inputEditPemimpin" class="form-control form-control-sm">
-                    </div>
-                    <div class="text-end">
-                        <button class="btn btn-sm btn-secondary me-2" onclick="toggleEditPesan()">Batal</button>
-                        <button class="btn btn-sm btn-teal fw-bold" onclick="simpanPesan()">Simpan Perubahan</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="text-center py-4 text-muted border-top bg-white mt-5">
-            <small>&copy; 2026 PT Banggai Sentral Sulawesi - Sistem Pengelolaan Rapat</small>
-        </footer>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function bukaVisiMisi() {
-            document.getElementById('sectionVisiMisi').style.display = 'block';
-            document.getElementById('sectionDashboard').style.display = 'none';
-            muatVisiMisi();
-        }
-
-        function bukaDashboard() {
-            document.getElementById('sectionVisiMisi').style.display = 'none';
-            document.getElementById('sectionDashboard').style.display = 'block';
-        }
-
-        // --- SKRIP PESAN PIMPINAN ---
-        const defaultPesan = `"Keberhasilan besar PT Banggai Sentral Sulawesi tidak dibangun dari kerja perorangan, melainkan dari kekuatan <strong>kerja sama</strong> tim yang solid. Mari kita junjung tinggi <strong>kerja jujur</strong> dan <strong>integritas</strong> di setiap lini operasional perusahaan. Ketulusan dalam bekerja serta kedisiplinan mengeksekusi setiap keputusan rapat adalah fondasi utama kita. Besar harapan saya, melalui komitmen bersama ini, kita dapat melampaui setiap tantangan dan meraih <strong>keberhasilan bersama</strong> yang gemilang."`;
-        const defaultPemimpin = "Manajemen / Pimpinan PT Banggai Sentral Sulawesi";
-
-        function muatPesan() {
-            let savedPesan = localStorage.getItem('bss_pesan_pimpinan') || defaultPesan;
-            let savedPemimpin = localStorage.getItem('bss_nama_pemimpin') || defaultPemimpin;
-
-            document.getElementById('teksPesanUtama').innerHTML = savedPesan;
-            document.getElementById('teksPemimpin').innerText = savedPemimpin;
-            document.getElementById('inputEditPesan').value = savedPesan.replace(/<\/?strong>/g, '');
-            document.getElementById('inputEditPemimpin').value = savedPemimpin;
-        }
-
-        function toggleEditPesan() {
-            let viewDiv = document.getElementById('viewPesanContainer');
-            let editDiv = document.getElementById('editPesanContainer');
-            let btn = document.getElementById('btnEditPesan');
-
-            if (editDiv.style.display === 'none') {
-                viewDiv.style.display = 'none';
-                editDiv.style.display = 'block';
-                btn.innerText = '✖ Tutup';
-            } else {
-                viewDiv.style.display = 'block';
-                editDiv.style.display = 'none';
-                btn.innerText = '✏️ Edit Pesan';
-            }
-        }
-
-        function simpanPesan() {
-            let pesanBaru = document.getElementById('inputEditPesan').value.trim();
-            let pemimpinBaru = document.getElementById('inputEditPemimpin').value.trim();
-
-            if (!pesanBaru) {
-                alert('Pesan motivasi tidak boleh kosong!');
-                return;
-            }
-
-            localStorage.setItem('bss_pesan_pimpinan', pesanBaru);
-            localStorage.setItem('bss_nama_pemimpin', pemimpinBaru || defaultPemimpin);
-
-            muatPesan();
-            toggleEditPesan();
-            alert('Pesan motivasi pimpinan berhasil diperbarui!');
-        }
-
-        // --- SKRIP VISI & MISI ---
         let defaultVisiMisi = {
             visionEn: "To be one of excellence and reliable Contractor Company in Indonesia at the competitive price by culturing occupational Health, Safety and Environment in every activity.",
             visionId: "Menjadi salah satu Perusahaan Kontraktor yang baik dan terpercaya di Indonesia pada tingkat harga yang bersaing dengan membudayakan keselamatan dan kesehatan kerja serta lingkungan disetiap aktivitasnya.",

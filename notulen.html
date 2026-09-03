@@ -357,6 +357,8 @@
             let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
+            
+            // Murni membaca dari dataJadwal yang diambil real-time dari server cloud
             if(currentJadwal.length > 0) {
                 currentJadwal.forEach((j) => {
                     let namaLeader = j.leader || j.namaLeader || '-';
@@ -364,9 +366,6 @@
                     let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
                     optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
                 });
-            } else {
-                optionsHtml += `<option value="I Made Vridianto" data-notulis="Ruwaeda Magga">Minggu ke-1 (03 Sep 2026) — Leader: I Made Vridianto | Notulis: Ruwaeda Magga</option>`;
-                optionsHtml += `<option value="Onesimus Suriadi" data-notulis="Yanuar M. Wiranata">Minggu ke-2 (10 Sep 2026) — Leader: Onesimus Suriadi | Notulis: Yanuar M. Wiranata</option>`;
             }
             
             if(select) select.innerHTML = optionsHtml;

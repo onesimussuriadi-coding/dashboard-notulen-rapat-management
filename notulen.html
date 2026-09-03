@@ -366,13 +366,8 @@
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
             
-            // Gunakan dataJadwal jika sudah ada, jika belum gunakan data cadangan lengkap agar dropdown langsung terisi
-            let currentJadwal = Array.isArray(dataJadwal) && dataJadwal.length > 0 ? [...dataJadwal] : [
-                { periode: "Minggu ke-1", tanggal: "2026-09-03", leader: "Onesimus Suriadi", notulis: "Yanuar M. Wiranata", lokasi: "Kantor Pasar Tua" },
-                { periode: "Minggu ke-2", tanggal: "2026-09-10", leader: "I Made Vridianto", notulis: "Ruwaeda Magga", lokasi: "Kantor Utama" },
-                { periode: "Minggu ke-4", tanggal: "2026-08-28", leader: "Richard Renaldy Bukamo", notulis: "Onesimus Suriadi", lokasi: "Kantor Utama" }
-            ];
-            
+            // Murni membaca dari dataJadwal yang tersimpan tanpa menyertakan nama orang secara hardcode
+            let currentJadwal = Array.isArray(dataJadwal) ? [...dataJadwal] : [];
             currentJadwal.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
 
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
@@ -380,7 +375,8 @@
                 let namaLeader = j.leader || j.namaLeader || '-';
                 let namaNotulis = j.notulis || j.namaNotulis || '-';
                 let lokasiRapat = j.lokasi || '-';
-                let textDisplay = `${j.periode || 'Rapat'} (${j.tanggal || '-'}) — Lokasi: ${lokasiRapat} | Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
+                let statusRapat = j.status ? ` [${j.status}]` : '';
+                let textDisplay = `${j.periode || 'Rapat'} (${j.tanggal || '-'})${statusRapat} — Lokasi: ${lokasiRapat} | Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
                 optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
             });
             

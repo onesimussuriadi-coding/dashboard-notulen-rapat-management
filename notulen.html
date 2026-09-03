@@ -305,41 +305,55 @@
         }
 
         function initModulNotulen(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan data lintas modul...');
+            if(showNotification) alert('Menyinkronkan ulang data secara mendalam...');
             
             let savedNotulen = localStorage.getItem('bss_notulen_data') || localStorage.getItem('notulen_data');
             if(savedNotulen) {
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
             }
 
-            // Mendeteksi data jadwal dari seluruh kemungkinan key penyimpanan
-            let keysJadwal = ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData', 'bss_jadwal', 'jadwal'];
-            for(let k of keysJadwal) {
-                let val = localStorage.getItem(k);
-                if(val) {
+            // Memindai universal seluruh key localStorage yang berhubungan dengan jadwal/rapat
+            dataJadwal = [];
+            let allKeys = Object.keys(localStorage);
+            for(let k of allKeys) {
+                if(k.toLowerCase().includes('jadwal') || k.toLowerCase().includes('rapat')) {
+                    let val = localStorage.getItem(k);
                     try {
                         let parsed = JSON.parse(val);
-                        if(Array.isArray(parsed) && parsed.length > 0) {
-                            dataJadwal = parsed;
-                            break;
+                        if(Array.isArray(parsed)) {
+                            dataJadwal = dataJadwal.concat(parsed);
                         }
                     } catch(e) {}
                 }
             }
 
-            // Mendeteksi data personel / absen dari seluruh kemungkinan key penyimpanan
-            let keysPersonel = ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'bss_absen_data', 'master_personel', 'personel', 'absen'];
-            for(let k of keysPersonel) {
-                let val = localStorage.getItem(k);
-                if(val) {
+            // Memindai universal seluruh key localStorage yang berhubungan dengan personel/absen
+            dataPersonel = [];
+            for(let k of allKeys) {
+                if(k.toLowerCase().includes('personel') || k.toLowerCase().includes('absen') || k.toLowerCase().includes('karyawan') || k.toLowerCase().includes('master')) {
+                    let val = localStorage.getItem(k);
                     try {
                         let parsed = JSON.parse(val);
-                        if(Array.isArray(parsed) && parsed.length > 0) {
-                            dataPersonel = parsed;
-                            break;
+                        if(Array.isArray(parsed)) {
+                            dataPersonel = dataPersonel.concat(parsed);
                         }
                     } catch(e) {}
                 }
+            }
+
+            // Fallback cadangan key spesifik jika belum terdeteksi
+            if(dataJadwal.length === 0) {
+                ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData'].forEach(k => {
+                    let v = localStorage.getItem(k);
+                    if(v) { try { let p = JSON.parse(v); if(Array.isArray(p)) dataJadwal = p; } catch(e){} }
+                });
+            }
+
+            if(dataPersonel.length === 0) {
+                ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'master_personel'].forEach(k => {
+                    let v = localStorage.getItem(k);
+                    if(v) { try { let p = JSON.parse(v); if(Array.isArray(p)) dataPersonel = p; } catch(e){} }
+                });
             }
 
             renderNotulen();
@@ -347,13 +361,14 @@
             isiDropdownLeaderDanNotulis();
             renderPicCheckboxes();
 
-            if(showNotification) alert('Sinkronisasi selesai! Data berhasil dimuat.');
+            if(showNotification) alert('Sinkronisasi tuntas! Silakan cek dropdown dan pilihan PIC.');
         }
 
         function simpanKeStorage() {
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
+        // Fungsi Universal untuk Membaca Leader dan Notulis dari Objek Jadwal
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
@@ -363,54 +378,102 @@
             let leadersSet = new Set();
             let notulisSet = new Set();
 
-            if(Array.isArray(dataJadwal)) {
-                dataJadwal.forEach(j => {
-                    // Menangkap berbagai variasi nama properti leader/pemimpin
-                    let l = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
-                    // Menangkap berbagai variasi nama properti notulis
-                    let n = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
-                    
-                    if(l) leadersSet.add(l.trim());
-                    if(n) notulisSet.add(n.trim());
-                });
+            let rawJadwalData = [];
+            if(Array.isArray(dataJadwal) && dataJadwal.length > 0) {
+                rawJadwalData = dataJadwal;
+            } else {
+                for(let i=0; i<localStorage.length; i++) {
+                    let k = localStorage.key(i);
+                    if(k.toLowerCase().includes('jadwal') || k.toLowerCase().includes('rapat')) {
+                        try {
+                            let parsed = JSON.parse(localStorage.getItem(k));
+                            if(Array.isArray(parsed)) rawJadwalData = rawJadwalData.concat(parsed);
+                        } catch(e) {}
+                    }
+                }
             }
 
-            let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
-            leadersSet.forEach(l => {
-                htmlLeader += `<option value="${l}">${l}</option>`;
+            rawJadwalData.forEach(j => {
+                if(!j || typeof j !== 'object') return;
+                
+                // Pindai semua properti untuk Leader / Pemimpin
+                for(let key in j) {
+                    let val = j[key];
+                    if(val && typeof val === 'string' && (key.toLowerCase().includes('leader') || key.toLowerCase().includes('pemimpin'))) {
+                        leadersSet.add(val.trim());
+                    }
+                }
+                let lDirect = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
+                if(lDirect && typeof lDirect === 'string') leadersSet.add(lDirect.trim());
+
+                // Pindai semua properti untuk Notulis
+                for(let key in j) {
+                    let val = j[key];
+                    if(val && typeof val === 'string' && (key.toLowerCase().includes('notulis') || key.toLowerCase().includes('notulen'))) {
+                        notulisSet.add(val.trim());
+                    }
+                }
+                let nDirect = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
+                if(nDirect && typeof nDirect === 'string') notulisSet.add(nDirect.trim());
             });
-            if(leadersSet.size === 0) {
-                htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin di jadwal --</option>';
-            }
+
+            let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
+            leadersSet.forEach(l => { htmlLeader += `<option value="${l}">${l}</option>`; });
+            if(leadersSet.size === 0) htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin --</option>';
             selectLeader.innerHTML = htmlLeader;
 
             let htmlNotulis = '<option value="">-- Pilih Notulis --</option>';
-            notulisSet.forEach(n => {
-                htmlNotulis += `<option value="${n}">${n}</option>`;
-            });
-            if(notulisSet.size === 0) {
-                htmlNotulis += '<option value="" disabled>-- Belum ada data notulis di jadwal --</option>';
-            }
+            notulisSet.forEach(n => { htmlNotulis += `<option value="${n}">${n}</option>`; });
+            if(notulisSet.size === 0) htmlNotulis += '<option value="" disabled>-- Belum ada data notulis --</option>';
             selectNotulis.innerHTML = htmlNotulis;
         }
 
+        // Fungsi Universal untuk Render PIC / Penanggung Jawab
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
             container.innerHTML = '';
             
-            let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
+            let listPersonel = [];
+            if(Array.isArray(dataPersonel) && dataPersonel.length > 0) {
+                listPersonel = dataPersonel;
+            } else {
+                for(let i=0; i<localStorage.length; i++) {
+                    let k = localStorage.key(i);
+                    if(k.toLowerCase().includes('personel') || k.toLowerCase().includes('absen') || k.toLowerCase().includes('karyawan') || k.toLowerCase().includes('master')) {
+                        try {
+                            let parsed = JSON.parse(localStorage.getItem(k));
+                            if(Array.isArray(parsed)) listPersonel = listPersonel.concat(parsed);
+                        } catch(e) {}
+                    }
+                }
+            }
 
             if (listPersonel.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Pastikan data di modul Absen/Personel sudah tersimpan.</div>';
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Silakan input data di modul Absen/Personel.</div>';
                 return;
             }
 
             listPersonel.forEach((p, idx) => {
-                let namaP = p.nama || p.namaLengkap || p.name || '-';
-                let jabatanP = p.jabatan || p.posisi || p.role || '-';
-                let identifier = namaP + ' — ' + jabatanP;
-                let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
+                let namaP = '';
+                let jabatanP = '';
+
+                if (typeof p === 'string') {
+                    namaP = p;
+                } else if (typeof p === 'object' && p !== null) {
+                    namaP = p.nama || p.namaLengkap || p.name || p.namaPegawai || '';
+                    jabatanP = p.jabatan || p.posisi || p.role || p.title || '';
+                    
+                    if (!namaP) {
+                        let vals = Object.values(p).filter(v => typeof v === 'string' && v.trim().length > 1);
+                        namaP = vals[0] || 'Personel ' + (idx + 1);
+                        jabatanP = vals[1] || '';
+                    }
+                }
+
+                let identifier = jabatanP ? `${namaP} — ${jabatanP}` : namaP;
+                let isChecked = (Array.isArray(selectedValues) && selectedValues.includes(identifier)) ? 'checked' : '';
+                
                 let div = document.createElement('div');
                 div.className = 'form-check mb-1';
                 div.innerHTML = `<input class="form-check-input pic-checkbox" type="checkbox" value="${identifier}" id="picCheck_${idx}" ${isChecked}>

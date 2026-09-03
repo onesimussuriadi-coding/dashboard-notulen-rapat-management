@@ -304,7 +304,7 @@
         }
 
         function muatDataNotulen(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan data terbaru dari server...');
+            if(showNotification) alert('Memuat data...');
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
@@ -327,30 +327,29 @@
                     if(showNotification) alert('Sinkronisasi Berhasil!');
                 })
                 .catch(err => {
+                    // Proteksi agar gagal load cloud tidak mengganggu lokal
                     renderNotulen();
                     isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
-                    if(showNotification) alert('Gagal terhubung ke cloud, menggunakan data lokal.');
+                    if(showNotification) alert('Menggunakan data lokal.');
                 });
         }
 
         function syncDataToCloud(showNotification = false) {
-            const payload = {
-                personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
-                jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
-                absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
-                notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
-            };
-            fetch(WEB_APP_URL, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "save", payload: payload })
-            }).then(() => {
-                if(showNotification) alert('Sinkronisasi berhasil!');
-            }).catch(err => {
-                console.log('Sync background error: ' + err);
-            });
+            try {
+                const payload = {
+                    personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
+                    jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                    absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                    notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+                };
+                fetch(WEB_APP_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "save", payload: payload })
+                }).catch(() => {});
+            } catch(e) {}
         }
 
         function isiDropdownLeaderJadwal() {
@@ -720,84 +719,86 @@
         }
 
         function simpanNotulen() {
-            const index = parseInt(document.getElementById('editIndexNotulen').value);
-            const mode = document.getElementById('modeFormNotulen').value;
+            try {
+                const index = parseInt(document.getElementById('editIndexNotulen').value);
+                const mode = document.getElementById('modeFormNotulen').value;
 
-            let periode, tanggal, lokasi, media, leader;
-            let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
+                let periode, tanggal, lokasi, media, leader;
+                let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
 
-            if (index !== -1 && mode === 'edit') {
-                const itemLama = dataNotulen[index];
-                periode = itemLama.periode;
-                tanggal = itemLama.tanggal;
-                lokasi = itemLama.lokasi;
-                media = itemLama.media;
-                leader = itemLama.leader;
-            } else if (mode === 'tambah_topik') {
-                periode = document.getElementById('notulenPeriode').value;
-                tanggal = rawTglRapat;
-                lokasi = document.getElementById('notulenLokasi').value;
+                if (index !== -1 && mode === 'edit') {
+                    const itemLama = dataNotulen[index];
+                    periode = itemLama.periode;
+                    tanggal = itemLama.tanggal;
+                    lokasi = itemLama.lokasi;
+                    media = itemLama.media;
+                    leader = itemLama.leader;
+                } else if (mode === 'tambah_topik') {
+                    periode = document.getElementById('notulenPeriode').value;
+                    tanggal = rawTglRapat;
+                    lokasi = document.getElementById('notulenLokasi').value;
+                    
+                    let mediaList = [];
+                    if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                    if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                    media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+                    let leaderSelect = document.getElementById('notulenLeader');
+                    leader = leaderSelect.value ? leaderSelect.value : '-';
+                } else {
+                    periode = document.getElementById('notulenPeriode').value;
+                    tanggal = rawTglRapat;
+                    lokasi = document.getElementById('notulenLokasi').value;
+                    
+                    let mediaList = [];
+                    if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                    if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                    media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+                    let leaderSelect = document.getElementById('notulenLeader');
+                    leader = leaderSelect.value ? leaderSelect.value : '-';
+                }
+
+                const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
+                const pembahasan = document.getElementById('notulenPembahasan').value.trim();
+                const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
+                const deadline = parseEdgeDate(document.getElementById('notulenDeadline').value);
+                const status = document.getElementById('notulenStatus').value;
+
+                let selectedPics = [];
+                let checkboxes = document.querySelectorAll('.pic-checkbox:checked');
+                checkboxes.forEach(cb => { selectedPics.push(cb.value); });
+                if(selectedPics.length === 0) { selectedPics.push("Belum ditentukan"); }
+
+                if(!topikUtama) { 
+                    alert('Topik Utama wajib diisi!'); 
+                    return; 
+                }
+
+                const dataBaru = { periode, tanggal, lokasi, media, leader, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
+
+                if(index === -1) { 
+                    dataNotulen.unshift(dataBaru); 
+                } else { 
+                    dataNotulen[index] = dataBaru; 
+                }
+
+                // SIMPAN KE LOCALSTORAGE SECARA AMAN
+                localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
+                renderNotulen();
+                syncDataToCloud(false);
                 
-                let mediaList = [];
-                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
-
-                let leaderSelect = document.getElementById('notulenLeader');
-                leader = leaderSelect.value ? leaderSelect.value : '-';
-            } else {
-                periode = document.getElementById('notulenPeriode').value;
-                tanggal = rawTglRapat;
-                lokasi = document.getElementById('notulenLokasi').value;
-                
-                let mediaList = [];
-                if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-                if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-                media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
-
-                let leaderSelect = document.getElementById('notulenLeader');
-                leader = leaderSelect.value ? leaderSelect.value : '-';
+                // PAKSA TUTUP MODAL & BERSIHKAN BACKDROP
+                let modalEl = document.getElementById('modalNotulen');
+                modalEl.classList.remove('show');
+                modalEl.style.display = 'none';
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            } catch (err) {
+                alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }
-
-            const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
-            const pembahasan = document.getElementById('notulenPembahasan').value.trim();
-            const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
-            const deadline = parseEdgeDate(document.getElementById('notulenDeadline').value);
-            const status = document.getElementById('notulenStatus').value;
-
-            let selectedPics = [];
-            let checkboxes = document.querySelectorAll('.pic-checkbox:checked');
-            checkboxes.forEach(cb => { selectedPics.push(cb.value); });
-            if(selectedPics.length === 0) { selectedPics.push("Belum ditentukan"); }
-
-            if(!topikUtama) { 
-                alert('Topik Utama wajib diisi!'); 
-                return; 
-            }
-
-            const dataBaru = { periode, tanggal, lokasi, media, leader, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
-
-            if(index === -1) { 
-                dataNotulen.unshift(dataBaru); 
-            } else { 
-                dataNotulen[index] = dataBaru; 
-            }
-
-            // SIMPAN KE LOCALSTORAGE SECARA INSTAN
-            localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
-            renderNotulen();
-
-            // SINKRONISASI CLOUD BERJALAN DI BACKGROUND (TIDAK MEMBLOCK TOMBOL)
-            syncDataToCloud(false);
-            
-            // PAKSA TUTUP MODAL & BERSIHKAN LAYER TRANSARAN (BACKDROP)
-            let modalEl = document.getElementById('modalNotulen');
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
         }
 
         function hapusNotulen(index) {
@@ -872,7 +873,6 @@
             htmlContent += '</body></html>';
             let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             let url = URL.createObjectURL(blob);
-            let a = URL.createObjectURL(blob);
             let a_elem = document.createElement('a');
             a_elem.href = url;
             a_elem.download = 'Laporan_Notulen_BSS.doc';

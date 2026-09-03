@@ -312,7 +312,7 @@
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
             }
 
-            // Memindai seluruh key localStorage tanpa terkecuali untuk mencocokkan jadwal & personel
+            // Memindai seluruh key localStorage untuk mencocokkan jadwal & personel
             dataJadwal = [];
             dataPersonel = [];
             let allKeys = Object.keys(localStorage);
@@ -333,7 +333,6 @@
                 } catch(e) {}
             }
 
-            // Fallback cadangan jika dataPersonel masih kosong (memindai array objek apa saja yang memiliki properti nama)
             if(dataPersonel.length === 0) {
                 for(let k of allKeys) {
                     try {
@@ -361,7 +360,7 @@
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Fungsi Universal untuk Membaca Leader dan Notulis dari Objek Jadwal
+        // Fungsi Pemimpin & Notulis yang SUDAH BENAR (Nama bersih murni)
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
@@ -387,25 +386,18 @@
             rawJadwalData.forEach(j => {
                 if(!j || typeof j !== 'object') return;
                 
-                // Pindai semua properti untuk Leader / Pemimpin
-                for(let key in j) {
-                    let val = j[key];
-                    if(val && typeof val === 'string' && (key.toLowerCase().includes('leader') || key.toLowerCase().includes('pemimpin'))) {
-                        leadersSet.add(val.trim());
-                    }
+                let l = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
+                if(l && typeof l === 'string') {
+                    // Membersihkan jika ada embel-embel jabatan dalam kurung
+                    let bersihL = l.split('(')[0].trim();
+                    if(bersihL) leadersSet.add(bersihL);
                 }
-                let lDirect = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
-                if(lDirect && typeof lDirect === 'string') leadersSet.add(lDirect.trim());
 
-                // Pindai semua properti untuk Notulis
-                for(let key in j) {
-                    let val = j[key];
-                    if(val && typeof val === 'string' && (key.toLowerCase().includes('notulis') || key.toLowerCase().includes('notulen'))) {
-                        notulisSet.add(val.trim());
-                    }
+                let n = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
+                if(n && typeof n === 'string') {
+                    let bersihN = n.split('(')[0].trim();
+                    if(bersihN) notulisSet.add(bersihN);
                 }
-                let nDirect = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
-                if(nDirect && typeof nDirect === 'string') notulisSet.add(nDirect.trim());
             });
 
             let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
@@ -419,7 +411,7 @@
             selectNotulis.innerHTML = htmlNotulis;
         }
 
-        // Fungsi Universal untuk Render PIC / Penanggung Jawab dari Master Personel
+        // Fungsi PIC / Penanggung Jawab disempurnakan membaca master personel secara bersih rapi
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
@@ -463,6 +455,7 @@
                     }
                 }
 
+                // Format rapi: "Nama — Jabatan" (atau hanya nama jika jabatan kosong)
                 let identifier = jabatanP ? `${namaP} — ${jabatanP}` : namaP;
                 let isChecked = (Array.isArray(selectedValues) && selectedValues.includes(identifier)) ? 'checked' : '';
                 

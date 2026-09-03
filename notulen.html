@@ -366,8 +366,7 @@
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
             
-            // Murni membaca dari dataJadwal yang tersimpan tanpa menyertakan nama orang secara hardcode
-            let currentJadwal = Array.isArray(dataJadwal) ? [...dataJadwal] : [];
+            let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             currentJadwal.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
 
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
@@ -375,8 +374,11 @@
                 let namaLeader = j.leader || j.namaLeader || '-';
                 let namaNotulis = j.notulis || j.namaNotulis || '-';
                 let lokasiRapat = j.lokasi || '-';
+                let periodeRapat = j.periode || j.periodeRapat || 'Rapat';
+                let tanggalRapat = j.tanggal || '-';
                 let statusRapat = j.status ? ` [${j.status}]` : '';
-                let textDisplay = `${j.periode || 'Rapat'} (${j.tanggal || '-'})${statusRapat} — Lokasi: ${lokasiRapat} | Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
+
+                let textDisplay = `${periodeRapat} (${tanggalRapat})${statusRapat} — Lokasi: ${lokasiRapat} | Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
                 optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
             });
             
@@ -395,7 +397,8 @@
             let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNamaLeader);
             if(j) {
-                if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
+                let pRapat = j.periode || j.periodeRapat;
+                if(pRapat) document.getElementById('notulenPeriode').value = pRapat;
                 if(j.tanggal) document.getElementById('notulenTanggal').value = j.tanggal;
                 if(j.lokasi) {
                     let lokSelect = document.getElementById('notulenLokasi');
@@ -411,23 +414,15 @@
             if(!container) return;
             container.innerHTML = '';
             
-            let listPersonel = Array.isArray(dataPersonel) && dataPersonel.length > 0 ? dataPersonel : [
-                { nama: "Ferry Tatimu", jabatan: "Direktur" },
-                { nama: "Prayogo Sudana", jabatan: "General Manager" },
-                { nama: "Gannie Tatimu", jabatan: "Wakil General Manager" },
-                { nama: "Wahyu Suryono", jabatan: "Management Representative" },
-                { nama: "Surini", jabatan: "Manager Akuntansi dan Keuangan" },
-                { nama: "Ronald Tamberongan", jabatan: "Manager Maintenance" },
-                { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" },
-                { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
-                { nama: "Onesimus Suriadi", jabatan: "Manager General Services" },
-                { nama: "I Made Vridianto", jabatan: "Manager HSE" },
-                { nama: "I Kadek Widarma", jabatan: "Manager Konstruksi" },
-                { nama: "Yanuar M. Wiranata", jabatan: "Supervisor General Services" }
-            ];
+            let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
+
+            if (listPersonel.length === 0) {
+                container.innerHTML = '<div class="text-muted small p-1">Belum ada data personel terdaftar di sistem.</div>';
+                return;
+            }
 
             listPersonel.forEach((p, idx) => {
-                let identifier = p.nama + ' — ' + p.jabatan;
+                let identifier = (p.nama || '-') + ' — ' + (p.jabatan || '-');
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
                 let div = document.createElement('div');
                 div.className = 'form-check mb-1';

@@ -168,7 +168,7 @@
                         <div class="mb-2">
                             <label class="form-label small fw-bold">Pemimpin Rapat (Dari Jadwal Rapat)</label>
                             <select id="notulenLeader" class="form-select form-select-sm" onchange="pilihLeaderDariJadwal(this)">
-                                <option value="">-- Pilih Pemimpin Rapat --</option>
+                                <option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>
                             </select>
                         </div>
                         <hr class="my-3">
@@ -265,7 +265,7 @@
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Pemimpin Rapat Baru</label>
                         <select id="saveAsLeader" class="form-select form-select-sm">
-                            <option value="">-- Pilih Pemimpin Rapat --</option>
+                            <option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>
                         </select>
                     </div>
                 </div>
@@ -304,7 +304,6 @@
             return val;
         }
 
-        // FUNGSI UTAMA: Mengambil data langsung dari Database Cloud Online
         function muatDataNotulenOnline(showNotification = false) {
             if(showNotification) alert('Menghubungkan ke Cloud...');
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
@@ -333,7 +332,6 @@
                 });
         }
 
-        // FUNGSI UTAMA: Menyimpan data langsung ke Cloud Server secara live
         function pushDataToCloudServer() {
             const payload = {
                 personel: Array.isArray(dataPersonel) ? dataPersonel : [],
@@ -719,7 +717,6 @@
             myModal.show();
         }
 
-        // FUNGSI SIMPAN UTAMA: Mengirim data langsung ke Cloud Server hosting
         function simpanNotulenOnline() {
             try {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
@@ -787,7 +784,6 @@
                     dataNotulen[index] = dataBaru; 
                 }
 
-                // Kirim dan simpan ke Cloud Server
                 pushDataToCloudServer();
                 renderNotulen();
                 

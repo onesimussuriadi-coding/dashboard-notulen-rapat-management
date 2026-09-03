@@ -312,48 +312,41 @@
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
             }
 
-            // Memindai universal seluruh key localStorage yang berhubungan dengan jadwal/rapat
+            // Memindai seluruh key localStorage tanpa terkecuali untuk mencocokkan jadwal & personel
             dataJadwal = [];
+            dataPersonel = [];
             let allKeys = Object.keys(localStorage);
+            
             for(let k of allKeys) {
-                if(k.toLowerCase().includes('jadwal') || k.toLowerCase().includes('rapat')) {
-                    let val = localStorage.getItem(k);
-                    try {
-                        let parsed = JSON.parse(val);
-                        if(Array.isArray(parsed)) {
+                let val = localStorage.getItem(k);
+                try {
+                    let parsed = JSON.parse(val);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        let kLower = k.toLowerCase();
+                        if(kLower.includes('jadwal') || kLower.includes('rapat')) {
                             dataJadwal = dataJadwal.concat(parsed);
                         }
-                    } catch(e) {}
-                }
+                        if(kLower.includes('personel') || kLower.includes('absen') || kLower.includes('karyawan') || kLower.includes('master') || kLower.includes('peserta')) {
+                            dataPersonel = dataPersonel.concat(parsed);
+                        }
+                    }
+                } catch(e) {}
             }
 
-            // Memindai universal seluruh key localStorage yang berhubungan dengan personel/absen
-            dataPersonel = [];
-            for(let k of allKeys) {
-                if(k.toLowerCase().includes('personel') || k.toLowerCase().includes('absen') || k.toLowerCase().includes('karyawan') || k.toLowerCase().includes('master')) {
-                    let val = localStorage.getItem(k);
+            // Fallback cadangan jika dataPersonel masih kosong (memindai array objek apa saja yang memiliki properti nama)
+            if(dataPersonel.length === 0) {
+                for(let k of allKeys) {
                     try {
-                        let parsed = JSON.parse(val);
+                        let parsed = JSON.parse(localStorage.getItem(k));
                         if(Array.isArray(parsed)) {
-                            dataPersonel = dataPersonel.concat(parsed);
+                            let hasName = parsed.some(item => item && (item.nama || item.namaLengkap || item.name));
+                            if(hasName) {
+                                dataPersonel = parsed;
+                                break;
+                            }
                         }
                     } catch(e) {}
                 }
-            }
-
-            // Fallback cadangan key spesifik jika belum terdeteksi
-            if(dataJadwal.length === 0) {
-                ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData'].forEach(k => {
-                    let v = localStorage.getItem(k);
-                    if(v) { try { let p = JSON.parse(v); if(Array.isArray(p)) dataJadwal = p; } catch(e){} }
-                });
-            }
-
-            if(dataPersonel.length === 0) {
-                ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'master_personel'].forEach(k => {
-                    let v = localStorage.getItem(k);
-                    if(v) { try { let p = JSON.parse(v); if(Array.isArray(p)) dataPersonel = p; } catch(e){} }
-                });
             }
 
             renderNotulen();
@@ -384,12 +377,10 @@
             } else {
                 for(let i=0; i<localStorage.length; i++) {
                     let k = localStorage.key(i);
-                    if(k.toLowerCase().includes('jadwal') || k.toLowerCase().includes('rapat')) {
-                        try {
-                            let parsed = JSON.parse(localStorage.getItem(k));
-                            if(Array.isArray(parsed)) rawJadwalData = rawJadwalData.concat(parsed);
-                        } catch(e) {}
-                    }
+                    try {
+                        let parsed = JSON.parse(localStorage.getItem(k));
+                        if(Array.isArray(parsed)) rawJadwalData = rawJadwalData.concat(parsed);
+                    } catch(e) {}
                 }
             }
 
@@ -428,7 +419,7 @@
             selectNotulis.innerHTML = htmlNotulis;
         }
 
-        // Fungsi Universal untuk Render PIC / Penanggung Jawab
+        // Fungsi Universal untuk Render PIC / Penanggung Jawab dari Master Personel
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
@@ -440,12 +431,13 @@
             } else {
                 for(let i=0; i<localStorage.length; i++) {
                     let k = localStorage.key(i);
-                    if(k.toLowerCase().includes('personel') || k.toLowerCase().includes('absen') || k.toLowerCase().includes('karyawan') || k.toLowerCase().includes('master')) {
-                        try {
-                            let parsed = JSON.parse(localStorage.getItem(k));
-                            if(Array.isArray(parsed)) listPersonel = listPersonel.concat(parsed);
-                        } catch(e) {}
-                    }
+                    try {
+                        let parsed = JSON.parse(localStorage.getItem(k));
+                        if(Array.isArray(parsed)) {
+                            let hasName = parsed.some(item => item && (item.nama || item.namaLengkap || item.name));
+                            if(hasName) listPersonel = listPersonel.concat(parsed);
+                        }
+                    } catch(e) {}
                 }
             }
 

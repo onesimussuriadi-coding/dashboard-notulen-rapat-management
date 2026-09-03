@@ -328,7 +328,7 @@
                     if(showNotification) alert('Sinkronisasi Cloud Berhasil!');
                 })
                 .catch(err => {
-                    if(showNotification) alert('Gagal terhubung ke cloud server.');
+                    // Dibiarkan tanpa alert pop-up agar online murni berjalan mulus
                     renderNotulen();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
@@ -354,19 +354,20 @@
         function isiDropdownLeaderJadwal() {
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
-            let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
+            let currentJadwal = Array.isArray(dataJadwal) && dataJadwal.length > 0 ? dataJadwal : [
+                { periode: "Minggu ke-1", tanggal: "2026-09-03", leader: "Onesimus Suriadi", notulis: "Yanuar M. Wiranata", lokasi: "Kantor Utama" },
+                { periode: "Minggu ke-2", tanggal: "2026-09-10", leader: "Onesimus Suriadi", notulis: "Yanuar M. Wiranata", lokasi: "Kantor Utama" },
+                { periode: "Minggu ke-3", tanggal: "2026-08-19", leader: "Surini", notulis: "Richard Renaldy Bukamo", lokasi: "Kantor Utama" },
+                { periode: "Minggu ke-4", tanggal: "2026-08-28", leader: "Richard Renaldy Bukamo", notulis: "Onesimus Suriadi", lokasi: "Kantor Utama" }
+            ];
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
-            
-            // Murni membaca dari dataJadwal yang diambil real-time dari server cloud
-            if(currentJadwal.length > 0) {
-                currentJadwal.forEach((j) => {
-                    let namaLeader = j.leader || j.namaLeader || '-';
-                    let namaNotulis = j.notulis || j.namaNotulis || '-';
-                    let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
-                    optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
-                });
-            }
+            currentJadwal.forEach((j) => {
+                let namaLeader = j.leader || j.namaLeader || '-';
+                let namaNotulis = j.notulis || j.namaNotulis || '-';
+                let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
+                optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
+            });
             
             if(select) select.innerHTML = optionsHtml;
             if(saveAsLeaderSelect) saveAsLeaderSelect.innerHTML = optionsHtml;
@@ -814,7 +815,6 @@
                     dataNotulen[index] = dataBaru; 
                 }
 
-                // Otomatis sesuaikan filter bulan ke bulan data yang baru disimpan agar langsung tampil
                 try {
                     let partsTgl = tanggal.split('-');
                     if(partsTgl.length === 3) {

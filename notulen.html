@@ -166,10 +166,11 @@
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label small fw-bold">Pemimpin Rapat (Dari Jadwal Rapat)</label>
+                            <label class="form-label small fw-bold">Pemimpin Rapat & Notulis (Dari Jadwal Rapat)</label>
                             <select id="notulenLeader" class="form-select form-select-sm" onchange="pilihLeaderDariJadwal(this)">
-                                <option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>
+                                <option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>
                             </select>
+                            <input type="hidden" id="notulenNotulis" value="">
                         </div>
                         <hr class="my-3">
                     </div>
@@ -263,9 +264,9 @@
                         </div>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Pemimpin Rapat Baru</label>
+                        <label class="form-label small fw-bold">Pemimpin & Notulis Baru</label>
                         <select id="saveAsLeader" class="form-select form-select-sm">
-                            <option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>
+                            <option value="">-- Pilih Pemimpin & Notulis dari Jadwal --</option>
                         </select>
                     </div>
                 </div>
@@ -355,19 +356,18 @@
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
             let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             
-            let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
+            let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
             if(currentJadwal.length > 0) {
                 currentJadwal.forEach((j) => {
                     let namaLeader = j.leader || j.namaLeader || '-';
-                    let jabatanLeader = j.jabatanLeader || '';
-                    optionsHtml += `<option value="${namaLeader}">${j.periode} (${j.tanggal}) — Pemimpin: ${namaLeader} ${jabatanLeader ? '('+jabatanLeader+')' : ''}</option>`;
+                    let namaNotulis = j.notulis || j.namaNotulis || '-';
+                    let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
+                    optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
                 });
             } else {
-                // Fallback dummy jika data jadwal online kosong agar dropdown tetap aktif bisa diklik
-                optionsHtml += `<option value="Ferry Tatimu — Direktur">Ferry Tatimu — Direktur</option>`;
-                optionsHtml += `<option value="Prayogo Sudana — General Manager">Prayogo Sudana — General Manager</option>`;
-                optionsHtml += `<option value="Gannie Tatimu — Wakil General Manager">Gannie Tatimu — Wakil General Manager</option>`;
-                optionsHtml += `<option value="Wahyu Suryono — Management Representative">Wahyu Suryono — Management Representative</option>`;
+                // Fallback default data jika jadwal online kosong
+                optionsHtml += `<option value="I Made Vridianto" data-notulis="Ruwaeda Magga">Minggu ke-1 (03 Sep 2026) — Leader: I Made Vridianto | Notulis: Ruwaeda Magga</option>`;
+                optionsHtml += `<option value="Onesimus Suriadi" data-notulis="Yanuar M. Wiranata">Minggu ke-2 (10 Sep 2026) — Leader: Onesimus Suriadi | Notulis: Yanuar M. Wiranata</option>`;
             }
             
             if(select) select.innerHTML = optionsHtml;
@@ -375,10 +375,16 @@
         }
 
         function pilihLeaderDariJadwal(select) {
-            const selectedNama = select.value;
-            if(selectedNama === "") return;
+            const selectedOption = select.options[select.selectedIndex];
+            const selectedNamaLeader = select.value;
+            if(selectedNamaLeader === "") return;
+
+            // Ambil notulis dari atribut data-notulis
+            let notulisVal = selectedOption.getAttribute('data-notulis') || '';
+            document.getElementById('notulenNotulis').value = notulisVal;
+
             let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
-            const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNama);
+            const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNamaLeader);
             if(j) {
                 if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
                 if(j.tanggal) document.getElementById('notulenTanggal').value = j.tanggal;
@@ -487,14 +493,14 @@
 
             let grouped = {};
             filteredData.forEach(item => {
-                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-');
+                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-') + '||' + (item.notulis || '-');
                 if(!grouped[key]) grouped[key] = [];
                 grouped[key].push(item);
             });
 
             for(let key in grouped) {
                 let partsKey = key.split('||');
-                let periode = partsKey[0], tanggal = partsKey[1], lokasi = partsKey[2], media = partsKey[3], leader = partsKey[4];
+                let periode = partsKey[0], tanggal = partsKey[1], lokasi = partsKey[2], media = partsKey[3], leader = partsKey[4], notulis = partsKey[5];
                 let tglFormatted = tanggal;
                 try {
                     let p1 = tanggal.split('-');
@@ -512,7 +518,7 @@
 
                 let headerHtml = '<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
-                    '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Pemimpin:</strong> ' + (leader || '-') + '</div></div>' +
+                    '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + (leader || '-') + ' | ✍️ <strong>Notulis:</strong> ' + (notulis || '-') + '</div></div>' +
                     '<div class="d-flex gap-2">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
                     '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\')">+ Tambah Topik</button>' +
@@ -578,6 +584,7 @@
             
             isiDropdownLeaderJadwal();
             document.getElementById('notulenLeader').selectedIndex = 0;
+            document.getElementById('notulenNotulis').value = '';
             
             resetFormInti();
             let modalEl = document.getElementById('modalNotulen');
@@ -634,6 +641,7 @@
 
             let leaderSelect = document.getElementById('saveAsLeader');
             let targetLeader = leaderSelect.value ? leaderSelect.value : '-';
+            let targetNotulis = leaderSelect.options[leaderSelect.selectedIndex]?.getAttribute('data-notulis') || '-';
 
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
@@ -642,7 +650,7 @@
 
             if(!Array.isArray(dataNotulen)) dataNotulen = [];
             let itemsToCopy = dataNotulen.filter(item => {
-                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-');
+                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-') + '||' + (item.notulis || '-');
                 return key === groupKey;
             });
 
@@ -658,6 +666,7 @@
                     lokasi: targetLokasi,
                     media: targetMedia,
                     leader: targetLeader,
+                    notulis: targetNotulis,
                     topikUtama: src.topikUtama,
                     pembahasan: src.pembahasan,
                     tindakLanjut: src.tindakLanjut,
@@ -712,6 +721,7 @@
             
             isiDropdownLeaderJadwal();
             document.getElementById('notulenLeader').value = n.leader || '';
+            document.getElementById('notulenNotulis').value = n.notulis || '';
 
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
             document.getElementById('notulenPembahasan').value = n.pembahasan || '';
@@ -734,7 +744,7 @@
                 const index = parseInt(document.getElementById('editIndexNotulen').value);
                 const mode = document.getElementById('modeFormNotulen').value;
 
-                let periode, tanggal, lokasi, media, leader;
+                let periode, tanggal, lokasi, media, leader, notulis;
                 let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
 
                 if (index !== -1 && mode === 'edit') {
@@ -744,6 +754,7 @@
                     lokasi = itemLama.lokasi || 'Kantor Utama';
                     media = itemLama.media || 'Offline';
                     leader = itemLama.leader || '-';
+                    notulis = itemLama.notulis || '-';
                 } else if (mode === 'tambah_topik') {
                     periode = document.getElementById('notulenPeriode').value;
                     tanggal = rawTglRapat;
@@ -756,6 +767,7 @@
 
                     let leaderSelect = document.getElementById('notulenLeader');
                     leader = leaderSelect.value ? leaderSelect.value : '-';
+                    notulis = document.getElementById('notulenNotulis').value || '-';
                 } else {
                     periode = document.getElementById('notulenPeriode').value;
                     tanggal = rawTglRapat;
@@ -768,6 +780,7 @@
 
                     let leaderSelect = document.getElementById('notulenLeader');
                     leader = leaderSelect.value ? leaderSelect.value : '-';
+                    notulis = document.getElementById('notulenNotulis').value || '-';
                 }
 
                 const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
@@ -786,7 +799,7 @@
                     return; 
                 }
 
-                const dataBaru = { periode, tanggal, lokasi, media, leader, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
+                const dataBaru = { periode, tanggal, lokasi, media, leader, notulis, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
 
                 if(index === -1) { 
                     dataNotulen.unshift(dataBaru); 
@@ -829,8 +842,8 @@
 
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
                 '<head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head><body>' +
-                '<table border="1"><tr><th colspan="10" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
-                '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Pemimpin</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th></tr>';
+                '<table border="1"><tr><th colspan="11" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
+                '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th></tr>';
 
             dataNotulen.forEach(item => {
                 let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
@@ -840,6 +853,7 @@
                     '<td>' + (item.lokasi || '-') + '</td>' +
                     '<td>' + (item.media || '-') + '</td>' +
                     '<td>' + (item.leader || '-') + '</td>' +
+                    '<td>' + (item.notulis || '-') + '</td>' +
                     '<td>' + item.topikUtama + '</td>' +
                     '<td>' + (item.pembahasan || '-') + '</td>' +
                     '<td>' + (item.tindakLanjut || '-') + '</td>' +
@@ -875,7 +889,7 @@
                 htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
                     '<h4>' + (idx + 1) + '. [' + item.periode + '] ' + item.topikUtama + '</h4>' +
                     '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Media:</strong> ' + (item.media || '-') + '</p>' +
-                    '<p><strong>Pemimpin:</strong> ' + (item.leader || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
+                    '<p><strong>Leader:</strong> ' + (item.leader || '-') + ' | <strong>Notulis:</strong> ' + (item.notulis || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
                     '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
                     '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p>' +
                     '<p><strong>PIC:</strong> ' + picStr + ' | <strong>Deadline:</strong> ' + (item.deadline || '-') + '</p></div>';

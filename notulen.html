@@ -524,6 +524,7 @@
             return '<span>' + teks + '</span>';
         }
 
+        // PENYESUAIAN KHUSUS: Menguraikan sub-nomor bertingkat (misal 4.1, 4.2) agar turun baris & menjorok ke dalam
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -531,7 +532,24 @@
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
                     let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
-                    parts.forEach(part => { htmlList += '<li>' + part.replace(/^\d+[\.\)]\s*/, '') + '</li>'; });
+                    parts.forEach(part => {
+                        let cleanedPart = part.replace(/^\d+[\.\)]\s*/, '');
+                        // Deteksi pola sub-poin angka (misal: 4.1, 4.2, dst.)
+                        let subRegex = /(\d+\.\d+)/g;
+                        if (subRegex.test(cleanedPart)) {
+                            // Pisahkan teks utama dengan sub-poin menggunakan regex split dengan mempertahankan delimiter
+                            let subParts = cleanedPart.split(/(?=\b\d+\.\d+\b)/).map(s => s.trim()).filter(Boolean);
+                            let mainText = subParts[0];
+                            htmlList += '<li>' + mainText;
+                            for (let i = 1; i < subParts.length; i++) {
+                                let subItemText = subParts[i];
+                                htmlList += '<div style="margin-left: 15px; margin-top: 3px;">' + subItemText + '</div>';
+                            }
+                            htmlList += '</li>';
+                        } else {
+                            htmlList += '<li>' + cleanedPart + '</li>';
+                        }
+                    });
                     htmlList += '</ol>';
                     return htmlList;
                 }
@@ -629,7 +647,6 @@
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
-                    // Ukuran teks PIC, Due, dan Status diperkecil agar lebih ringkas dan hemat ruang kolom
                     headerHtml += '<tr>' +
                         '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +

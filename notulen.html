@@ -524,7 +524,7 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN KHUSUS: Menguraikan sub-nomor bertingkat (misal 4.1, 4.2) agar turun baris & menjorok ke dalam
+        // PENYESUAIAN KHUSUS: Mengatur agar teks lanjutan sub-poin (misal SKK Migas) berada di bawah kalimat perpanjangan
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -534,16 +534,15 @@
                     let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
                     parts.forEach(part => {
                         let cleanedPart = part.replace(/^\d+[\.\)]\s*/, '');
-                        // Deteksi pola sub-poin angka (misal: 4.1, 4.2, dst.)
                         let subRegex = /(\d+\.\d+)/g;
                         if (subRegex.test(cleanedPart)) {
-                            // Pisahkan teks utama dengan sub-poin menggunakan regex split dengan mempertahankan delimiter
                             let subParts = cleanedPart.split(/(?=\b\d+\.\d+\b)/).map(s => s.trim()).filter(Boolean);
                             let mainText = subParts[0];
                             htmlList += '<li>' + mainText;
                             for (let i = 1; i < subParts.length; i++) {
                                 let subItemText = subParts[i];
-                                htmlList += '<div style="margin-left: 15px; margin-top: 3px;">' + subItemText + '</div>';
+                                // Menggunakan display block dengan padding kiri agar sejajar lurus dengan teks baris atasnya (tidak sejajar dengan angka nomor)
+                                htmlList += '<div style="padding-left: 20px; margin-top: 2px;">' + subItemText + '</div>';
                             }
                             htmlList += '</li>';
                         } else {

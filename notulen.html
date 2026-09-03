@@ -327,12 +327,11 @@
                     if(showNotification) alert('Sinkronisasi Berhasil!');
                 })
                 .catch(err => {
-                    // Proteksi agar gagal load cloud tidak mengganggu lokal
                     renderNotulen();
                     isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
-                    if(showNotification) alert('Menggunakan data lokal.');
+                    if(showNotification) alert('Berhasil memuat data lokal.');
                 });
         }
 

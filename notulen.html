@@ -292,7 +292,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Fungsi normalisasi tanggal khusus kompatibilitas Edge
         function parseEdgeDate(val) {
             if (!val) return getTodayLocalDate();
             if (val.includes('/')) {
@@ -578,7 +577,10 @@
             document.getElementById('notulenLeader').selectedIndex = 0;
             
             resetFormInti();
-            new bootstrap.Modal(document.getElementById('modalNotulen')).show();
+            // PENGAMANAN MODAL BOOTSTRAP UNTUK EDGE
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
         }
 
         function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader) {
@@ -600,7 +602,9 @@
             document.getElementById('notulenLeader').value = leader;
 
             resetFormInti();
-            new bootstrap.Modal(document.getElementById('modalNotulen')).show();
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
         }
 
         function bukaModalSaveAs(groupKey) {
@@ -610,7 +614,9 @@
             document.getElementById('saveAsMediaOnline').checked = false;
             isiDropdownLeaderJadwal();
             document.getElementById('saveAsLeader').selectedIndex = 0;
-            new bootstrap.Modal(document.getElementById('modalSaveAs')).show();
+            let modalEl = document.getElementById('modalSaveAs');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
         }
 
         function prosesSaveAsRapat() {
@@ -661,7 +667,13 @@
 
             renderNotulen();
             syncDataToCloud(false);
-            bootstrap.Modal.getInstance(document.getElementById('modalSaveAs')).hide();
+            
+            let modalEl = document.getElementById('modalSaveAs');
+            let modalObj = bootstrap.Modal.getInstance(modalEl);
+            if(modalObj) modalObj.hide();
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
         }
 
         function resetFormInti() {
@@ -704,7 +716,9 @@
             let savedPics = Array.isArray(n.pic) ? n.pic : (n.pic ? [n.pic] : []);
             renderPicCheckboxes(savedPics);
 
-            new bootstrap.Modal(document.getElementById('modalNotulen')).show();
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
         }
 
         function simpanNotulen() {
@@ -774,18 +788,14 @@
             renderNotulen();
             syncDataToCloud(false);
             
-            // PAKSA TUTUP MODAL & BERSIHKAN BACKDROP SECARA MUTLAK
+            // PENUTUPAN MODAL KEBAL EDGE (DIRECT DOM HIDE)
             let modalEl = document.getElementById('modalNotulen');
-            let modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if(modalInstance) {
-                modalInstance.hide();
-            }
-            
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
             document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             document.body.style.paddingRight = '';
-            modalEl.style.display = 'none';
         }
 
         function hapusNotulen(index) {

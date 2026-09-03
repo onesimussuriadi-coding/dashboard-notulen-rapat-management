@@ -64,9 +64,9 @@
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
                         <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Bulan (All)</option>
+                            <option value="ALL" selected>Semua Bulan (All)</option>
                             <option value="08">Agustus</option>
-                            <option value="09" selected>September</option>
+                            <option value="09">September</option>
                             <option value="10">Oktober</option>
                         </select>
                     </div>
@@ -166,7 +166,7 @@
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label small fw-bold">Pemimpin Rapat & Notulis (Dari Jadwal Rapat)</label>
+                            <label class="form-label small fw-bold">Pemimpin & Notulis (Dari Jadwal Rapat)</label>
                             <select id="notulenLeader" class="form-select form-select-sm" onchange="pilihLeaderDariJadwal(this)">
                                 <option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>
                             </select>
@@ -365,7 +365,6 @@
                     optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
                 });
             } else {
-                // Fallback default data jika jadwal online kosong
                 optionsHtml += `<option value="I Made Vridianto" data-notulis="Ruwaeda Magga">Minggu ke-1 (03 Sep 2026) — Leader: I Made Vridianto | Notulis: Ruwaeda Magga</option>`;
                 optionsHtml += `<option value="Onesimus Suriadi" data-notulis="Yanuar M. Wiranata">Minggu ke-2 (10 Sep 2026) — Leader: Onesimus Suriadi | Notulis: Yanuar M. Wiranata</option>`;
             }
@@ -379,7 +378,6 @@
             const selectedNamaLeader = select.value;
             if(selectedNamaLeader === "") return;
 
-            // Ambil notulis dari atribut data-notulis
             let notulisVal = selectedOption.getAttribute('data-notulis') || '';
             document.getElementById('notulenNotulis').value = notulisVal;
 
@@ -401,12 +399,22 @@
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
             container.innerHTML = '';
+            
             let listPersonel = Array.isArray(dataPersonel) && dataPersonel.length > 0 ? dataPersonel : [
+                { nama: "Ferry Tatimu", jabatan: "Direktur" },
+                { nama: "Prayogo Sudana", jabatan: "General Manager" },
+                { nama: "Gannie Tatimu", jabatan: "Wakil General Manager" },
+                { nama: "Wahyu Suryono", jabatan: "Management Representative" },
+                { nama: "Surini", jabatan: "Manager Akuntansi dan Keuangan" },
+                { nama: "Ronald Tamberongan", jabatan: "Manager Maintenance" },
+                { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" },
                 { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
-                { nama: "Onesimus Suryadi", jabatan: "Manager General Services" },
+                { nama: "Onesimus Suriadi", jabatan: "Manager General Services" },
                 { nama: "I Made Vridianto", jabatan: "Manager HSE" },
-                { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" }
+                { nama: "I Kadek Widarma", jabatan: "Manager Konstruksi" },
+                { nama: "Yanuar M. Wiranata", jabatan: "Supervisor General Services" }
             ];
+
             listPersonel.forEach((p, idx) => {
                 let identifier = p.nama + ' — ' + p.jabatan;
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
@@ -487,7 +495,7 @@
             });
 
             if(filteredData.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen di Cloud Server. Silakan buat notulen baru.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter atau di Cloud Server.</div>';
                 return;
             }
 
@@ -677,8 +685,8 @@
                 dataNotulen.unshift(clonedItem);
             });
 
-            renderNotulen();
             pushDataToCloudServer();
+            renderNotulen();
             
             let modalEl = document.getElementById('modalSaveAs');
             let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -806,6 +814,15 @@
                 } else { 
                     dataNotulen[index] = dataBaru; 
                 }
+
+                // Otomatis sesuaikan filter bulan ke bulan data yang baru disimpan agar langsung tampil
+                try {
+                    let partsTgl = tanggal.split('-');
+                    if(partsTgl.length === 3) {
+                        document.getElementById('filterBulan').value = partsTgl[1];
+                        document.getElementById('filterTahun').value = partsTgl[0];
+                    }
+                } catch(e) {}
 
                 pushDataToCloudServer();
                 renderNotulen();

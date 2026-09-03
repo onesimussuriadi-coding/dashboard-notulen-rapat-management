@@ -336,7 +336,6 @@
         }
 
         function syncDataToCloud(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan data ke Cloud...');
             const payload = {
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
                 jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
@@ -350,7 +349,7 @@
             }).then(() => {
                 if(showNotification) alert('Sinkronisasi berhasil!');
             }).catch(err => {
-                if(showNotification) alert('Gagal: ' + err);
+                console.log('Sync background error: ' + err);
             });
         }
 
@@ -577,7 +576,6 @@
             document.getElementById('notulenLeader').selectedIndex = 0;
             
             resetFormInti();
-            // PENGAMANAN MODAL BOOTSTRAP UNTUK EDGE
             let modalEl = document.getElementById('modalNotulen');
             let myModal = new bootstrap.Modal(modalEl);
             myModal.show();
@@ -785,10 +783,14 @@
                 dataNotulen[index] = dataBaru; 
             }
 
+            // SIMPAN KE LOCALSTORAGE SECARA INSTAN
+            localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
             renderNotulen();
+
+            // SINKRONISASI CLOUD BERJALAN DI BACKGROUND (TIDAK MEMBLOCK TOMBOL)
             syncDataToCloud(false);
             
-            // PENUTUPAN MODAL KEBAL EDGE (DIRECT DOM HIDE)
+            // PAKSA TUTUP MODAL & BERSIHKAN LAYER TRANSARAN (BACKDROP)
             let modalEl = document.getElementById('modalNotulen');
             modalEl.classList.remove('show');
             modalEl.style.display = 'none';
@@ -870,12 +872,13 @@
             htmlContent += '</body></html>';
             let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'Laporan_Notulen_BSS.doc';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            let a = URL.createObjectURL(blob);
+            let a_elem = document.createElement('a');
+            a_elem.href = url;
+            a_elem.download = 'Laporan_Notulen_BSS.doc';
+            document.body.appendChild(a_elem);
+            a_elem.click();
+            document.body.removeChild(a_elem);
         }
     </script>
 </body>

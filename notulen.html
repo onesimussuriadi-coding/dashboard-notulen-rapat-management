@@ -308,25 +308,39 @@
         function muatDataNotulenOnline(showNotification = false) {
             if(showNotification) alert('Menghubungkan ke Cloud...');
             
-            let localCache = localStorage.getItem('bss_notulen_data');
-            if(localCache) {
-                try {
-                    dataNotulen = JSON.parse(localCache);
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                } catch(e) {}
+            // 1. Ambil cache dari localStorage agar data langsung tampil instan saat halaman dibuka
+            let localCacheNotulen = localStorage.getItem('bss_notulen_data');
+            if(localCacheNotulen) {
+                try { dataNotulen = JSON.parse(localCacheNotulen); } catch(e) {}
+            }
+            let localCachePersonel = localStorage.getItem('bss_personel_data');
+            if(localCachePersonel) {
+                try { dataPersonel = JSON.parse(localCachePersonel); } catch(e) {}
+            }
+            let localCacheJadwal = localStorage.getItem('bss_jadwal_data');
+            if(localCacheJadwal) {
+                try { dataJadwal = JSON.parse(localCacheJadwal); } catch(e) {}
             }
 
+            // Render awal dari cache lokal
+            renderNotulen();
+            isiDropdownTanggalLalu();
+            isiDropdownLeaderJadwal();
+            renderPicCheckboxes();
+
+            // 2. Fetch data terbaru dari Cloud Server
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.personel && Array.isArray(data.personel)) {
+                    if (data.personel && Array.isArray(data.personel) && data.personel.length > 0) {
                         dataPersonel = data.personel;
+                        localStorage.setItem('bss_personel_data', JSON.stringify(dataPersonel));
                     }
-                    if (data.jadwal && Array.isArray(data.jadwal)) {
+                    if (data.jadwal && Array.isArray(data.jadwal) && data.jadwal.length > 0) {
                         dataJadwal = data.jadwal;
+                        localStorage.setItem('bss_jadwal_data', JSON.stringify(dataJadwal));
                     }
-                    if (data.notulen && Array.isArray(data.notulen) && data.notulen.length > 0) {
+                    if (data.notulen && Array.isArray(data.notulen)) {
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
                     }
@@ -337,9 +351,7 @@
                     if(showNotification) alert('Sinkronisasi Cloud Berhasil!');
                 })
                 .catch(err => {
-                    renderNotulen();
-                    isiDropdownLeaderJadwal();
-                    renderPicCheckboxes();
+                    console.warn("Gagal fetch cloud, menggunakan cache lokal:", err);
                 });
         }
 
@@ -352,6 +364,8 @@
             };
             
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
+            localStorage.setItem('bss_personel_data', JSON.stringify(dataPersonel));
+            localStorage.setItem('bss_jadwal_data', JSON.stringify(dataJadwal));
 
             return fetch(WEB_APP_URL, {
                 method: 'POST',
@@ -370,6 +384,11 @@
             currentJadwal.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
 
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
+            
+            if (currentJadwal.length === 0) {
+                optionsHtml += '<option value="" disabled>-- Belum ada data jadwal rapat di server --</option>';
+            }
+
             currentJadwal.forEach((j) => {
                 let namaLeader = j.leader || j.namaLeader || '-';
                 let namaNotulis = j.notulis || j.namaNotulis || '-';
@@ -417,12 +436,14 @@
             let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
 
             if (listPersonel.length === 0) {
-                container.innerHTML = '<div class="text-muted small p-1">Belum ada data personel terdaftar di sistem.</div>';
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada data personel dari Cloud. Pastikan modul Personel sudah diisi atau klik <strong>Sinkron Cloud</strong>.</div>';
                 return;
             }
 
             listPersonel.forEach((p, idx) => {
-                let identifier = (p.nama || '-') + ' — ' + (p.jabatan || '-');
+                let namaP = p.nama || p.namaLengkap || '-';
+                let jabatanP = p.jabatan || p.posisi || '-';
+                let identifier = namaP + ' — ' + jabatanP;
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
                 let div = document.createElement('div');
                 div.className = 'form-check mb-1';
@@ -932,7 +953,7 @@
                 '<h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3><hr style="border: 1px solid #0d9488;">';
 
             dataNotulen.forEach((item, idx) => {
-                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-') ;
                 htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
                     '<h4>' + (idx + 1) + '. [' + item.periode + '] ' + item.topikUtama + '</h4>' +
                     '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Media:</strong> ' + (item.media || '-') + '</p>' +

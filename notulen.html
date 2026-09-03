@@ -42,7 +42,7 @@
                 <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline secara dinamis.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Muat Ulang Data</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Sinkronisasi Data</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -167,13 +167,13 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-2">
-                                <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal Rapat)</label>
+                                <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
                                 <select id="notulenLeader" class="form-select form-select-sm">
                                     <option value="">-- Pilih Pemimpin Rapat --</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal Rapat)</label>
+                                <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
                                 <select id="notulenNotulis" class="form-select form-select-sm">
                                     <option value="">-- Pilih Notulis Rapat --</option>
                                 </select>
@@ -197,7 +197,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dinamis dari Master Personel & Peserta Rapat)</label>
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dari Master Personel)</label>
                             <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -304,28 +304,43 @@
             return val;
         }
 
+        // Sinkronisasi cerdas mencakup seluruh kemungkinan key dari modul jadwal dan personel
         function initModulNotulen(showNotification = false) {
-            if(showNotification) alert('Memuat ulang data jadwal dan personel...');
+            if(showNotification) alert('Menyinkronkan data lintas modul...');
             
             let savedNotulen = localStorage.getItem('bss_notulen_data') || localStorage.getItem('notulen_data');
             if(savedNotulen) {
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
             }
 
-            let savedJadwal = localStorage.getItem('bss_jadwal_data') || localStorage.getItem('jadwal_data') || localStorage.getItem('dataJadwal');
-            if(savedJadwal) {
-                try { 
-                    let parsed = JSON.parse(savedJadwal);
-                    if(Array.isArray(parsed)) dataJadwal = parsed;
-                } catch(e) { dataJadwal = []; }
+            // Mendeteksi data jadwal dari berbagai variasi key localstorage
+            let keysJadwal = ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData', 'bss_jadwal'];
+            for(let k of keysJadwal) {
+                let val = localStorage.getItem(k);
+                if(val) {
+                    try {
+                        let parsed = JSON.parse(val);
+                        if(Array.isArray(parsed) && parsed.length > 0) {
+                            dataJadwal = parsed;
+                            break;
+                        }
+                    } catch(e) {}
+                }
             }
 
-            let savedPersonel = localStorage.getItem('bss_personel_data') || localStorage.getItem('personel_data') || localStorage.getItem('dataPersonel');
-            if(savedPersonel) {
-                try { 
-                    let parsed = JSON.parse(savedPersonel);
-                    if(Array.isArray(parsed)) dataPersonel = parsed;
-                } catch(e) { dataPersonel = []; }
+            // Mendeteksi data personel / absen dari berbagai variasi key localstorage
+            let keysPersonel = ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'bss_absen_data', 'master_personel'];
+            for(let k of keysPersonel) {
+                let val = localStorage.getItem(k);
+                if(val) {
+                    try {
+                        let parsed = JSON.parse(val);
+                        if(Array.isArray(parsed) && parsed.length > 0) {
+                            dataPersonel = parsed;
+                            break;
+                        }
+                    } catch(e) {}
+                }
             }
 
             renderNotulen();
@@ -333,14 +348,13 @@
             isiDropdownLeaderDanNotulis();
             renderPicCheckboxes();
 
-            if(showNotification) alert('Data berhasil dimuat!');
+            if(showNotification) alert('Sinkronisasi selesai! Data berhasil dimuat.');
         }
 
         function simpanKeStorage() {
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Mengisi dropdown Pemimpin Rapat dan Notulis secara dinamis dari data jadwal
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
@@ -364,7 +378,7 @@
                 htmlLeader += `<option value="${l}">${l}</option>`;
             });
             if(leadersSet.size === 0) {
-                htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin di jadwal rapat --</option>';
+                htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin di jadwal --</option>';
             }
             selectLeader.innerHTML = htmlLeader;
 
@@ -373,7 +387,7 @@
                 htmlNotulis += `<option value="${n}">${n}</option>`;
             });
             if(notulisSet.size === 0) {
-                htmlNotulis += '<option value="" disabled>-- Belum ada data notulis di jadwal rapat --</option>';
+                htmlNotulis += '<option value="" disabled>-- Belum ada data notulis di jadwal --</option>';
             }
             selectNotulis.innerHTML = htmlNotulis;
         }
@@ -386,7 +400,7 @@
             let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
 
             if (listPersonel.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Silakan input di modul Personel/Absen terlebih dahulu.</div>';
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Pastikan data di modul Absen/Personel sudah tersimpan.</div>';
                 return;
             }
 

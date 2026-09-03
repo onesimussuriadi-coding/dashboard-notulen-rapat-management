@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-light" onload="muatDataNotulen()">
+<body class="bg-light" onload="muatDataNotulenOnline()">
 
     <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
@@ -42,7 +42,7 @@
                 <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="muatDataNotulen(true)">🔄 Sinkron Cloud</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="muatDataNotulenOnline(true)">🔄 Sinkron Cloud</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -207,7 +207,7 @@
                 </div>
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulen()">Simpan</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan ke Cloud</button>
                 </div>
             </div>
         </div>
@@ -282,30 +282,8 @@
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
         
         let dataNotulen = [];
-        try {
-            let savedNotulen = JSON.parse(localStorage.getItem('bss_notulen'));
-            if (Array.isArray(savedNotulen)) {
-                dataNotulen = savedNotulen;
-            } else {
-                localStorage.removeItem('bss_notulen');
-                dataNotulen = [];
-            }
-        } catch (e) {
-            localStorage.removeItem('bss_notulen');
-            dataNotulen = [];
-        }
-
         let dataJadwal = [];
-        try {
-            let savedJadwal = JSON.parse(localStorage.getItem('bss_jadwal'));
-            if (Array.isArray(savedJadwal)) dataJadwal = savedJadwal;
-        } catch (e) { dataJadwal = []; }
-
         let dataPersonel = [];
-        try {
-            let savedPersonel = JSON.parse(localStorage.getItem('bss_personel'));
-            if (Array.isArray(savedPersonel)) dataPersonel = savedPersonel;
-        } catch (e) { dataPersonel = []; }
 
         function getTodayLocalDate() {
             const d = new Date();
@@ -326,52 +304,50 @@
             return val;
         }
 
-        function muatDataNotulen(showNotification = false) {
-            if(showNotification) alert('Memuat data...');
+        // FUNGSI UTAMA: Mengambil data langsung dari Database Cloud Online
+        function muatDataNotulenOnline(showNotification = false) {
+            if(showNotification) alert('Menghubungkan ke Cloud...');
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.personel && Array.isArray(data.personel) && data.personel.length > 0) {
+                    if (data.personel && Array.isArray(data.personel)) {
                         dataPersonel = data.personel;
-                        localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
                     }
-                    if (data.jadwal && Array.isArray(data.jadwal) && data.jadwal.length > 0) {
+                    if (data.jadwal && Array.isArray(data.jadwal)) {
                         dataJadwal = data.jadwal;
-                        localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
                     }
                     if (data.notulen && Array.isArray(data.notulen)) {
                         dataNotulen = data.notulen;
-                        localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
+                    } else {
+                        dataNotulen = [];
                     }
                     renderNotulen();
                     isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
-                    if(showNotification) alert('Sinkronisasi Berhasil!');
+                    if(showNotification) alert('Sinkronisasi Cloud Berhasil!');
                 })
                 .catch(err => {
+                    if(showNotification) alert('Gagal terhubung ke cloud server.');
                     renderNotulen();
-                    isiDropdownTanggalLalu();
-                    isiDropdownLeaderJadwal();
-                    renderPicCheckboxes();
-                    if(showNotification) alert('Menggunakan data lokal.');
                 });
         }
 
-        function syncDataToCloud(showNotification = false) {
-            try {
-                const payload = {
-                    personel: Array.isArray(dataPersonel) ? dataPersonel : [],
-                    jadwal: Array.isArray(dataJadwal) ? dataJadwal : [],
-                    absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
-                    notulen: Array.isArray(dataNotulen) ? dataNotulen : []
-                };
-                fetch(WEB_APP_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: "save", payload: payload })
-                }).catch(() => {});
-            } catch(e) {}
+        // FUNGSI UTAMA: Menyimpan data langsung ke Cloud Server secara live
+        function pushDataToCloudServer() {
+            const payload = {
+                personel: Array.isArray(dataPersonel) ? dataPersonel : [],
+                jadwal: Array.isArray(dataJadwal) ? dataJadwal : [],
+                absen: [],
+                notulen: Array.isArray(dataNotulen) ? dataNotulen : []
+            };
+            
+            return fetch(WEB_APP_URL, {
+                method: 'POST', 
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "save", payload: payload })
+            });
         }
 
         function isiDropdownLeaderJadwal() {
@@ -497,7 +473,7 @@
             });
 
             if(filteredData.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Tidak ada data notulen yang sesuai dengan filter.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen di Cloud Server. Silakan buat notulen baru.</div>';
                 return;
             }
 
@@ -578,7 +554,6 @@
                 cardDiv.innerHTML = headerHtml;
                 container.appendChild(cardDiv);
             }
-            localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
         }
 
         function bukaModalNotulenBaru() {
@@ -686,7 +661,7 @@
             });
 
             renderNotulen();
-            syncDataToCloud(false);
+            pushDataToCloudServer();
             
             let modalEl = document.getElementById('modalSaveAs');
             let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -744,7 +719,8 @@
             myModal.show();
         }
 
-        function simpanNotulen() {
+        // FUNGSI SIMPAN UTAMA: Mengirim data langsung ke Cloud Server hosting
+        function simpanNotulenOnline() {
             try {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
 
@@ -811,9 +787,9 @@
                     dataNotulen[index] = dataBaru; 
                 }
 
-                localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
+                // Kirim dan simpan ke Cloud Server
+                pushDataToCloudServer();
                 renderNotulen();
-                syncDataToCloud(false);
                 
                 let modalEl = document.getElementById('modalNotulen');
                 modalEl.classList.remove('show');
@@ -822,18 +798,20 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 document.body.style.paddingRight = '';
+                
+                alert('Data berhasil disimpan ke Cloud Server dan langsung sinkron ke semua perangkat!');
             } catch (err) {
                 alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }
         }
 
         function hapusNotulen(index) {
-            if(confirm('Hapus notulen ini secara permanen?')) {
+            if(confirm('Hapus notulen ini secara permanen dari Cloud Server?')) {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
-                localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
+                pushDataToCloudServer();
                 renderNotulen();
-                syncDataToCloud(false);
+                alert('Data berhasil dihapus dari Cloud Server.');
             }
         }
 

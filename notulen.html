@@ -524,7 +524,7 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN KHUSUS: Menggunakan struktur Flexbox agar nomor sub-poin (4.1) terpisah dari teks sambungannya (SKK Migas) dan sejajar rapi di bawah teks baris atasnya
+        // PENYESUAIAN KHUSUS: Mengatur sub-poin (4.1, 4.2) agar tidak bold/tebal dan ukurannya sedikit lebih kecil dari nomor induk
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -541,17 +541,17 @@
                             htmlList += '<li>' + mainText;
                             for (let i = 1; i < subParts.length; i++) {
                                 let subItemText = subParts[i];
-                                // Mengambil nomor sub-poin (misal: 4.1) dan isi teksnya (misal: Perpanjangan SPDA...) secara terpisah
                                 let matchNum = subItemText.match(/^(\d+\.\d+)\s*(.*)/);
                                 if (matchNum) {
                                     let subNum = matchNum[1];
                                     let subContent = matchNum[2];
-                                    htmlList += `<div style="display: flex; margin-top: 3px;">` +
-                                                `<span style="min-width: 28px; font-weight: bold;">${subNum}</span>` +
+                                    // style="font-weight: normal; font-size: 92%;" membuat sub-poin tidak tebal dan ukurannya sedikit di bawah induknya
+                                    htmlList += `<div style="display: flex; margin-top: 3px; font-weight: normal; font-size: 92%;">` +
+                                                `<span style="min-width: 28px;">${subNum}</span>` +
                                                 `<span style="flex: 1;">${subContent}</span>` +
                                                 `</div>`;
                                 } else {
-                                    htmlList += `<div style="margin-top: 3px; padding-left: 28px;">${subItemText}</div>`;
+                                    htmlList += `<div style="margin-top: 3px; padding-left: 28px; font-weight: normal; font-size: 92%;">${subItemText}</div>`;
                                 }
                             }
                             htmlList += '</li>';

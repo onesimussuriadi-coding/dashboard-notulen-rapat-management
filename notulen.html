@@ -39,7 +39,7 @@
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
                 <h3>Action Items</h3>
-                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline secara otomatis.</p>
+                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline secara dinamis.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Muat Ulang Data</button>
@@ -125,7 +125,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label class="form-label small fw-bold">Periode Rapat</label>
-                                <select id="notulenPeriode" class="form-select form-select-sm" onchange="cekOtomatisJadwalRapat()">
+                                <select id="notulenPeriode" class="form-select form-select-sm">
                                     <option value="Minggu ke-1">Minggu ke-1</option>
                                     <option value="Minggu ke-2">Minggu ke-2</option>
                                     <option value="Minggu ke-3">Minggu ke-3</option>
@@ -134,7 +134,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="form-label small fw-bold">Tanggal Rapat</label>
-                                <input type="date" id="notulenTanggal" class="form-control form-control-sm" onchange="cekOtomatisJadwalRapat()">
+                                <input type="date" id="notulenTanggal" class="form-control form-control-sm">
                             </div>
                         </div>
 
@@ -165,14 +165,18 @@
                             </div>
                         </div>
 
-                        <div class="row bg-light p-2 rounded border mx-0 mb-2">
-                            <div class="col-md-6 mb-1">
-                                <label class="form-label small fw-bold text-success">👤 Pemimpin Rapat (Otomatis dari Jadwal):</label>
-                                <input type="text" id="notulenLeader" class="form-control form-control-sm bg-white fw-bold" readonly placeholder="Otomatis terisi...">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal Rapat)</label>
+                                <select id="notulenLeader" class="form-select form-select-sm">
+                                    <option value="">-- Pilih Pemimpin Rapat --</option>
+                                </select>
                             </div>
-                            <div class="col-md-6 mb-1">
-                                <label class="form-label small fw-bold text-success">✍️ Notulis (Otomatis dari Jadwal):</label>
-                                <input type="text" id="notulenNotulis" class="form-control form-control-sm bg-white fw-bold" readonly placeholder="Otomatis terisi...">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal Rapat)</label>
+                                <select id="notulenNotulis" class="form-select form-select-sm">
+                                    <option value="">-- Pilih Notulis Rapat --</option>
+                                </select>
                             </div>
                         </div>
                         <hr class="my-3">
@@ -193,7 +197,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dari Master Personel & Jabatan)</label>
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dinamis dari Master Personel & Peserta Rapat)</label>
                             <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -300,9 +304,8 @@
             return val;
         }
 
-        // Memuat data secara otomatis dari localStorage modul Jadwal dan Personel
         function initModulNotulen(showNotification = false) {
-            if(showNotification) alert('Memuat data terbaru dari sistem...');
+            if(showNotification) alert('Memuat ulang data jadwal dan personel...');
             
             let savedNotulen = localStorage.getItem('bss_notulen_data') || localStorage.getItem('notulen_data');
             if(savedNotulen) {
@@ -327,53 +330,52 @@
 
             renderNotulen();
             isiDropdownTanggalLalu();
+            isiDropdownLeaderDanNotulis();
             renderPicCheckboxes();
 
-            if(showNotification) alert('Data berhasil dimuat.');
+            if(showNotification) alert('Data berhasil dimuat!');
         }
 
         function simpanKeStorage() {
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Fungsi pencocokan otomatis Pemimpin & Notulis berdasarkan Periode Minggu dan Tanggal Rapat
-        function cekOtomatisJadwalRapat() {
-            const periodeInput = document.getElementById('notulenPeriode').value;
-            const tanggalInput = document.getElementById('notulenTanggal').value;
+        // Mengisi dropdown Pemimpin Rapat dan Notulis secara dinamis dari data jadwal
+        function isiDropdownLeaderDanNotulis() {
+            const selectLeader = document.getElementById('notulenLeader');
+            const selectNotulis = document.getElementById('notulenNotulis');
             
-            const inputLeader = document.getElementById('notulenLeader');
-            const inputNotulis = document.getElementById('notulenNotulis');
+            if(!selectLeader || !selectNotulis) return;
 
-            if (!tanggalInput) {
-                inputLeader.value = '';
-                inputNotulis.value = '';
-                return;
+            let leadersSet = new Set();
+            let notulisSet = new Set();
+
+            if(Array.isArray(dataJadwal)) {
+                dataJadwal.forEach(j => {
+                    let l = j.leader || j.namaLeader;
+                    let n = j.notulis || j.namaNotulis;
+                    if(l) leadersSet.add(l.trim());
+                    if(n) notulisSet.add(n.trim());
+                });
             }
 
-            let matchedJadwal = dataJadwal.find(j => {
-                let pJadwal = j.periode || j.periodeRapat || '';
-                let tJadwal = j.tanggal || '';
-                return tJadwal === tanggalInput && pJadwal.toLowerCase() === periodeInput.toLowerCase();
+            let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
+            leadersSet.forEach(l => {
+                htmlLeader += `<option value="${l}">${l}</option>`;
             });
-
-            // Jika tidak ketemu persis berdasarkan periode + tanggal, coba cocokkan berdasarkan tanggal saja
-            if (!matchedJadwal) {
-                matchedJadwal = dataJadwal.find(j => (j.tanggal || '') === tanggalInput);
+            if(leadersSet.size === 0) {
+                htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin di jadwal rapat --</option>';
             }
+            selectLeader.innerHTML = htmlLeader;
 
-            if (matchedJadwal) {
-                inputLeader.value = matchedJadwal.leader || matchedJadwal.namaLeader || '-';
-                inputNotulis.value = matchedJadwal.notulis || matchedJadwal.namaNotulis || '-';
-                if(matchedJadwal.lokasi) {
-                    let lokSelect = document.getElementById('notulenLokasi');
-                    for(let i=0; i<lokSelect.options.length; i++) {
-                        if(lokSelect.options[i].value === matchedJadwal.lokasi) { lokSelect.selectedIndex = i; break; }
-                    }
-                }
-            } else {
-                inputLeader.value = 'Tidak ada jadwal pada tanggal ini';
-                inputNotulis.value = 'Tidak ada jadwal pada tanggal ini';
+            let htmlNotulis = '<option value="">-- Pilih Notulis --</option>';
+            notulisSet.forEach(n => {
+                htmlNotulis += `<option value="${n}">${n}</option>`;
+            });
+            if(notulisSet.size === 0) {
+                htmlNotulis += '<option value="" disabled>-- Belum ada data notulis di jadwal rapat --</option>';
             }
+            selectNotulis.innerHTML = htmlNotulis;
         }
 
         function renderPicCheckboxes(selectedValues = []) {
@@ -384,7 +386,7 @@
             let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
 
             if (listPersonel.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Silakan input di modul Personel terlebih dahulu.</div>';
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Silakan input di modul Personel/Absen terlebih dahulu.</div>';
                 return;
             }
 
@@ -586,7 +588,7 @@
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
             
-            cekOtomatisJadwalRapat();
+            isiDropdownLeaderDanNotulis();
             resetFormInti();
             isiDropdownTanggalLalu();
             
@@ -613,6 +615,8 @@
 
             document.getElementById('mediaOffline').checked = media.includes('Offline');
             document.getElementById('mediaOnline').checked = media.includes('Online');
+            
+            isiDropdownLeaderDanNotulis();
             document.getElementById('notulenLeader').value = leader;
             document.getElementById('notulenNotulis').value = notulis;
 
@@ -645,19 +649,6 @@
             if(document.getElementById('saveAsMediaOnline').checked) mediaList.push('Online');
             let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
-            // Ambil otomatis pemimpin & notulis berdasarkan tanggal & periode target baru
-            let targetLeader = '-';
-            let targetNotulis = '-';
-            let matchedJadwal = dataJadwal.find(j => {
-                let pJadwal = j.periode || j.periodeRapat || '';
-                let tJadwal = j.tanggal || '';
-                return tJadwal === targetTanggal && pJadwal.toLowerCase() === targetPeriode.toLowerCase();
-            });
-            if (matchedJadwal) {
-                targetLeader = matchedJadwal.leader || matchedJadwal.namaLeader || '-';
-                targetNotulis = matchedJadwal.notulis || matchedJadwal.namaNotulis || '-';
-            }
-
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
                 return;
@@ -680,8 +671,8 @@
                     tanggal: targetTanggal,
                     lokasi: targetLokasi,
                     media: targetMedia,
-                    leader: targetLeader,
-                    notulis: targetNotulis,
+                    leader: src.leader,
+                    notulis: src.notulis,
                     topikUtama: src.topikUtama,
                     pembahasan: src.pembahasan,
                     tindakLanjut: src.tindakLanjut,
@@ -737,6 +728,7 @@
             document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
             document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
             
+            isiDropdownLeaderDanNotulis();
             document.getElementById('notulenLeader').value = n.leader || '';
             document.getElementById('notulenNotulis').value = n.notulis || '';
 
@@ -782,8 +774,8 @@
                     if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
                     media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
-                    leader = document.getElementById('notulenLeader').value.trim() || '-';
-                    notulis = document.getElementById('notulenNotulis').value.trim() || '-';
+                    leader = document.getElementById('notulenLeader').value || '-';
+                    notulis = document.getElementById('notulenNotulis').value || '-';
                 }
 
                 const topikUtama = document.getElementById('notulenTopikUtama').value.trim();

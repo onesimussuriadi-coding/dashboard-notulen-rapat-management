@@ -329,6 +329,8 @@
                 .catch(err => {
                     if(showNotification) alert('Gagal terhubung ke cloud server.');
                     renderNotulen();
+                    isiDropdownLeaderJadwal();
+                    renderPicCheckboxes();
                 });
         }
 
@@ -354,11 +356,19 @@
             let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
-            currentJadwal.forEach((j) => {
-                let namaLeader = j.leader || j.namaLeader || '-';
-                let jabatanLeader = j.jabatanLeader || '';
-                optionsHtml += `<option value="${namaLeader}">${j.periode} (${j.tanggal}) — Pemimpin: ${namaLeader} ${jabatanLeader ? '('+jabatanLeader+')' : ''}</option>`;
-            });
+            if(currentJadwal.length > 0) {
+                currentJadwal.forEach((j) => {
+                    let namaLeader = j.leader || j.namaLeader || '-';
+                    let jabatanLeader = j.jabatanLeader || '';
+                    optionsHtml += `<option value="${namaLeader}">${j.periode} (${j.tanggal}) — Pemimpin: ${namaLeader} ${jabatanLeader ? '('+jabatanLeader+')' : ''}</option>`;
+                });
+            } else {
+                // Fallback dummy jika data jadwal online kosong agar dropdown tetap aktif bisa diklik
+                optionsHtml += `<option value="Ferry Tatimu — Direktur">Ferry Tatimu — Direktur</option>`;
+                optionsHtml += `<option value="Prayogo Sudana — General Manager">Prayogo Sudana — General Manager</option>`;
+                optionsHtml += `<option value="Gannie Tatimu — Wakil General Manager">Gannie Tatimu — Wakil General Manager</option>`;
+                optionsHtml += `<option value="Wahyu Suryono — Management Representative">Wahyu Suryono — Management Representative</option>`;
+            }
             
             if(select) select.innerHTML = optionsHtml;
             if(saveAsLeaderSelect) saveAsLeaderSelect.innerHTML = optionsHtml;

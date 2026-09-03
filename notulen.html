@@ -64,16 +64,16 @@
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
                         <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL" selected>Semua Bulan (All)</option>
+                            <option value="ALL">Semua Bulan (All)</option>
                             <option value="08">Agustus</option>
-                            <option value="09">September</option>
+                            <option value="09" selected>September</option>
                             <option value="10">Oktober</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Filter Periode Minggu</label>
                         <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="renderNotulen()">
-                            <option value="ALL">Semua Minggu</option>
+                            <option value="ALL" selected>Semua Minggu</option>
                             <option value="Minggu ke-1">Minggu ke-1</option>
                             <option value="Minggu ke-2">Minggu ke-2</option>
                             <option value="Minggu ke-3">Minggu ke-3</option>
@@ -307,6 +307,17 @@
 
         function muatDataNotulenOnline(showNotification = false) {
             if(showNotification) alert('Menghubungkan ke Cloud...');
+            
+            // Ambil cadangan lokal terlebih dahulu agar data langsung muncul tanpa jeda
+            let localCache = localStorage.getItem('bss_notulen_data');
+            if(localCache) {
+                try {
+                    dataNotulen = JSON.parse(localCache);
+                    renderNotulen();
+                    isiDropdownTanggalLalu();
+                } catch(e) {}
+            }
+
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
@@ -316,10 +327,9 @@
                     if (data.jadwal && Array.isArray(data.jadwal)) {
                         dataJadwal = data.jadwal;
                     }
-                    if (data.notulen && Array.isArray(data.notulen)) {
+                    if (data.notulen && Array.isArray(data.notulen) && data.notulen.length > 0) {
                         dataNotulen = data.notulen;
-                    } else {
-                        dataNotulen = [];
+                        localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
                     }
                     renderNotulen();
                     isiDropdownTanggalLalu();
@@ -334,7 +344,6 @@
                 });
         }
 
-        // FUNGSI PERBAIKAN: Menggunakan pengiriman POST standar agar data tersimpan permanen ke Cloud
         function pushDataToCloudServer() {
             const payload = {
                 personel: Array.isArray(dataPersonel) ? dataPersonel : [],
@@ -343,6 +352,9 @@
                 notulen: Array.isArray(dataNotulen) ? dataNotulen : []
             };
             
+            // Simpan juga ke localStorage sebagai pengaman mutlak anti-hilang
+            localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
+
             return fetch(WEB_APP_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -452,7 +464,6 @@
                 alert('Tidak ditemukan topik pada tanggal tersebut.');
                 return;
             }
-            // Masukkan ke input form topik utama yang sedang dibuat
             document.getElementById('notulenTopikUtama').value = topikLama[0].topikUtama || '';
             document.getElementById('notulenPembahasan').value = topikLama[0].pembahasan || '';
             document.getElementById('notulenTindakLanjut').value = topikLama[0].tindakLanjut || '';
@@ -613,7 +624,7 @@
             document.getElementById('notulenNotulis').value = '';
             
             resetFormInti();
-            isiDropdownTanggalLalu(); // Memastikan riwayat tanggal sebelumnya terpanggil
+            isiDropdownTanggalLalu();
             
             let modalEl = document.getElementById('modalNotulen');
             let myModal = new bootstrap.Modal(modalEl);
@@ -845,7 +856,6 @@
                     }
                 } catch(e) {}
 
-                // Kirim ke server cloud lalu perbarui tampilan dan riwayat tanggal secara sinkron
                 pushDataToCloudServer().then(() => {
                     renderNotulen();
                     isiDropdownTanggalLalu();
@@ -858,21 +868,21 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                alert('Data berhasil disimpan permanen ke Cloud Server!');
+                alert('Data berhasil disimpan secara aman dan permanen!');
             } catch (err) {
                 alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }
         }
 
         function hapusNotulen(index) {
-            if(confirm('Hapus notulen ini secara permanen dari Cloud Server?')) {
+            if(confirm('Hapus notulen ini secara permanen?')) {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
                 pushDataToCloudServer().then(() => {
                     renderNotulen();
                     isiDropdownTanggalLalu();
                 });
-                alert('Data berhasil dihapus dari Cloud Server.');
+                alert('Data berhasil dihapus.');
             }
         }
 

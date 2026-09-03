@@ -366,17 +366,16 @@
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
             
-            let currentJadwal = Array.isArray(dataJadwal) && dataJadwal.length > 0 ? dataJadwal : [
-                { periode: "Minggu ke-1", tanggal: "2026-09-03", leader: "Onesimus Suriadi", notulis: "Yanuar M. Wiranata", lokasi: "Kantor Pasar Tua" },
-                { periode: "Minggu ke-2", tanggal: "2026-09-10", leader: "I Made Vridianto", notulis: "Ruwaeda Magga", lokasi: "Kantor Utama" },
-                { periode: "Minggu ke-4", tanggal: "2026-08-28", leader: "Richard Renaldy Bukamo", notulis: "Onesimus Suriadi", lokasi: "Kantor Utama" }
-            ];
-            
+            // Mengambil seluruh data jadwal secara lengkap, diurutkan dari tanggal terbaru ke terlama
+            let currentJadwal = Array.isArray(dataJadwal) && dataJadwal.length > 0 ? [...dataJadwal] : [];
+            currentJadwal.sort((a, b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
+
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
             currentJadwal.forEach((j) => {
                 let namaLeader = j.leader || j.namaLeader || '-';
                 let namaNotulis = j.notulis || j.namaNotulis || '-';
-                let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
+                let lokasiRapat = j.lokasi || '-';
+                let textDisplay = `${j.periode || 'Rapat'} (${j.tanggal || '-'}) — Lokasi: ${lokasiRapat} | Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
                 optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
             });
             
@@ -941,7 +940,7 @@
                 htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
                     '<h4>' + (idx + 1) + '. [' + item.periode + '] ' + item.topikUtama + '</h4>' +
                     '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Media:</strong> ' + (item.media || '-') + '</p>' +
-                    '<p><strong>Leader:</strong> ' + (item.leader || '-') + ' | <strong>Notulis:</strong> ' + (item.notulis || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
+                    '<p><strong>Leader:</strong> ' + (item.leader || '-') + ' | <strong>Notulis:</strong> ' + (notulis || item.notulis || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
                     '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
                     '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p>' +
                     '<p><strong>PIC:</strong> ' + picStr + ' | <strong>Deadline:</strong> ' + (item.deadline || '-') + '</p></div>';

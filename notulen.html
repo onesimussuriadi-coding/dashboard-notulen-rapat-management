@@ -280,9 +280,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
-        let dataNotulen = JSON.parse(localStorage.getItem('bss_notulen')) || [];
-        let dataJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || [];
-        let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [];
+        
+        let savedNotulen = JSON.parse(localStorage.getItem('bss_notulen'));
+        let dataNotulen = Array.isArray(savedNotulen) ? savedNotulen : [];
+
+        let savedJadwal = JSON.parse(localStorage.getItem('bss_jadwal'));
+        let dataJadwal = Array.isArray(savedJadwal) ? savedJadwal : [];
+
+        let savedPersonel = JSON.parse(localStorage.getItem('bss_personel'));
+        let dataPersonel = Array.isArray(savedPersonel) ? savedPersonel : [];
 
         function getTodayLocalDate() {
             const d = new Date();
@@ -308,15 +314,15 @@
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.personel && data.personel.length > 0) {
+                    if (data.personel && Array.isArray(data.personel) && data.personel.length > 0) {
                         dataPersonel = data.personel;
                         localStorage.setItem('bss_personel', JSON.stringify(dataPersonel));
                     }
-                    if (data.jadwal && data.jadwal.length > 0) {
+                    if (data.jadwal && Array.isArray(data.jadwal) && data.jadwal.length > 0) {
                         dataJadwal = data.jadwal;
                         localStorage.setItem('bss_jadwal', JSON.stringify(dataJadwal));
                     }
-                    if (data.notulen) {
+                    if (data.notulen && Array.isArray(data.notulen)) {
                         dataNotulen = data.notulen;
                         localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                     }
@@ -331,17 +337,17 @@
                     isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
-                    if(showNotification) alert('Berhasil memuat data lokal.');
+                    if(showNotification) alert('Menggunakan data lokal.');
                 });
         }
 
         function syncDataToCloud(showNotification = false) {
             try {
                 const payload = {
-                    personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
-                    jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
+                    personel: Array.isArray(dataPersonel) ? dataPersonel : [],
+                    jadwal: Array.isArray(dataJadwal) ? dataJadwal : [],
                     absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
-                    notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
+                    notulen: Array.isArray(dataNotulen) ? dataNotulen : []
                 };
                 fetch(WEB_APP_URL, {
                     method: 'POST', mode: 'no-cors',
@@ -354,7 +360,7 @@
         function isiDropdownLeaderJadwal() {
             const select = document.getElementById('notulenLeader');
             const saveAsLeaderSelect = document.getElementById('saveAsLeader');
-            let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
+            let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             
             let optionsHtml = '<option value="">-- Pilih Pemimpin Rapat dari Jadwal --</option>';
             currentJadwal.forEach((j) => {
@@ -370,7 +376,7 @@
         function pilihLeaderDariJadwal(select) {
             const selectedNama = select.value;
             if(selectedNama === "") return;
-            let currentJadwal = JSON.parse(localStorage.getItem('bss_jadwal')) || dataJadwal;
+            let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
             const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNama);
             if(j) {
                 if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
@@ -388,15 +394,12 @@
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
             container.innerHTML = '';
-            let listPersonel = JSON.parse(localStorage.getItem('bss_personel')) || dataPersonel;
-            if(listPersonel.length === 0) {
-                listPersonel = [
-                    { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
-                    { nama: "Onesimus Suryadi", jabatan: "Manager General Services" },
-                    { nama: "I Made Vridianto", jabatan: "Manager HSE" },
-                    { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" }
-                ];
-            }
+            let listPersonel = Array.isArray(dataPersonel) && dataPersonel.length > 0 ? dataPersonel : [
+                { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
+                { nama: "Onesimus Suryadi", jabatan: "Manager General Services" },
+                { nama: "I Made Vridianto", jabatan: "Manager HSE" },
+                { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" }
+            ];
             listPersonel.forEach((p, idx) => {
                 let identifier = p.nama + ' — ' + p.jabatan;
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
@@ -412,6 +415,7 @@
             const select = document.getElementById('selectTanggalLalu');
             if(!select) return;
             select.innerHTML = '<option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>';
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
             let tglSet = [...new Set(dataNotulen.map(n => n.tanggal))].filter(Boolean);
             tglSet.sort().reverse();
             tglSet.forEach(tgl => {
@@ -457,13 +461,15 @@
             if(!container) return;
             container.innerHTML = '';
 
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
+
             const filterTahun = document.getElementById('filterTahun').value;
             const filterBulan = document.getElementById('filterBulan').value;
             const filterPeriodeMinggu = document.getElementById('filterPeriodeMinggu').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
             let filteredData = dataNotulen.filter((n, idx) => {
-                if(!n.tanggal) return false;
+                if(!n || !n.tanggal) return false;
                 let p = n.tanggal.split('-');
                 let matchTahun = (filterTahun === 'ALL' || p[0] === filterTahun);
                 let matchBulan = (filterBulan === 'ALL' || p[1] === filterBulan);
@@ -634,6 +640,7 @@
                 return;
             }
 
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
             let itemsToCopy = dataNotulen.filter(item => {
                 let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-');
                 return key === groupKey;
@@ -687,7 +694,10 @@
             document.getElementById('modeFormNotulen').value = 'edit';
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
 
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
             const n = dataNotulen[index];
+            if(!n) return;
+
             document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
             document.getElementById('notulenTanggal').value = n.tanggal || getTodayLocalDate();
             
@@ -719,6 +729,8 @@
 
         function simpanNotulen() {
             try {
+                if(!Array.isArray(dataNotulen)) dataNotulen = [];
+
                 const index = parseInt(document.getElementById('editIndexNotulen').value);
                 const mode = document.getElementById('modeFormNotulen').value;
 
@@ -726,12 +738,12 @@
                 let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
 
                 if (index !== -1 && mode === 'edit') {
-                    const itemLama = dataNotulen[index];
-                    periode = itemLama.periode;
-                    tanggal = itemLama.tanggal;
-                    lokasi = itemLama.lokasi;
-                    media = itemLama.media;
-                    leader = itemLama.leader;
+                    const itemLama = dataNotulen[index] || {};
+                    periode = itemLama.periode || 'Minggu ke-1';
+                    tanggal = itemLama.tanggal || getTodayLocalDate();
+                    lokasi = itemLama.lokasi || 'Kantor Utama';
+                    media = itemLama.media || 'Offline';
+                    leader = itemLama.leader || '-';
                 } else if (mode === 'tambah_topik') {
                     periode = document.getElementById('notulenPeriode').value;
                     tanggal = rawTglRapat;
@@ -782,12 +794,10 @@
                     dataNotulen[index] = dataBaru; 
                 }
 
-                // SIMPAN KE LOCALSTORAGE SECARA AMAN
                 localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                 renderNotulen();
                 syncDataToCloud(false);
                 
-                // PAKSA TUTUP MODAL & BERSIHKAN BACKDROP
                 let modalEl = document.getElementById('modalNotulen');
                 modalEl.classList.remove('show');
                 modalEl.style.display = 'none';
@@ -802,6 +812,7 @@
 
         function hapusNotulen(index) {
             if(confirm('Hapus notulen ini secara permanen?')) {
+                if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
                 localStorage.setItem('bss_notulen', JSON.stringify(dataNotulen));
                 renderNotulen();
@@ -810,7 +821,7 @@
         }
 
         function downloadAllExcel() {
-            if (dataNotulen.length === 0) {
+            if (!Array.isArray(dataNotulen) || dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');
                 return;
             }
@@ -847,7 +858,7 @@
         }
 
         function downloadAllWord() {
-            if (dataNotulen.length === 0) {
+            if (!Array.isArray(dataNotulen) || dataNotulen.length === 0) {
                 alert('Belum ada data notulen untuk diunduh.');
                 return;
             }

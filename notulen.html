@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-light" onload="muatDataNotulenOnline()">
+<body class="bg-light" onload="initModulNotulen()">
 
     <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
@@ -39,10 +39,10 @@
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
                 <h3>Action Items</h3>
-                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud.</p>
+                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi otomatis.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="muatDataNotulenOnline(true)">🔄 Sinkron Cloud</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Muat Ulang Data</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -208,7 +208,7 @@
                 </div>
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan ke Cloud</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan Data</button>
                 </div>
             </div>
         </div>
@@ -305,30 +305,46 @@
             return val;
         }
 
-        function muatDataNotulenOnline(showNotification = false) {
-            if(showNotification) alert('Menghubungkan ke Cloud...');
+        // Memuat data secara otomatis langsung dari inputan dashboard / localStorage lintas sheet aplikasi
+        function initModulNotulen(showNotification = false) {
+            if(showNotification) alert('Memuat data terbaru dari inputan sistem...');
             
-            // 1. Ambil cache dari localStorage agar data langsung tampil instan saat halaman dibuka
-            let localCacheNotulen = localStorage.getItem('bss_notulen_data');
-            if(localCacheNotulen) {
-                try { dataNotulen = JSON.parse(localCacheNotulen); } catch(e) {}
-            }
-            let localCachePersonel = localStorage.getItem('bss_personel_data');
-            if(localCachePersonel) {
-                try { dataPersonel = JSON.parse(localCachePersonel); } catch(e) {}
-            }
-            let localCacheJadwal = localStorage.getItem('bss_jadwal_data');
-            if(localCacheJadwal) {
-                try { dataJadwal = JSON.parse(localCacheJadwal); } catch(e) {}
+            // 1. Ambil data dari berbagai variasi key localStorage yang biasa digunakan di sheet jadwal & personel
+            let notulenKeys = ['bss_notulen_data', 'notulen_data', 'dataNotulen'];
+            for(let k of notulenKeys) {
+                let val = localStorage.getItem(k);
+                if(val) { try { dataNotulen = JSON.parse(val); break; } catch(e){} }
             }
 
-            // Render awal dari cache lokal
+            let personelKeys = ['bss_personel_data', 'personel_data', 'dataPersonel', 'listPersonel', 'personil'];
+            for(let k of personelKeys) {
+                let val = localStorage.getItem(k);
+                if(val) { 
+                    try { 
+                        let parsed = JSON.parse(val);
+                        if(Array.isArray(parsed) && parsed.length > 0) { dataPersonel = parsed; break; }
+                    } catch(e){} 
+                }
+            }
+
+            let jadwalKeys = ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'listJadwal', 'jadwal'];
+            for(let k of jadwalKeys) {
+                let val = localStorage.getItem(k);
+                if(val) { 
+                    try { 
+                        let parsed = JSON.parse(val);
+                        if(Array.isArray(parsed) && parsed.length > 0) { dataJadwal = parsed; break; }
+                    } catch(e){} 
+                }
+            }
+
+            // Render komponen otomatis
             renderNotulen();
             isiDropdownTanggalLalu();
             isiDropdownLeaderJadwal();
             renderPicCheckboxes();
 
-            // 2. Fetch data terbaru dari Cloud Server
+            // 2. Sinkronisasi opsional ke web server jika terhubung
             fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
                 .then(res => res.json())
                 .then(data => {
@@ -348,32 +364,24 @@
                     isiDropdownTanggalLalu();
                     isiDropdownLeaderJadwal();
                     renderPicCheckboxes();
-                    if(showNotification) alert('Sinkronisasi Cloud Berhasil!');
+                    if(showNotification) alert('Data berhasil dimuat.');
                 })
                 .catch(err => {
-                    console.warn("Gagal fetch cloud, menggunakan cache lokal:", err);
+                    // Jika offline/gagal fetch, tetap menggunakan data lokal dari inputan dashboard tanpa error
                 });
         }
 
-        function pushDataToCloudServer() {
-            const payload = {
-                personel: Array.isArray(dataPersonel) ? dataPersonel : [],
-                jadwal: Array.isArray(dataJadwal) ? dataJadwal : [],
-                absen: [],
-                notulen: Array.isArray(dataNotulen) ? dataNotulen : []
-            };
-            
+        function saveDataToStorage() {
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
             localStorage.setItem('bss_personel_data', JSON.stringify(dataPersonel));
             localStorage.setItem('bss_jadwal_data', JSON.stringify(dataJadwal));
 
-            return fetch(WEB_APP_URL, {
+            // Kirim ke cloud sebagai backup background tanpa mengganggu
+            fetch(WEB_APP_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "save", payload: payload })
-            }).catch(err => {
-                console.error("Gagal simpan ke cloud:", err);
-            });
+                body: JSON.stringify({ action: "save", payload: { personel: dataPersonel, jadwal: dataJadwal, absen: [], notulen: dataNotulen } })
+            }).catch(e => {});
         }
 
         function isiDropdownLeaderJadwal() {
@@ -386,7 +394,7 @@
             let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
             
             if (currentJadwal.length === 0) {
-                optionsHtml += '<option value="" disabled>-- Belum ada data jadwal rapat di server --</option>';
+                optionsHtml += '<option value="" disabled>-- Belum ada inputan jadwal rapat terdeteksi --</option>';
             }
 
             currentJadwal.forEach((j) => {
@@ -436,7 +444,7 @@
             let listPersonel = Array.isArray(dataPersonel) ? dataPersonel : [];
 
             if (listPersonel.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada data personel dari Cloud. Pastikan modul Personel sudah diisi atau klik <strong>Sinkron Cloud</strong>.</div>';
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada data personel terdeteksi dari inputan modul Personel. Pastikan data personel sudah diisi.</div>';
                 return;
             }
 
@@ -540,7 +548,7 @@
             });
 
             if(filteredData.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter atau di Cloud Server.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter atau di inputan sistem.</div>';
                 return;
             }
 
@@ -624,6 +632,9 @@
         }
 
         function bukaModalNotulenBaru() {
+            // Refresh data otomatis setiap kali modal dibuka agar data inputan terbaru langsung terbaca
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
@@ -648,6 +659,8 @@
         }
 
         function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader) {
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
@@ -672,6 +685,8 @@
         }
 
         function bukaModalSaveAs(groupKey) {
+            initModulNotulen();
+
             document.getElementById('saveAsSourceKey').value = groupKey;
             document.getElementById('saveAsTanggal').value = getTodayLocalDate();
             document.getElementById('saveAsMediaOffline').checked = false;
@@ -732,10 +747,9 @@
                 dataNotulen.unshift(clonedItem);
             });
 
-            pushDataToCloudServer().then(() => {
-                renderNotulen();
-                isiDropdownTanggalLalu();
-            });
+            saveDataToStorage();
+            renderNotulen();
+            isiDropdownTanggalLalu();
             
             let modalEl = document.getElementById('modalSaveAs');
             let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -755,6 +769,8 @@
         }
 
         function bukaModalEditNotulen(index) {
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';
@@ -872,10 +888,9 @@
                     }
                 } catch(e) {}
 
-                pushDataToCloudServer().then(() => {
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                });
+                saveDataToStorage();
+                renderNotulen();
+                isiDropdownTanggalLalu();
                 
                 let modalEl = document.getElementById('modalNotulen');
                 let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -884,7 +899,7 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                alert('Data berhasil disimpan secara aman dan permanen!');
+                alert('Data berhasil disimpan secara lokal dan dinamis!');
             } catch (err) {
                 alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }
@@ -894,10 +909,9 @@
             if(confirm('Hapus notulen ini secara permanen?')) {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
-                pushDataToCloudServer().then(() => {
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                });
+                saveDataToStorage();
+                renderNotulen();
+                isiDropdownTanggalLalu();
                 alert('Data berhasil dihapus.');
             }
         }
@@ -953,7 +967,7 @@
                 '<h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3><hr style="border: 1px solid #0d9488;">';
 
             dataNotulen.forEach((item, idx) => {
-                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-') ;
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
                 htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
                     '<h4>' + (idx + 1) + '. [' + item.periode + '] ' + item.topikUtama + '</h4>' +
                     '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Media:</strong> ' + (item.media || '-') + '</p>' +

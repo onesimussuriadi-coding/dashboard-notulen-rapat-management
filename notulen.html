@@ -304,7 +304,6 @@
             return val;
         }
 
-        // Sinkronisasi cerdas mencakup seluruh kemungkinan key dari modul jadwal dan personel
         function initModulNotulen(showNotification = false) {
             if(showNotification) alert('Menyinkronkan data lintas modul...');
             
@@ -313,8 +312,8 @@
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
             }
 
-            // Mendeteksi data jadwal dari berbagai variasi key localstorage
-            let keysJadwal = ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData', 'bss_jadwal'];
+            // Mendeteksi data jadwal dari seluruh kemungkinan key penyimpanan
+            let keysJadwal = ['bss_jadwal_data', 'jadwal_data', 'dataJadwal', 'jadwalRapatData', 'bss_jadwal', 'jadwal'];
             for(let k of keysJadwal) {
                 let val = localStorage.getItem(k);
                 if(val) {
@@ -328,8 +327,8 @@
                 }
             }
 
-            // Mendeteksi data personel / absen dari berbagai variasi key localstorage
-            let keysPersonel = ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'bss_absen_data', 'master_personel'];
+            // Mendeteksi data personel / absen dari seluruh kemungkinan key penyimpanan
+            let keysPersonel = ['bss_personel_data', 'personel_data', 'dataPersonel', 'absen_data', 'bss_absen_data', 'master_personel', 'personel', 'absen'];
             for(let k of keysPersonel) {
                 let val = localStorage.getItem(k);
                 if(val) {
@@ -366,8 +365,11 @@
 
             if(Array.isArray(dataJadwal)) {
                 dataJadwal.forEach(j => {
-                    let l = j.leader || j.namaLeader;
-                    let n = j.notulis || j.namaNotulis;
+                    // Menangkap berbagai variasi nama properti leader/pemimpin
+                    let l = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
+                    // Menangkap berbagai variasi nama properti notulis
+                    let n = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
+                    
                     if(l) leadersSet.add(l.trim());
                     if(n) notulisSet.add(n.trim());
                 });
@@ -405,8 +407,8 @@
             }
 
             listPersonel.forEach((p, idx) => {
-                let namaP = p.nama || p.namaLengkap || '-';
-                let jabatanP = p.jabatan || p.posisi || '-';
+                let namaP = p.nama || p.namaLengkap || p.name || '-';
+                let jabatanP = p.jabatan || p.posisi || p.role || '-';
                 let identifier = namaP + ' — ' + jabatanP;
                 let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
                 let div = document.createElement('div');

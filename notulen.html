@@ -281,14 +281,31 @@
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
         
-        let savedNotulen = JSON.parse(localStorage.getItem('bss_notulen'));
-        let dataNotulen = Array.isArray(savedNotulen) ? savedNotulen : [];
+        let dataNotulen = [];
+        try {
+            let savedNotulen = JSON.parse(localStorage.getItem('bss_notulen'));
+            if (Array.isArray(savedNotulen)) {
+                dataNotulen = savedNotulen;
+            } else {
+                localStorage.removeItem('bss_notulen');
+                dataNotulen = [];
+            }
+        } catch (e) {
+            localStorage.removeItem('bss_notulen');
+            dataNotulen = [];
+        }
 
-        let savedJadwal = JSON.parse(localStorage.getItem('bss_jadwal'));
-        let dataJadwal = Array.isArray(savedJadwal) ? savedJadwal : [];
+        let dataJadwal = [];
+        try {
+            let savedJadwal = JSON.parse(localStorage.getItem('bss_jadwal'));
+            if (Array.isArray(savedJadwal)) dataJadwal = savedJadwal;
+        } catch (e) { dataJadwal = []; }
 
-        let savedPersonel = JSON.parse(localStorage.getItem('bss_personel'));
-        let dataPersonel = Array.isArray(savedPersonel) ? savedPersonel : [];
+        let dataPersonel = [];
+        try {
+            let savedPersonel = JSON.parse(localStorage.getItem('bss_personel'));
+            if (Array.isArray(savedPersonel)) dataPersonel = savedPersonel;
+        } catch (e) { dataPersonel = []; }
 
         function getTodayLocalDate() {
             const d = new Date();

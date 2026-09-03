@@ -359,7 +359,7 @@
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Fungsi Pemimpin & Notulis tetap dipertahankan bersih dan benar seperti semula
+        // Fungsi Pemimpin & Notulis tetap bersih seperti semula
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
@@ -409,7 +409,7 @@
             selectNotulis.innerHTML = htmlNotulis;
         }
 
-        // Fungsi PIC / Penanggung Jawab disempurnakan dengan Filter Duplikasi Nama (Unique Filter)
+        // Fungsi PIC / Penanggung Jawab dengan Filter Duplikasi Nama
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
@@ -436,7 +436,6 @@
                 return;
             }
 
-            // Mencegah duplikasi data menggunakan Map berdasarkan identifier unik nama personel
             let uniqueMap = new Map();
             listPersonel.forEach((p) => {
                 let namaP = '';
@@ -458,7 +457,6 @@
                 if(namaP) {
                     let bersihNama = namaP.trim();
                     let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
-                    // Simpan hanya jika nama unik belum ada di dalam Map
                     if(!uniqueMap.has(bersihNama)) {
                         uniqueMap.set(bersihNama, identifier);
                     }
@@ -631,12 +629,13 @@
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
+                    // Ukuran teks PIC, Due, dan Status diperkecil agar lebih ringkas dan hemat ruang kolom
                     headerHtml += '<tr>' +
                         '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + formattedPembahasanHTML + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
-                        '<td style="word-wrap: break-word;">' + picDisplay + '<br><small class="text-danger">Due: ' + deadFormatted + '</small><br><span class="badge ' + badgeClass + ' mt-1">' + n.status + '</span></td>' +
+                        '<td style="word-wrap: break-word;"><div class="small" style="font-size: 11.5px; line-height: 1.3;">' + picDisplay + '<br><span class="text-danger">Due: ' + deadFormatted + '</span><br><span class="badge ' + badgeClass + ' mt-1" style="font-size: 10px;">' + n.status + '</span></div></td>' +
                         '<td class="text-center no-print" style="word-wrap: break-word;">' +
                         '<button class="btn btn-sm btn-outline-warning mb-1 px-1 w-100" style="font-size: 11px;" onclick="bukaModalEditNotulen(' + n.originalIndex + ')">Edit</button>' +
                         '<button class="btn btn-sm btn-outline-danger px-1 w-100" style="font-size: 11px;" onclick="hapusNotulen(' + n.originalIndex + ')">Hapus</button>' +

@@ -223,7 +223,7 @@
 
     <!-- Modal Save As -->
     <div class="modal fade" id="modalSaveAs" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-teal-custom text-white py-2">
                     <h5 class="modal-title fs-6">Simpan Sebagai (Save As) / Salin Rapat</h5>
@@ -233,41 +233,61 @@
                     <input type="hidden" id="saveAsSourceKey" value="">
                     <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru.</p>
                     
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
-                        <select id="saveAsPeriode" class="form-select form-select-sm">
-                            <option value="Minggu ke-1">Minggu ke-1</option>
-                            <option value="Minggu ke-2">Minggu ke-2</option>
-                            <option value="Minggu ke-3">Minggu ke-3</option>
-                            <option value="Minggu ke-4">Minggu ke-4</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
+                            <select id="saveAsPeriode" class="form-select form-select-sm">
+                                <option value="Minggu ke-1">Minggu ke-1</option>
+                                <option value="Minggu ke-2">Minggu ke-2</option>
+                                <option value="Minggu ke-3">Minggu ke-3</option>
+                                <option value="Minggu ke-4">Minggu ke-4</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
+                            <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
+                        </div>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
-                        <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
-                        <select id="saveAsLokasi" class="form-select form-select-sm">
-                            <option value="Kantor Utama">Kantor Utama</option>
-                            <option value="Kantor Pasar Tua">Kantor Pasar Tua</option>
-                            <option value="Kantor Soekarno">Kantor Soekarno</option>
-                            <option value="Kantor Surabaya">Kantor Surabaya</option>
-                            <option value="Kantor Jakarta">Kantor Jakarta</option>
-                            <option value="Opsional">Opsional / Lainnya</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
-                        <div class="d-flex gap-3 mt-1">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
-                                <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
+                            <select id="saveAsLokasi" class="form-select form-select-sm">
+                                <option value="Kantor Utama">Kantor Utama</option>
+                                <option value="Kantor Pasar Tua">Kantor Pasar Tua</option>
+                                <option value="Kantor Soekarno">Kantor Soekarno</option>
+                                <option value="Kantor Surabaya">Kantor Surabaya</option>
+                                <option value="Kantor Jakarta">Kantor Jakarta</option>
+                                <option value="Opsional">Opsional / Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
+                                    <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
+                                    <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
-                                <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
-                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
+                            <select id="saveAsLeader" class="form-select form-select-sm">
+                                <option value="">-- Pilih Pemimpin Rapat --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
+                            <select id="saveAsNotulis" class="form-select form-select-sm">
+                                <option value="">-- Pilih Notulis Rapat --</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -362,6 +382,8 @@
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
+            const saveAsLeader = document.getElementById('saveAsLeader');
+            const saveAsNotulis = document.getElementById('saveAsNotulis');
             
             if(!selectLeader || !selectNotulis) return;
 
@@ -400,12 +422,16 @@
             let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
             leadersSet.forEach(l => { htmlLeader += `<option value="${l}">${l}</option>`; });
             if(leadersSet.size === 0) htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin --</option>';
+            
             selectLeader.innerHTML = htmlLeader;
+            if(saveAsLeader) saveAsLeader.innerHTML = htmlLeader;
 
             let htmlNotulis = '<option value="">-- Pilih Notulis --</option>';
             notulisSet.forEach(n => { htmlNotulis += `<option value="${n}">${n}</option>`; });
             if(notulisSet.size === 0) htmlNotulis += '<option value="" disabled>-- Belum ada data notulis --</option>';
+            
             selectNotulis.innerHTML = htmlNotulis;
+            if(saveAsNotulis) saveAsNotulis.innerHTML = htmlNotulis;
         }
 
         function renderPicCheckboxes(selectedValues = []) {
@@ -522,8 +548,6 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN MUTLAK: Seluruh angka penomoran menggunakan font-weight: normal (tidak tebal),
-        // tersusun rapi segaris dengan teks keterangannya, dan ukuran proporsional mengecil di sub-tingkatannya.
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             
@@ -564,7 +588,6 @@
                 return htmlOut;
             }
 
-            // Fallback jika diketik dalam satu baris panjang tanpa Enter
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
             if (regex.test(teks)) {
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
@@ -753,10 +776,20 @@
         function bukaModalSaveAs(groupKey) {
             initModulNotulen();
 
+            // Ambil data pemimpin & notulis lama dari groupKey jika ada untuk default
+            let partsKey = groupKey.split('||');
+            let defaultLeader = partsKey[4] || '';
+            let defaultNotulis = partsKey[5] || '';
+
             document.getElementById('saveAsSourceKey').value = groupKey;
             document.getElementById('saveAsTanggal').value = getTodayLocalDate();
             document.getElementById('saveAsMediaOffline').checked = false;
             document.getElementById('saveAsMediaOnline').checked = false;
+            
+            isiDropdownLeaderDanNotulis();
+            if(defaultLeader && defaultLeader !== '-') document.getElementById('saveAsLeader').value = defaultLeader;
+            if(defaultNotulis && defaultNotulis !== '-') document.getElementById('saveAsNotulis').value = defaultNotulis;
+
             let modalEl = document.getElementById('modalSaveAs');
             let myModal = new bootstrap.Modal(modalEl);
             myModal.show();
@@ -772,6 +805,9 @@
             if(document.getElementById('saveAsMediaOffline').checked) mediaList.push('Offline');
             if(document.getElementById('saveAsMediaOnline').checked) mediaList.push('Online');
             let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+            let targetLeader = document.getElementById('saveAsLeader').value || '-';
+            let targetNotulis = document.getElementById('saveAsNotulis').value || '-';
 
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
@@ -795,8 +831,8 @@
                     tanggal: targetTanggal,
                     lokasi: targetLokasi,
                     media: targetMedia,
-                    leader: src.leader,
-                    notulis: src.notulis,
+                    leader: targetLeader,
+                    notulis: targetNotulis,
                     topikUtama: src.topikUtama,
                     pembahasan: src.pembahasan,
                     tindakLanjut: src.tindakLanjut,
@@ -817,6 +853,8 @@
             document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
+            
+            alert('Rapat berhasil disalin ke periode baru beserta identitas Pemimpin & Notulis!');
         }
 
         function resetFormInti() {

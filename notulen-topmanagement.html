@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modul Notulen & Tindak Lanjut - Top Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .bg-teal-custom { background-color: #134e4a !important; }
+        .bg-teal-header { background-color: #0f766e !important; }
+        .btn-teal { background-color: #0d9488; color: white; border: none; }
+        .btn-teal:hover { background-color: #0f766e; color: white; }
+        .btn-outline-teal { color: #0d9488; border-color: #0d9488; }
+        .btn-outline-teal:hover { background-color: #0d9488; color: white; }
+
+        .filter-sticky-container {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background-color: #f8f9fa;
+            padding-top: 10px;
+            padding-bottom: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-header-sticky {
+            position: sticky;
+            top: 95px;
+            z-index: 20;
+            background-color: #0f766e !important;
+        }
+
+        .table-scroll-container thead th {
+            position: sticky;
+            top: 0; 
+            z-index: 10;
+            background-color: #f8f9fa !important;
+            box-shadow: inset 0 -2px 0 #dee2e6, 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .table-scroll-container {
+            max-height: 420px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .print-header-kop { display: none; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; font-family: Arial, sans-serif; }
+            .card { border: none !important; box-shadow: none !important; margin-bottom: 10px !important; }
+            .table-scroll-container { max-height: none !important; overflow: visible !important; }
+            .print-header-kop {
+                display: block !important;
+                text-align: center;
+                border-bottom: 2px solid #0d9488;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light" onload="cekAutentikasiTopManagement()">
+
+    <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fs-6">👑 Modul Pengawasan — Top Management Oversight</span>
+            <div class="d-flex gap-2">
+                <a href="notulen-topmanagement.html" class="btn btn-light btn-sm fw-bold text-teal">👑 Top Management</a>
+                <a href="dashboard.html" class="btn btn-outline-light btn-sm">⬅️ Kembali ke Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 my-4">
+        <div class="print-header-kop">
+            <h2 style="margin: 0; color: #134e4a; font-size: 20px; font-weight: bold; text-transform: uppercase;">PT. Bangun Sentral Sulawesi</h2>
+            <p style="margin: 2px 0; font-size: 13px; color: #555; font-style: italic;">Jenderal Kontraktor and Supplier</p>
+            <hr style="border: 0.5px solid #0d9488; width: 60%; margin: 8px auto;">
+            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Laporan Konsolidasi Rapat Lintas Departemen (Top Management)</h4>
+        </div>
+
+        <div class="row mb-3 align-items-center no-print">
+            <div class="col">
+                <h3>Executive Summary — Lintas Departemen</h3>
+                <p class="text-muted small mb-0">Pengawasan gabungan seluruh action items dari HRD, Finance, Logistik, HSE, Ops General, Ops Konstruksi, dan Maintenance.</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulTopManagement(true)">🔄 Sinkronisasi Konsolidasi</button>
+                <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
+                <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel Gabungan</button>
+                <button class="btn btn-primary btn-sm" onclick="downloadAllWord()">📄 Word Gabungan</button>
+            </div>
+        </div>
+
+        <div class="filter-sticky-container no-print mb-3">
+            <div class="card shadow-sm bg-white border-0">
+                <div class="card-body py-3">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1">Pilih Departemen</label>
+                            <select id="filterDepartemen" class="form-select form-select-sm fw-bold text-teal" onchange="renderNotulenKonsolidasi()">
+                                <option value="ALL">🌐 Semua Departemen (Konsolidasi Total)</option>
+                                <option value="HRD">👤 Departemen HRD</option>
+                                <option value="Finance">💰 Departemen Keuangan</option>
+                                <option value="Logistik">📦 Departemen Logistik</option>
+                                <option value="HSE">🦺 Departemen HSE</option>
+                                <option value="Ops General">🛠️ Ops Jenderal Service</option>
+                                <option value="Ops Konstruksi">🏗️ Ops Konstruksi</option>
+                                <option value="Maintenance">⚙️ Departemen Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold mb-1">Pilih Tahun</label>
+                            <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulenKonsolidasi()">
+                                <option value="ALL">Semua Tahun (All)</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
+                            <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulenKonsolidasi()">
+                                <option value="ALL">Semua Bulan (All)</option>
+                                <option value="08">Agustus</option>
+                                <option value="09" selected>September</option>
+                                <option value="10">Oktober</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold mb-1">Status Tindak Lanjut</label>
+                            <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulenKonsolidasi()">
+                                <option value="ALL">Semua Status Aktif</option>
+                                <option value="Open">Open Saja</option>
+                                <option value="Closing">Closing (Selesai)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold mb-1 text-teal">🔍 Cari Keyword</label>
+                            <input type="text" id="filterKeyword" class="form-control form-control-sm" placeholder="Topik/PIC..." oninput="renderNotulenKonsolidasi()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-5 border-0">
+            <div class="card-body p-0">
+                <div id="containerNotulen"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PASSWORD KHUSUS TOP MANAGEMENT -->
+    <div class="modal fade" id="modalAuthTopManagement" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-teal-custom text-white py-3">
+                    <h5 class="modal-title fs-6">🔐 Akses Terbatas - Top Management</h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <span class="fs-1">👑📊</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Pusat Pengawasan Eksekutif</h6>
+                    <p class="text-muted small mb-4">Silakan masukkan password Top Management untuk melihat laporan lintas departemen.</p>
+                    
+                    <div class="px-4">
+                        <input type="password" id="inputPasswordTop" class="form-control form-control-lg text-center" placeholder="••••••••" onkeypress="handlePasswordKeypress(event)">
+                        <div id="authErrorMsg" class="text-danger small mt-2" style="display: none;">Password salah! (Default: topmanagement123)</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2 justify-content-center">
+                    <a href="dashboard.html" class="btn btn-secondary btn-sm px-4">Kembali</a>
+                    <button type="button" class="btn btn-teal btn-sm px-4 fw-bold" onclick="verifikasiPasswordTop()">Masuk Ruangan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let dataKonsolidasi = [];
+
+        function cekAutentikasiTopManagement() {
+            let isAuth = sessionStorage.getItem('bss_topmanagement_auth');
+            if(isAuth === 'true') {
+                initModulTopManagement();
+            } else {
+                let modalEl = document.getElementById('modalAuthTopManagement');
+                let myModal = new bootstrap.Modal(modalEl);
+                myModal.show();
+                setTimeout(() => {
+                    const passInput = document.getElementById('inputPasswordTop');
+                    if(passInput) passInput.focus();
+                }, 300);
+            }
+        }
+
+        function handlePasswordKeypress(event) {
+            if(event.key === 'Enter') {
+                verifikasiPasswordTop();
+            }
+        }
+
+        function verifikasiPasswordTop() {
+            const passwordInput = document.getElementById('inputPasswordTop').value;
+            const errorMsg = document.getElementById('authErrorMsg');
+            const correctPassword = "topmanagement123";
+
+            if(passwordInput === correctPassword) {
+                sessionStorage.setItem('bss_topmanagement_auth', 'true');
+
+                let modalEl = document.getElementById('modalAuthTopManagement');
+                let modalObj = bootstrap.Modal.getInstance(modalEl);
+                if(modalObj) modalObj.hide();
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                
+                initModulTopManagement();
+            } else {
+                if(errorMsg) errorMsg.style.display = 'block';
+                const passInputEl = document.getElementById('inputPasswordTop');
+                passInputEl.value = '';
+                passInputEl.focus();
+            }
+        }
+
+        function initModulTopManagement(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan data dari seluruh departemen...');
+            
+            dataKonsolidasi = [];
+
+            // Daftar kunci localStorage masing-masing departemen
+            const mappingDept = [
+                { key: 'bss_notulen_hrd_data', nama: 'HRD' },
+                { key: 'bss_notulen_finance_data', nama: 'Finance' },
+                { key: 'bss_notulen_logistik_data', nama: 'Logistik' },
+                { key: 'bss_notulen_hse_data', nama: 'HSE' },
+                { key: 'bss_notulen_opsgeneral_data', nama: 'Ops General' },
+                { key: 'bss_notulen_opskonstruksi_data', nama: 'Ops Konstruksi' },
+                { key: 'bss_notulen_maintenance_data', nama: 'Maintenance' },
+                // Termasuk juga data manajemen umum jika ada
+                { key: 'bss_notulen_data', nama: 'Manajemen Umum' }
+            ];
+
+            mappingDept.forEach(dept => {
+                let saved = localStorage.getItem(dept.key);
+                if(saved) {
+                    try {
+                        let parsed = JSON.parse(saved);
+                        if(Array.isArray(parsed)) {
+                            parsed.forEach(item => {
+                                item.departemenSumber = dept.nama;
+                                dataKonsolidasi.push(item);
+                            });
+                        }
+                    } catch(e) {}
+                }
+            });
+
+            renderNotulenKonsolidasi();
+            if(showNotification) alert('Konsolidasi data lintas departemen tuntas!');
+        }
+
+        function formatPembahasan(teks) {
+            if (!teks) return '-';
+            let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
+            if (regex.test(teks)) {
+                let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
+                if (parts.length > 1) {
+                    let htmlList = '<ol class="ps-3 mb-0" style="text-align: left;">';
+                    parts.forEach(part => { htmlList += '<li>' + part.replace(/^\d+[\.\)]\s*/, '') + '</li>'; });
+                    htmlList += '</ol>';
+                    return htmlList;
+                }
+            }
+            return '<span>' + teks + '</span>';
+        }
+
+        function formatTindakLanjut(teks) {
+            if (!teks) return '-';
+            let lines = teks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length > 1) {
+                let htmlOut = '<div style="text-align: left;">';
+                lines.forEach(line => {
+                    let matchSub = line.match(/^(\d+(?:\.\d+)+[\.\)]?)\s+(.*)/) || line.match(/^(\d+[\.\)])\s+(.*)/);
+                    if (matchSub) {
+                        let numPart = matchSub[1];
+                        let restPart = matchSub[2];
+                        let depth = numPart.split('.').filter(Boolean).length - 1; 
+                        let padLeft = depth * 16; 
+                        let fSize = Math.max(83, 94 - (depth * 3)) + '%'; 
+                        htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-size: ${fSize};">` +
+                                   `<span style="min-width: 32px;">${numPart}</span>` +
+                                   `<span style="flex: 1;">${restPart}</span>` +
+                                   `</div>`;
+                    } else {
+                        htmlOut += `<div style="margin-top: 3px; font-size: 92%;">${line}</div>`;
+                    }
+                });
+                htmlOut += '</div>';
+                return htmlOut;
+            }
+            return '<span class="text-secondary small">' + teks + '</span>';
+        }
+
+        function renderNotulenKonsolidasi() {
+            const container = document.getElementById('containerNotulen');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if(!Array.isArray(dataKonsolidasi)) dataKonsolidasi = [];
+
+            const fDept = document.getElementById('filterDepartemen').value;
+            const fTahun = document.getElementById('filterTahun').value;
+            const fBulan = document.getElementById('filterBulan').value;
+            const fStatus = document.getElementById('filterStatus').value;
+            const fKeyword = document.getElementById('filterKeyword').value.toLowerCase();
+
+            let filtered = dataKonsolidasi.filter(n => {
+                if(!n || !n.tanggal) return false;
+                let p = n.tanggal.split('-');
+                let matchDept = (fDept === 'ALL' || n.departemenSumber === fDept);
+                let matchTahun = (fTahun === 'ALL' || p[0] === fTahun);
+                let matchBulan = (fBulan === 'ALL' || p[1] === fBulan);
+                let matchStatus = (fStatus === 'ALL' || n.status === fStatus);
+                
+                let matchKeyword = true;
+                if(fKeyword) {
+                    let combined = (n.topikUtama + ' ' + n.pembahasan + ' ' + n.tindakLanjut + ' ' + (Array.isArray(n.pic)?n.pic.join(' '):n.pic)).toLowerCase();
+                    matchKeyword = combined.includes(fKeyword);
+                }
+
+                return matchDept && matchTahun && matchBulan && matchStatus && matchKeyword;
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-muted">Tidak ada data rapat yang sesuai dengan filter konsolidasi.</div>';
+                return;
+            }
+
+            // Kelompokkan berdasarkan Departemen lalu Tanggal
+            let groupedByDept = {};
+            filtered.forEach(item => {
+                let dName = item.departemenSumber || 'Umum';
+                if(!groupedByDept[dName]) groupedByDept[dName] = [];
+                groupedByDept[dName].push(item);
+            });
+
+            let htmlOutput = '';
+            for(let dept in groupedByDept) {
+                htmlOutput += `<div class="card mb-4 shadow-sm border-0">` +
+                    `<div class="card-header bg-teal-custom text-white py-2">` +
+                    `<h5 class="mb-0 fs-6 fw-bold">📂 Departemen / Modul: ${dept} (${groupedByDept[dept].length} Item Tindak Lanjut)</h5>` +
+                    `</div><div class="card-body p-0"><div class="table-responsive table-scroll-container">` +
+                    `<table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">` +
+                    `<thead class="table-light text-center"><tr>` +
+                    `<th style="width: 5%;">No.</th>` +
+                    `<th style="width: 12%;">Tanggal & Periode</th>` +
+                    `<th style="width: 17%;">Topik Utama</th>` +
+                    `<th style="width: 20%;">Pembahasan & Arahan</th>` +
+                    `<th style="width: 30%;">Tindak Lanjut</th>` +
+                    `<th style="width: 16%;">Target, PIC & Status</th>` +
+                    `</tr></thead><tbody>`;
+
+                let no = 1;
+                groupedByDept[dept].forEach(n => {
+                    let badgeClass = 'bg-primary';
+                    if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
+                    else if(n.status === 'Closing') badgeClass = 'bg-success';
+                    else if(n.status === 'Info') badgeClass = 'bg-info text-dark';
+
+                    let tglFmt = n.tanggal;
+                    try {
+                        let p = n.tanggal.split('-');
+                        tglFmt = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    } catch(e) {}
+
+                    let picStr = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
+
+                    htmlOutput += `<tr>` +
+                        `<td class="text-center fw-bold text-secondary">${no++}</td>` +
+                        `<td class="text-center small"><strong>${n.periode || '-'}</strong><br>${tglFmt}<br><span class="text-muted" style="font-size:10px;">${n.lokasi||'-'}</span></td>` +
+                        `<td style="word-wrap: break-word;"><strong>${n.topikUtama || '-'}</strong><br><span class="text-muted small">Leader: ${n.leader||'-'}</span></td>` +
+                        `<td style="word-wrap: break-word;">${formatPembahasan(n.pembahasan)}</td>` +
+                        `<td style="word-wrap: break-word;">${formatTindakLanjut(n.tindakLanjut)}</td>` +
+                        `<td style="word-wrap: break-word;"><div class="small" style="font-size: 11px; line-height: 1.3;">` +
+                        `👥 <strong>PIC:</strong> ${picStr}<br>` +
+                        `🎯 <strong>Start:</strong> ${n.targetAwal||'-'}<br>` +
+                        `⌛ <strong>Due:</strong> ${n.deadline||'-'}<br>` +
+                        `<span class="badge ${badgeClass} mt-1" style="font-size: 10px;">${n.status}</span></div></td>` +
+                        `</tr>`;
+                });
+
+                htmlOutput += `</tbody></table></div></div></div>`;
+            }
+
+            container.innerHTML = htmlOutput;
+        }
+
+        function downloadAllExcel() {
+            if(dataKonsolidasi.length === 0) {
+                alert('Tidak ada data konsolidasi untuk diunduh.');
+                return;
+            }
+            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head><meta charset="utf-8"><title>Konsolidasi Top Management</title></head><body>' +
+                '<table border="1"><tr><th colspan="13" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - KONSOLIDASI RAPAT LINTAS DEPARTEMEN</th></tr>' +
+                '<tr style="background-color:#f2f2f2;"><th>Departemen</th><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
+
+            dataKonsolidasi.forEach(item => {
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
+                htmlContent += '<tr>' +
+                    '<td>' + (item.departemenSumber || '-') + '</td>' +
+                    '<td>' + (item.periode || '-') + '</td>' +
+                    '<td>' + (item.tanggal || '-') + '</td>' +
+                    '<td>' + (item.lokasi || '-') + '</td>' +
+                    '<td>' + (item.leader || '-') + '</td>' +
+                    '<td>' + (item.notulis || '-') + '</td>' +
+                    '<td>' + (item.topikUtama || '-') + '</td>' +
+                    '<td>' + (item.pembahasan || '-') + '</td>' +
+                    '<td>' + (item.tindakLanjut || '-') + '</td>' +
+                    '<td>' + picStr + '</td>' +
+                    '<td>' + (item.targetAwal || '-') + '</td>' +
+                    '<td>' + (item.deadline || '-') + '</td>' +
+                    '<td>' + (item.status || '-') + '</td></tr>';
+            });
+
+            htmlContent += '</table></body></html>';
+            let blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'Konsolidasi_Top_Management.xls';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function downloadAllWord() {
+            if(dataKonsolidasi.length === 0) {
+                alert('Tidak ada data konsolidasi untuk diunduh.');
+                return;
+            }
+            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head><meta charset="utf-8"><title>Laporan Eksekutif Konsolidasi</title></head>' +
+                '<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">' +
+                '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT. BANGUN SENTRAL SULAWESI</h2>' +
+                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN Konsolidasi Eksekutif Lintas Departemen</h3><hr style="border: 1px solid #0d9488;">';
+
+            dataKonsolidasi.forEach((item, idx) => {
+                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
+                htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
+                    '<h4>' + (idx + 1) + '. [' + (item.departemenSumber||'Umum') + ' - ' + item.periode + '] ' + item.topikUtama + '</h4>' +
+                    '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Leader:</strong> ' + (item.leader || '-') + '</p>' +
+                    '<p><strong>Status:</strong> ' + item.status + ' | <strong>PIC:</strong> ' + picStr + '</p>' +
+                    '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
+                    '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p></div>';
+            });
+
+            htmlContent += '</body></html>';
+            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a_elem = document.createElement('a');
+            a_elem.href = url;
+            a_elem.download = 'Laporan_Konsolidasi_Eksekutif.doc';
+            document.body.appendChild(a_elem);
+            a_elem.click();
+            document.body.removeChild(a_elem);
+        }
+    </script>
+</body>
+</html>

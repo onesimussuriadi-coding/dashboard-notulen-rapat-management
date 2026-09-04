@@ -58,6 +58,7 @@
                 padding-bottom: 10px;
                 margin-bottom: 20px;
             }
+            .btn-action-group-print { display: none !important; }
         }
     </style>
 </head>
@@ -65,7 +66,7 @@
 
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
         <div class="container-fluid px-4">
-            <span class="navbar-brand mb-0 h1 fs-6">👑 Modul Pengawasan — Top Management Oversight</span>
+            <span class="navbar-brand mb-0 h1 fs-6">👑 Modul Pengawasan & Rapat Khusus — Top Management</span>
             <div class="d-flex gap-2">
                 <a href="notulen-topmanagement.html" class="btn btn-light btn-sm fw-bold text-teal">👑 Top Management</a>
                 <a href="dashboard.html" class="btn btn-outline-light btn-sm">⬅️ Kembali ke Dashboard</a>
@@ -78,19 +79,20 @@
             <h2 style="margin: 0; color: #134e4a; font-size: 20px; font-weight: bold; text-transform: uppercase;">PT. Bangun Sentral Sulawesi</h2>
             <p style="margin: 2px 0; font-size: 13px; color: #555; font-style: italic;">Jenderal Kontraktor and Supplier</p>
             <hr style="border: 0.5px solid #0d9488; width: 60%; margin: 8px auto;">
-            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Laporan Konsolidasi Rapat Lintas Departemen (Top Management)</h4>
+            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Rapat Internal & Konsolidasi Eksekutif (Top Management)</h4>
         </div>
 
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
-                <h3>Executive Summary — Lintas Departemen</h3>
-                <p class="text-muted small mb-0">Pengawasan gabungan seluruh action items dari HRD, Finance, Logistik, HSE, Ops General, Ops Konstruksi, dan Maintenance.</p>
+                <h3>Executive Meetings & Oversight — Top Management</h3>
+                <p class="text-muted small mb-0">Kelola rapat internal khusus Direksi/Top Management atau tinjau konsolidasi seluruh action items lintas departemen perusahaan.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulTopManagement(true)">🔄 Sinkronisasi Konsolidasi</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
-                <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel Gabungan</button>
-                <button class="btn btn-primary btn-sm" onclick="downloadAllWord()">📄 Word Gabungan</button>
+                <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
+                <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
+                <button class="btn btn-teal btn-sm fw-bold" onclick="bukaModalNotulenBaru()">+ Buat Rapat Top Management Baru</button>
             </div>
         </div>
 
@@ -99,9 +101,10 @@
                 <div class="card-body py-3">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label small fw-bold mb-1">Pilih Departemen</label>
-                            <select id="filterDepartemen" class="form-select form-select-sm fw-bold text-teal" onchange="renderNotulenKonsolidasi()">
-                                <option value="ALL">🌐 Semua Departemen (Konsolidasi Total)</option>
+                            <label class="form-label small fw-bold mb-1">Pilih Mode Tampilan</label>
+                            <select id="filterModeTampilan" class="form-select form-select-sm fw-bold text-teal" onchange="renderNotulenKonsolidasi()">
+                                <option value="RapatInternal" selected>👑 Rapat Khusus Internal Top Management Saja</option>
+                                <option value="ALL">🌐 Konsolidasi Semua Departemen</option>
                                 <option value="HRD">👤 Departemen HRD</option>
                                 <option value="Finance">💰 Departemen Keuangan</option>
                                 <option value="Logistik">📦 Departemen Logistik</option>
@@ -119,7 +122,7 @@
                                 <option value="2027">2027</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
                             <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulenKonsolidasi()">
                                 <option value="ALL">Semua Bulan (All)</option>
@@ -136,7 +139,7 @@
                                 <option value="Closing">Closing (Selesai)</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label small fw-bold mb-1 text-teal">🔍 Cari Keyword</label>
                             <input type="text" id="filterKeyword" class="form-control form-control-sm" placeholder="Topik/PIC..." oninput="renderNotulenKonsolidasi()">
                         </div>
@@ -164,7 +167,7 @@
                         <span class="fs-1">👑📊</span>
                     </div>
                     <h6 class="fw-bold text-dark mb-2">Pusat Pengawasan Eksekutif</h6>
-                    <p class="text-muted small mb-4">Silakan masukkan password Top Management untuk melihat laporan lintas departemen.</p>
+                    <p class="text-muted small mb-4">Silakan masukkan password Top Management untuk melihat laporan lintas departemen dan Rapat Direksi.</p>
                     
                     <div class="px-4">
                         <input type="password" id="inputPasswordTop" class="form-control form-control-lg text-center" placeholder="••••••••" onkeypress="handlePasswordKeypress(event)">
@@ -179,9 +182,212 @@
         </div>
     </div>
 
+    <!-- Modal Form Notulen Rapat Internal Top Management -->
+    <div class="modal fade" id="modalNotulen" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-teal-custom text-white">
+                    <h5 class="modal-title" id="modalTitleNotulen">Form Notulen Rapat Top Management</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editIndexNotulen" value="-1">
+                    <input type="hidden" id="modeFormNotulen" value="baru">
+                    
+                    <div id="wrapperMetadataRapat">
+                        <div class="alert alert-warning p-2 mb-3 no-print border-warning small">
+                            <label class="form-label fw-bold text-dark mb-1">📥 Tarik Topik Rapat Sebelumnya (Carry Over Berdasarkan Tanggal):</label>
+                            <div class="input-group input-group-sm">
+                                <select id="selectTanggalLalu" class="form-select">
+                                    <option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>
+                                </select>
+                                <button class="btn btn-dark px-3" type="button" onclick="tarikSemuaTopikTanggalLalu()">Proses</button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Periode Rapat</label>
+                                <select id="notulenPeriode" class="form-select form-select-sm">
+                                    <option value="Minggu ke-1">Minggu ke-1</option>
+                                    <option value="Minggu ke-2">Minggu ke-2</option>
+                                    <option value="Minggu ke-3">Minggu ke-3</option>
+                                    <option value="Minggu ke-4">Minggu ke-4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Tanggal Rapat</label>
+                                <input type="date" id="notulenTanggal" class="form-control form-control-sm">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Lokasi Tempat Rapat</label>
+                                <select id="notulenLokasi" class="form-select form-select-sm">
+                                    <option value="Ruang Direksi / Utama">Ruang Direksi / Utama</option>
+                                    <option value="Kantor Utama">Kantor Utama</option>
+                                    <option value="Kantor Jakarta">Kantor Jakarta</option>
+                                    <option value="Online / Zoom Meeting">Online / Zoom Meeting</option>
+                                    <option value="Opsional">Opsional / Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Media Peserta Rapat</label>
+                                <div class="d-flex gap-3 mt-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="mediaOffline" value="Offline">
+                                        <label class="form-check-label small" for="mediaOffline">Offline</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="mediaOnline" value="Online">
+                                        <label class="form-check-label small" for="mediaOnline">Online</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">👤 Pimpinan Rapat (Leader)</label>
+                                <input type="text" id="notulenLeader" class="form-control form-control-sm" placeholder="Contoh: Direktur Utama / Komisaris">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">✍️ Notulis</label>
+                                <input type="text" id="notulenNotulis" class="form-control form-control-sm" placeholder="Nama Notulis Eksekutif">
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Topik Utama Rapat Direksi</label>
+                        <input type="text" id="notulenTopikUtama" class="form-control form-control-sm" placeholder="Topik rapat...">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Pembahasan & Arahan Eksekutif</label>
+                        <textarea id="notulenPembahasan" class="form-control form-control-sm" rows="3" placeholder="Detail pembahasan..."></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Tindak Lanjut & Keputusan Strategis</label>
+                        <textarea id="notulenTindakLanjut" class="form-control form-control-sm" rows="5" placeholder="Tindakan penyelesaian..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab</label>
+                            <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 140px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-teal">Target Awal (Mulai)</label>
+                                    <input type="date" id="notulenTargetAwal" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-teal">Deadline (Selesai)</label>
+                                    <input type="date" id="notulenDeadline" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
+                                </div>
+                            </div>
+                            <div class="p-2 mb-2 bg-light border rounded small text-secondary" id="infoDurasiDeviasi">
+                                ⏱️ Durasi: <strong>0 hari</strong> pelaksanaan
+                            </div>
+
+                            <label class="form-label small fw-bold">Status Tindak Lanjut</label>
+                            <select id="notulenStatus" class="form-select form-select-sm">
+                                <option value="Open">Open (Belum Selesai)</option>
+                                <option value="Info">Info (Catatan)</option>
+                                <option value="Closing">Closing (Selesai)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan Rapat Top Management</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Save As -->
+    <div class="modal fade" id="modalSaveAs" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-teal-custom text-white py-2">
+                    <h5 class="modal-title fs-6">Simpan Sebagai (Save As) / Salin Rapat Top Management</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="saveAsSourceKey" value="">
+                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat eksekutif ini ke periode baru.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
+                            <select id="saveAsPeriode" class="form-select form-select-sm">
+                                <option value="Minggu ke-1">Minggu ke-1</option>
+                                <option value="Minggu ke-2">Minggu ke-2</option>
+                                <option value="Minggu ke-3">Minggu ke-3</option>
+                                <option value="Minggu ke-4">Minggu ke-4</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
+                            <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
+                            <select id="saveAsLokasi" class="form-select form-select-sm">
+                                <option value="Ruang Direksi / Utama">Ruang Direksi / Utama</option>
+                                <option value="Kantor Utama">Kantor Utama</option>
+                                <option value="Kantor Jakarta">Kantor Jakarta</option>
+                                <option value="Online / Zoom Meeting">Online / Zoom Meeting</option>
+                                <option value="Opsional">Opsional / Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
+                                    <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
+                                    <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">👤 Pimpinan Rapat</label>
+                            <input type="text" id="saveAsLeader" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">✍️ Notulis</label>
+                            <input type="text" id="saveAsNotulis" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="prosesSaveAsRapat()">Proses Save As</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let dataKonsolidasi = [];
+        let dataTopManagement = [];
+        let dataKonsolidasiGlobal = [];
+        let dataPersonel = [];
 
         function cekAutentikasiTopManagement() {
             let isAuth = sessionStorage.getItem('bss_topmanagement_auth');
@@ -228,12 +434,38 @@
             }
         }
 
-        function initModulTopManagement(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan data dari seluruh departemen...');
-            
-            dataKonsolidasi = [];
+        function getTodayLocalDate() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-            // Daftar kunci localStorage masing-masing departemen
+        function parseEdgeDate(val) {
+            if (!val) return getTodayLocalDate();
+            if (val.includes('/')) {
+                let parts = val.split('/');
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+            return val;
+        }
+
+        function initModulTopManagement(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan data Top Management & Konsolidasi...');
+            
+            // 1. Ambil data khusus rapat internal top management
+            let savedTop = localStorage.getItem('bss_notulen_topmanagement_data');
+            if(savedTop) {
+                try { dataTopManagement = JSON.parse(savedTop); } catch(e) { dataTopManagement = []; }
+            } else {
+                dataTopManagement = [];
+            }
+
+            // 2. Ambil konsolidasi lintas departemen
+            dataKonsolidasiGlobal = [];
             const mappingDept = [
                 { key: 'bss_notulen_hrd_data', nama: 'HRD' },
                 { key: 'bss_notulen_finance_data', nama: 'Finance' },
@@ -241,9 +473,7 @@
                 { key: 'bss_notulen_hse_data', nama: 'HSE' },
                 { key: 'bss_notulen_opsgeneral_data', nama: 'Ops General' },
                 { key: 'bss_notulen_opskonstruksi_data', nama: 'Ops Konstruksi' },
-                { key: 'bss_notulen_maintenance_data', nama: 'Maintenance' },
-                // Termasuk juga data manajemen umum jika ada
-                { key: 'bss_notulen_data', nama: 'Manajemen Umum' }
+                { key: 'bss_notulen_maintenance_data', nama: 'Maintenance' }
             ];
 
             mappingDept.forEach(dept => {
@@ -254,15 +484,133 @@
                         if(Array.isArray(parsed)) {
                             parsed.forEach(item => {
                                 item.departemenSumber = dept.nama;
-                                dataKonsolidasi.push(item);
+                                dataKonsolidasiGlobal.push(item);
                             });
                         }
                     } catch(e) {}
                 }
             });
 
+            // Ambil juga master personel untuk checkbox PIC
+            dataPersonel = [];
+            let allKeys = Object.keys(localStorage);
+            for(let k of allKeys) {
+                let val = localStorage.getItem(k);
+                try {
+                    let parsed = JSON.parse(val);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        let kLower = k.toLowerCase();
+                        if(kLower.includes('personel') || kLower.includes('absen') || kLower.includes('karyawan') || kLower.includes('master') || kLower.includes('peserta') || kLower.includes('jadwal')) {
+                            dataPersonel = dataPersonel.concat(parsed);
+                        }
+                    }
+                } catch(e) {}
+            }
+
             renderNotulenKonsolidasi();
-            if(showNotification) alert('Konsolidasi data lintas departemen tuntas!');
+            isiDropdownTanggalLalu();
+            renderPicCheckboxes();
+
+            if(showNotification) alert('Sinkronisasi tuntas!');
+        }
+
+        function simpanKeStorage() {
+            localStorage.setItem('bss_notulen_topmanagement_data', JSON.stringify(dataTopManagement));
+        }
+
+        function renderPicCheckboxes(selectedValues = []) {
+            const container = document.getElementById('containerPicCheckboxes');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            let uniqueMap = new Map();
+            // Masukkan juga default option petinggi jika belum ada di master
+            uniqueMap.set('Direktur Utama', 'Direktur Utama');
+            uniqueMap.set('Direktur Operasional', 'Direktur Operasional');
+            uniqueMap.set('Direktur Keuangan', 'Direktur Keuangan');
+            uniqueMap.set('Komisaris Utama', 'Komisaris Utama');
+
+            dataPersonel.forEach((p) => {
+                let namaP = '';
+                let jabatanP = '';
+                if (typeof p === 'string') {
+                    namaP = p;
+                } else if (typeof p === 'object' && p !== null) {
+                    namaP = p.nama || p.namaLengkap || p.name || p.namaPegawai || '';
+                    jabatanP = p.jabatan || p.posisi || p.role || '';
+                }
+                if(namaP) {
+                    let bersihNama = namaP.trim();
+                    let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
+                    uniqueMap.set(bersihNama, identifier);
+                }
+            });
+
+            let idx = 0;
+            uniqueMap.forEach((identifier) => {
+                let isChecked = (Array.isArray(selectedValues) && selectedValues.includes(identifier)) ? 'checked' : '';
+                let div = document.createElement('div');
+                div.className = 'form-check mb-1';
+                div.innerHTML = `<input class="form-check-input pic-checkbox" type="checkbox" value="${identifier}" id="picCheck_${idx}" ${isChecked}>
+                    <label class="form-check-label small" for="picCheck_${idx}">${identifier}</label>`;
+                container.appendChild(div);
+                idx++;
+            });
+        }
+
+        function hitungDurasiDeviasi() {
+            const tAwal = document.getElementById('notulenTargetAwal').value;
+            const tDeadline = document.getElementById('notulenDeadline').value;
+            const infoEl = document.getElementById('infoDurasiDeviasi');
+
+            if(!tAwal || !tDeadline) {
+                infoEl.innerHTML = '⏱️ Durasi: <strong>-</strong> (Lengkapi target awal & deadline)';
+                return;
+            }
+
+            let d1 = new Date(tAwal);
+            let d2 = new Date(tDeadline);
+            let diffTime = d2 - d1;
+            let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if(diffDays < 0) {
+                infoEl.innerHTML = `<span class="text-danger">⚠️ Peringatan: Deadline mendahului target awal (${diffDays} hari)!</span>`;
+            } else {
+                infoEl.innerHTML = `⏱️ Durasi Pelaksanaan: <strong>${diffDays + 1} hari</strong> (Target s.d Deadline)`;
+            }
+        }
+
+        function isiDropdownTanggalLalu() {
+            const select = document.getElementById('selectTanggalLalu');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Pilih Tanggal Rapat Sebelumnya --</option>';
+            if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+            let tglSet = [...new Set(dataTopManagement.map(n => n.tanggal))].filter(Boolean);
+            tglSet.sort().reverse();
+            tglSet.forEach(tgl => {
+                let opt = document.createElement('option');
+                opt.value = tgl;
+                opt.textContent = 'Tanggal Rapat: ' + tgl;
+                select.appendChild(opt);
+            });
+        }
+
+        function tarikSemuaTopikTanggalLalu() {
+            const tglLalu = document.getElementById('selectTanggalLalu').value;
+            if(!tglLalu) {
+                alert('Silakan pilih tanggal rapat sebelumnya terlebih dahulu!');
+                return;
+            }
+            if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+            let topikLama = dataTopManagement.filter(n => n.tanggal === tglLalu);
+            if(topikLama.length === 0) {
+                alert('Tidak ditemukan topik pada tanggal tersebut.');
+                return;
+            }
+            document.getElementById('notulenTopikUtama').value = topikLama[0].topikUtama || '';
+            document.getElementById('notulenPembahasan').value = topikLama[0].pembahasan || '';
+            document.getElementById('notulenTindakLanjut').value = topikLama[0].tindakLanjut || '';
+            alert('Topik rapat sebelumnya berhasil ditarik!');
         }
 
         function formatPembahasan(teks) {
@@ -307,23 +655,37 @@
             return '<span class="text-secondary small">' + teks + '</span>';
         }
 
-        function renderNotulenKonsolidasi() {
+        function renderNotulenKonsolidasi(targetRowIndex = null) {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
             container.innerHTML = '';
 
-            if(!Array.isArray(dataKonsolidasi)) dataKonsolidasi = [];
-
-            const fDept = document.getElementById('filterDepartemen').value;
+            const modeTampilan = document.getElementById('filterModeTampilan').value;
             const fTahun = document.getElementById('filterTahun').value;
             const fBulan = document.getElementById('filterBulan').value;
             const fStatus = document.getElementById('filterStatus').value;
             const fKeyword = document.getElementById('filterKeyword').value.toLowerCase();
 
-            let filtered = dataKonsolidasi.filter(n => {
+            let dataAktif = [];
+            let isRapatInternal = (modeTampilan === 'RapatInternal');
+
+            if(isRapatInternal) {
+                if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+                dataTopManagement.forEach((n, idx) => { n.originalIndex = idx; n.departemenSumber = 'Top Management'; });
+                dataAktif = dataTopManagement;
+            } else if(modeTampilan === 'ALL') {
+                // Gabungkan Top Management + Semua Departemen
+                let combined = [...dataTopManagement];
+                dataKonsolidasiGlobal.forEach(item => combined.push(item));
+                dataAktif = combined;
+            } else {
+                // Filter departemen tertentu saja
+                dataAktif = dataKonsolidasiGlobal.filter(item => item.departemenSumber === modeTampilan);
+            }
+
+            let filtered = dataAktif.filter(n => {
                 if(!n || !n.tanggal) return false;
                 let p = n.tanggal.split('-');
-                let matchDept = (fDept === 'ALL' || n.departemenSumber === fDept);
                 let matchTahun = (fTahun === 'ALL' || p[0] === fTahun);
                 let matchBulan = (fBulan === 'ALL' || p[1] === fBulan);
                 let matchStatus = (fStatus === 'ALL' || n.status === fStatus);
@@ -334,40 +696,57 @@
                     matchKeyword = combined.includes(fKeyword);
                 }
 
-                return matchDept && matchTahun && matchBulan && matchStatus && matchKeyword;
+                return matchTahun && matchBulan && matchStatus && matchKeyword;
             });
 
             if(filtered.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Tidak ada data rapat yang sesuai dengan filter konsolidasi.</div>';
+                let msg = isRapatInternal ? 'Belum ada data Rapat Top Management. Silakan klik "+ Buat Rapat Top Management Baru".' : 'Tidak ada data rapat yang sesuai dengan filter.';
+                container.innerHTML = `<div class="p-4 text-center text-muted">${msg}</div>`;
                 return;
             }
 
-            // Kelompokkan berdasarkan Departemen lalu Tanggal
-            let groupedByDept = {};
+            let grouped = {};
             filtered.forEach(item => {
-                let dName = item.departemenSumber || 'Umum';
-                if(!groupedByDept[dName]) groupedByDept[dName] = [];
-                groupedByDept[dName].push(item);
+                let dName = isRapatInternal ? (item.periode + '||' + item.tanggal + '||' + (item.lokasi||'-') + '||' + (item.media||'-') + '||' + (item.leader||'-') + '||' + (item.notulis||'-')) : (item.departemenSumber + ' || ' + item.periode + ' || ' + item.tanggal);
+                if(!grouped[dName]) grouped[dName] = [];
+                grouped[dName].push(item);
             });
 
             let htmlOutput = '';
-            for(let dept in groupedByDept) {
+            for(let key in grouped) {
+                let parts = key.split(' || ');
+                let cardTitle = isRapatInternal ? `📅 Rapat Eksekutif — Periode: ${parts[0]} | Tanggal: ${parts[1]} | Lokasi: ${parts[2]}` : `📂 Departemen / Sesi: ${parts[0]} — ${parts[1]} (${parts[2]})`;
+
+                let actionButtonsHtml = '';
+                if(isRapatInternal) {
+                    let safeKey = key.replace(/'/g, "\\'");
+                    let partsKey = key.split('||');
+                    let pPeriode = partsKey[0], pTgl = partsKey[1], pLok = partsKey[2], pMedia = partsKey[3], pLead = partsKey[4], pNotu = partsKey[5];
+                    
+                    actionButtonsHtml = '<div class="d-flex gap-2 btn-action-group-print">' +
+                        `<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs('${safeKey}')">📋 Save As / Salin Rapat</button>` +
+                        `<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik('${pPeriode}', '${pTgl}', '${pLok}', '${pMedia}', '${pLead}', '${pNotu}')">+ Tambah Topik</button>` +
+                        '</div>';
+                }
+
                 htmlOutput += `<div class="card mb-4 shadow-sm border-0">` +
-                    `<div class="card-header bg-teal-custom text-white py-2">` +
-                    `<h5 class="mb-0 fs-6 fw-bold">📂 Departemen / Modul: ${dept} (${groupedByDept[dept].length} Item Tindak Lanjut)</h5>` +
+                    `<div class="card-header card-header-sticky text-white py-2 d-flex justify-content-between align-items-center">` +
+                    `<div><h5 class="mb-0 fs-6 fw-bold">${cardTitle}</h5></div>` +
+                    `${actionButtonsHtml}` +
                     `</div><div class="card-body p-0"><div class="table-responsive table-scroll-container">` +
                     `<table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">` +
                     `<thead class="table-light text-center"><tr>` +
                     `<th style="width: 5%;">No.</th>` +
-                    `<th style="width: 12%;">Tanggal & Periode</th>` +
+                    (!isRapatInternal ? `<th style="width: 10%;">Sumber</th>` : ``) +
                     `<th style="width: 17%;">Topik Utama</th>` +
-                    `<th style="width: 20%;">Pembahasan & Arahan</th>` +
-                    `<th style="width: 30%;">Tindak Lanjut</th>` +
+                    `<th style="width: 22%;">Pembahasan & Arahan</th>` +
+                    `<th style="width: 32%;">Tindak Lanjut & Keputusan</th>` +
                     `<th style="width: 16%;">Target, PIC & Status</th>` +
+                    (isRapatInternal ? `<th style="width: 8%;" class="no-print">Aksi</th>` : ``) +
                     `</tr></thead><tbody>`;
 
                 let no = 1;
-                groupedByDept[dept].forEach(n => {
+                grouped[key].forEach(n => {
                     let badgeClass = 'bg-primary';
                     if(n.status === 'Open') badgeClass = 'bg-warning text-dark';
                     else if(n.status === 'Closing') badgeClass = 'bg-success';
@@ -381,17 +760,31 @@
 
                     let picStr = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
-                    htmlOutput += `<tr>` +
+                    let tAwalFmt = n.targetAwal || '-';
+                    let tDeadFmt = n.deadline || '-';
+                    try {
+                        if(n.targetAwal) { let pa = n.targetAwal.split('-'); tAwalFmt = new Date(pa[0], pa[1]-1, pa[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }); }
+                        if(n.deadline) { let pd = n.deadline.split('-'); tDeadFmt = new Date(pd[0], pd[1]-1, pd[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+                    } catch(e) {}
+
+                    let isTargetRow = (targetRowIndex !== null && n.originalIndex === targetRowIndex);
+                    let rowHighlightStyle = isTargetRow ? 'background-color: #fff3cd !important;' : '';
+
+                    htmlOutput += `<tr id="row-item-${n.originalIndex}" style="${rowHighlightStyle}">` +
                         `<td class="text-center fw-bold text-secondary">${no++}</td>` +
-                        `<td class="text-center small"><strong>${n.periode || '-'}</strong><br>${tglFmt}<br><span class="text-muted" style="font-size:10px;">${n.lokasi||'-'}</span></td>` +
+                        (!isRapatInternal ? `<td class="text-center small fw-bold text-teal">${n.departemenSumber||'-'}</td>` : ``) +
                         `<td style="word-wrap: break-word;"><strong>${n.topikUtama || '-'}</strong><br><span class="text-muted small">Leader: ${n.leader||'-'}</span></td>` +
                         `<td style="word-wrap: break-word;">${formatPembahasan(n.pembahasan)}</td>` +
                         `<td style="word-wrap: break-word;">${formatTindakLanjut(n.tindakLanjut)}</td>` +
                         `<td style="word-wrap: break-word;"><div class="small" style="font-size: 11px; line-height: 1.3;">` +
                         `👥 <strong>PIC:</strong> ${picStr}<br>` +
-                        `🎯 <strong>Start:</strong> ${n.targetAwal||'-'}<br>` +
-                        `⌛ <strong>Due:</strong> ${n.deadline||'-'}<br>` +
+                        `🎯 <strong>Start:</strong> ${tAwalFmt}<br>` +
+                        `⌛ <strong>Due:</strong> ${tDeadFmt}<br>` +
                         `<span class="badge ${badgeClass} mt-1" style="font-size: 10px;">${n.status}</span></div></td>` +
+                        (isRapatInternal ? `<td class="text-center no-print" style="word-wrap: break-word;">` +
+                        `<button class="btn btn-sm btn-outline-warning mb-1 px-1 w-100" style="font-size: 11px;" onclick="bukaModalEditNotulen(${n.originalIndex})">Edit</button>` +
+                        `<button class="btn btn-sm btn-outline-danger px-1 w-100" style="font-size: 11px;" onclick="hapusNotulen(${n.originalIndex})">Hapus</button>` +
+                        `</td>` : ``) +
                         `</tr>`;
                 });
 
@@ -399,22 +792,282 @@
             }
 
             container.innerHTML = htmlOutput;
+
+            if (targetRowIndex !== null && isRapatInternal) {
+                setTimeout(() => {
+                    let targetEl = document.getElementById('row-item-' + targetRowIndex);
+                    if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
+            }
+        }
+
+        function bukaModalNotulenBaru() {
+            document.getElementById('modalTitleNotulen').innerText = 'Buat Rapat Baru (Top Management)';
+            document.getElementById('editIndexNotulen').value = '-1';
+            document.getElementById('modeFormNotulen').value = 'baru';
+            document.getElementById('wrapperMetadataRapat').style.display = 'block';
+
+            document.getElementById('notulenPeriode').value = 'Minggu ke-1';
+            document.getElementById('notulenTanggal').value = getTodayLocalDate();
+            document.getElementById('notulenLokasi').selectedIndex = 0;
+            document.getElementById('mediaOffline').checked = false;
+            document.getElementById('mediaOnline').checked = false;
+            document.getElementById('notulenLeader').value = 'Direktur Utama';
+            document.getElementById('notulenNotulis').value = '';
+
+            resetFormInti();
+            isiDropdownTanggalLalu();
+            
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+
+        function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader, notulis) {
+            document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik Rapat Eksekutif: ' + periode + ' (' + tanggal + ')';
+            document.getElementById('editIndexNotulen').value = '-1';
+            document.getElementById('modeFormNotulen').value = 'tambah_topik';
+            document.getElementById('wrapperMetadataRapat').style.display = 'none';
+
+            document.getElementById('notulenPeriode').value = periode;
+            document.getElementById('notulenTanggal').value = tanggal;
+            document.getElementById('notulenLeader').value = leader;
+            document.getElementById('notulenNotulis').value = notulis;
+
+            resetFormInti();
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+
+        function bukaModalSaveAs(groupKey) {
+            let partsKey = groupKey.split('||');
+            let defaultLeader = partsKey[4] || '';
+            let defaultNotulis = partsKey[5] || '';
+
+            document.getElementById('saveAsSourceKey').value = groupKey;
+            document.getElementById('saveAsTanggal').value = getTodayLocalDate();
+            document.getElementById('saveAsMediaOffline').checked = false;
+            document.getElementById('saveAsMediaOnline').checked = false;
+            document.getElementById('saveAsLeader').value = defaultLeader;
+            document.getElementById('saveAsNotulis').value = defaultNotulis;
+
+            let modalEl = document.getElementById('modalSaveAs');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+
+        function prosesSaveAsRapat() {
+            let groupKey = document.getElementById('saveAsSourceKey').value;
+            let targetPeriode = document.getElementById('saveAsPeriode').value;
+            let targetTanggal = parseEdgeDate(document.getElementById('saveAsTanggal').value);
+            let targetLokasi = document.getElementById('saveAsLokasi').value;
+
+            let mediaList = [];
+            if(document.getElementById('saveAsMediaOffline').checked) mediaList.push('Offline');
+            if(document.getElementById('saveAsMediaOnline').checked) mediaList.push('Online');
+            let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+            let targetLeader = document.getElementById('saveAsLeader').value || 'Direktur Utama';
+            let targetNotulis = document.getElementById('saveAsNotulis').value || '-';
+
+            if(!targetTanggal) {
+                alert('Tentukan tanggal rapat baru terlebih dahulu!');
+                return;
+            }
+
+            if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+            let itemsToCopy = dataTopManagement.filter(item => {
+                let key = item.periode + '||' + item.tanggal + '||' + (item.lokasi || '-') + '||' + (item.media || '-') + '||' + (item.leader || '-') + '||' + (item.notulis || '-');
+                return key === groupKey;
+            });
+
+            if(itemsToCopy.length === 0) {
+                alert('Tidak ada topik ditemukan untuk disalin.');
+                return;
+            }
+
+            itemsToCopy.forEach(src => {
+                let clonedItem = {
+                    periode: targetPeriode,
+                    tanggal: targetTanggal,
+                    lokasi: targetLokasi,
+                    media: targetMedia,
+                    leader: targetLeader,
+                    notulis: targetNotulis,
+                    topikUtama: src.topikUtama,
+                    pembahasan: src.pembahasan,
+                    tindakLanjut: src.tindakLanjut,
+                    pic: src.pic,
+                    targetAwal: src.targetAwal,
+                    deadline: src.deadline,
+                    status: src.status
+                };
+                dataTopManagement.unshift(clonedItem);
+            });
+
+            simpanKeStorage();
+            document.getElementById('filterModeTampilan').value = 'RapatInternal';
+            renderNotulenKonsolidasi();
+            isiDropdownTanggalLalu();
+            
+            let modalEl = document.getElementById('modalSaveAs');
+            let modalObj = bootstrap.Modal.getInstance(modalEl);
+            if(modalObj) modalObj.hide();
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            alert('Rapat Top Management berhasil disalin ke periode baru!');
+        }
+
+        function resetFormInti() {
+            document.getElementById('notulenTopikUtama').value = '';
+            document.getElementById('notulenPembahasan').value = '';
+            document.getElementById('notulenTindakLanjut').value = '';
+            document.getElementById('notulenTargetAwal').value = getTodayLocalDate();
+            document.getElementById('notulenDeadline').value = getTodayLocalDate();
+            document.getElementById('notulenStatus').value = 'Open';
+            hitungDurasiDeviasi();
+            renderPicCheckboxes([]);
+        }
+
+        function bukaModalEditNotulen(index) {
+            document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat Top Management';
+            document.getElementById('editIndexNotulen').value = index;
+            document.getElementById('modeFormNotulen').value = 'edit';
+            document.getElementById('wrapperMetadataRapat').style.display = 'none';
+
+            if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+            const n = dataTopManagement[index];
+            if(!n) return;
+
+            document.getElementById('notulenPeriode').value = n.periode || 'Minggu ke-1';
+            document.getElementById('notulenTanggal').value = n.tanggal || getTodayLocalDate();
+            document.getElementById('notulenLeader').value = n.leader || '';
+            document.getElementById('notulenNotulis').value = n.notulis || '';
+
+            document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
+            document.getElementById('notulenPembahasan').value = n.pembahasan || '';
+            document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
+            document.getElementById('notulenTargetAwal').value = n.targetAwal || getTodayLocalDate();
+            document.getElementById('notulenDeadline').value = n.deadline || getTodayLocalDate();
+            document.getElementById('notulenStatus').value = n.status || 'Open';
+
+            hitungDurasiDeviasi();
+            let savedPics = Array.isArray(n.pic) ? n.pic : (n.pic ? [n.pic] : []);
+            renderPicCheckboxes(savedPics);
+
+            let modalEl = document.getElementById('modalNotulen');
+            let myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+
+        function simpanNotulenOnline() {
+            try {
+                if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+
+                const index = parseInt(document.getElementById('editIndexNotulen').value);
+                const mode = document.getElementById('modeFormNotulen').value;
+
+                let periode, tanggal, lokasi, media, leader, notulis;
+                let rawTglRapat = parseEdgeDate(document.getElementById('notulenTanggal').value);
+
+                if (index !== -1 && mode === 'edit') {
+                    const itemLama = dataTopManagement[index] || {};
+                    periode = itemLama.periode || 'Minggu ke-1';
+                    tanggal = itemLama.tanggal || getTodayLocalDate();
+                    lokasi = itemLama.lokasi || 'Ruang Direksi / Utama';
+                    media = itemLama.media || 'Offline';
+                    leader = itemLama.leader || 'Direktur Utama';
+                    notulis = itemLama.notulis || '-';
+                } else {
+                    periode = document.getElementById('notulenPeriode').value;
+                    tanggal = rawTglRapat;
+                    lokasi = document.getElementById('notulenLokasi').value;
+                    
+                    let mediaList = [];
+                    if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
+                    if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
+                    media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
+
+                    leader = document.getElementById('notulenLeader').value || 'Direktur Utama';
+                    notulis = document.getElementById('notulenNotulis').value || '-';
+                }
+
+                const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
+                const pembahasan = document.getElementById('notulenPembahasan').value.trim();
+                const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
+                const targetAwal = parseEdgeDate(document.getElementById('notulenTargetAwal').value);
+                const deadline = parseEdgeDate(document.getElementById('notulenDeadline').value);
+                const status = document.getElementById('notulenStatus').value;
+
+                let selectedPics = [];
+                let checkboxes = document.querySelectorAll('.pic-checkbox:checked');
+                checkboxes.forEach(cb => { selectedPics.push(cb.value); });
+                if(selectedPics.length === 0) { selectedPics.push("Direksi / Manajemen"); }
+
+                if(!topikUtama) { 
+                    alert('Topik Utama wajib diisi!'); 
+                    return; 
+                }
+
+                const dataBaru = { periode, tanggal, lokasi, media, leader, notulis, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, targetAwal, deadline, status };
+
+                let targetSaveIndex = index;
+                if(index === -1) { 
+                    dataTopManagement.unshift(dataBaru); 
+                    targetSaveIndex = 0;
+                } else { 
+                    dataTopManagement[index] = dataBaru; 
+                }
+
+                simpanKeStorage();
+                document.getElementById('filterModeTampilan').value = 'RapatInternal';
+                renderNotulenKonsolidasi(targetSaveIndex);
+                isiDropdownTanggalLalu();
+                
+                let modalEl = document.getElementById('modalNotulen');
+                let modalObj = bootstrap.Modal.getInstance(modalEl);
+                if(modalObj) modalObj.hide();
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                
+            } catch (err) {
+                alert('Terjadi kesalahan saat menyimpan: ' + err.message);
+            }
+        }
+
+        function hapusNotulen(index) {
+            if(confirm('Hapus notulen Rapat Top Management ini secara permanen?')) {
+                if(!Array.isArray(dataTopManagement)) dataTopManagement = [];
+                dataTopManagement.splice(index, 1);
+                simpanKeStorage();
+                renderNotulenKonsolidasi();
+                isiDropdownTanggalLalu();
+                alert('Data berhasil dihapus.');
+            }
         }
 
         function downloadAllExcel() {
-            if(dataKonsolidasi.length === 0) {
-                alert('Tidak ada data konsolidasi untuk diunduh.');
+            let allData = [...dataTopManagement];
+            dataKonsolidasiGlobal.forEach(i => allData.push(i));
+
+            if (allData.length === 0) {
+                alert('Belum ada data untuk diunduh.');
                 return;
             }
-            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
-                '<head><meta charset="utf-8"><title>Konsolidasi Top Management</title></head><body>' +
-                '<table border="1"><tr><th colspan="13" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - KONSOLIDASI RAPAT LINTAS DEPARTEMEN</th></tr>' +
-                '<tr style="background-color:#f2f2f2;"><th>Departemen</th><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
 
-            dataKonsolidasi.forEach(item => {
+            let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head><meta charset="utf-8"><title>Rekap Top Management BSS</title></head><body>' +
+                '<table border="1"><tr><th colspan="13" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - KONSOLIDASI & RAPAT TOP MANAGEMENT</th></tr>' +
+                '<tr style="background-color:#f2f2f2;"><th>Sumber / Modul</th><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
+
+            allData.forEach(item => {
                 let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
                 htmlContent += '<tr>' +
-                    '<td>' + (item.departemenSumber || '-') + '</td>' +
+                    '<td>' + (item.departemenSumber || 'Top Management') + '</td>' +
                     '<td>' + (item.periode || '-') + '</td>' +
                     '<td>' + (item.tanggal || '-') + '</td>' +
                     '<td>' + (item.lokasi || '-') + '</td>' +
@@ -434,29 +1087,33 @@
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = 'Konsolidasi_Top_Management.xls';
+            a.download = 'Rekap_Top_Management_Dan_Konsolidasi.xls';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
         function downloadAllWord() {
-            if(dataKonsolidasi.length === 0) {
-                alert('Tidak ada data konsolidasi untuk diunduh.');
+            let allData = [...dataTopManagement];
+            dataKonsolidasiGlobal.forEach(i => allData.push(i));
+
+            if (allData.length === 0) {
+                alert('Belum ada data untuk diunduh.');
                 return;
             }
+
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-                '<head><meta charset="utf-8"><title>Laporan Eksekutif Konsolidasi</title></head>' +
+                '<head><meta charset="utf-8"><title>Laporan Top Management</title></head>' +
                 '<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">' +
                 '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT. BANGUN SENTRAL SULAWESI</h2>' +
-                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN Konsolidasi Eksekutif Lintas Departemen</h3><hr style="border: 1px solid #0d9488;">';
+                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN EKSEKUTIF & RAPAT TOP MANAGEMENT</h3><hr style="border: 1px solid #0d9488;">';
 
-            dataKonsolidasi.forEach((item, idx) => {
+            allData.forEach((item, idx) => {
                 let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
                 htmlContent += '<div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">' +
-                    '<h4>' + (idx + 1) + '. [' + (item.departemenSumber||'Umum') + ' - ' + item.periode + '] ' + item.topikUtama + '</h4>' +
-                    '<p><strong>Tanggal:</strong> ' + item.tanggal + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Leader:</strong> ' + (item.leader || '-') + '</p>' +
-                    '<p><strong>Status:</strong> ' + item.status + ' | <strong>PIC:</strong> ' + picStr + '</p>' +
+                    '<h4>' + (idx + 1) + '. [' + (item.departemenSumber || 'Top Management') + ' - ' + (item.periode || '-') + '] ' + (item.topikUtama || '-') + '</h4>' +
+                    '<p><strong>Tanggal:</strong> ' + (item.tanggal || '-') + ' | <strong>Lokasi:</strong> ' + (item.lokasi || '-') + ' | <strong>Leader:</strong> ' + (item.leader || '-') + '</p>' +
+                    '<p><strong>Status:</strong> ' + (item.status || '-') + ' | <strong>PIC:</strong> ' + picStr + '</p>' +
                     '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
                     '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p></div>';
             });
@@ -466,7 +1123,7 @@
             let url = URL.createObjectURL(blob);
             let a_elem = document.createElement('a');
             a_elem.href = url;
-            a_elem.download = 'Laporan_Konsolidasi_Eksekutif.doc';
+            a_elem.download = 'Laporan_Eksekutif_Top_Management.doc';
             document.body.appendChild(a_elem);
             a_elem.click();
             document.body.removeChild(a_elem);

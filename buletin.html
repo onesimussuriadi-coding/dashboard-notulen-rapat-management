@@ -323,7 +323,7 @@
 
             let pass = passwordInput.trim();
 
-            // Sistem Akses Cerdas Langsung ke Ruangan Masing-Masing
+            // Sistem Akses Cerdas Langsung ke Ruangan Masing-Masing atau Dashboard Utama Top Management
             if (pass === 'hrd123') {
                 sessionStorage.setItem('bss_hrd_auth', 'true');
                 window.location.href = 'notulen-hrd.html';
@@ -350,7 +350,7 @@
                 window.location.href = 'notulen.html'; // Rapat Tinjauan Manajemen (RTM) Antar Manajer
             } else if (pass === 'topmanagement123') {
                 sessionStorage.setItem('bss_topmanagement_auth', 'true');
-                window.location.href = 'notulen-topmanagement.html'; // Pusat Pengawasan & Rapat Eksekutif
+                window.location.href = 'dashboard.html'; // Mengarahkan langsung ke Pusat Dashboard Pengawasan Top Management
             } else {
                 alert("Password salah atau tidak dikenali! Periksa kembali kode akses Anda.");
             }

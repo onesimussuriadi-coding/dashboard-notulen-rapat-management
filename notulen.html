@@ -50,12 +50,13 @@
             </div>
         </div>
 
+        <!-- FILTER PANEL TAMBAHAN DROPDOWN TANGGAL RAPAT -->
         <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body py-3">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Tahun</label>
-                        <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterTahun" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL">Semua Tahun (All)</option>
                             <option value="2026" selected>2026</option>
                             <option value="2027">2027</option>
@@ -63,16 +64,16 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
-                        <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterBulan" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL">Semua Bulan (All)</option>
                             <option value="08">Agustus</option>
                             <option value="09" selected>September</option>
                             <option value="10">Oktober</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold mb-1">Filter Periode Minggu</label>
-                        <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL" selected>Semua Minggu</option>
                             <option value="Minggu ke-1">Minggu ke-1</option>
                             <option value="Minggu ke-2">Minggu ke-2</option>
@@ -80,7 +81,13 @@
                             <option value="Minggu ke-4">Minggu ke-4</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold mb-1 text-teal">📅 Pilih Tanggal Rapat</label>
+                        <select id="filterTanggalSpesifik" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL" selected>Semua Tanggal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold mb-1">Status Tindak Lanjut</label>
                         <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Status Aktif</option>
@@ -367,6 +374,7 @@
                 }
             }
 
+            updateDropdownTanggalSpesifik();
             renderNotulen();
             isiDropdownTanggalLalu();
             isiDropdownLeaderDanNotulis();
@@ -377,6 +385,63 @@
 
         function simpanKeStorage() {
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
+        }
+
+        // Memperbarui opsi tanggal rapat spesifik di dropdown berdasarkan tahun, bulan, & minggu yang dipilih
+        function updateDropdownTanggalSpesifik() {
+            const selectTgl = document.getElementById('filterTanggalSpesifik');
+            if(!selectTgl) return;
+
+            let currentVal = selectTgl.value;
+            const filterTahun = document.getElementById('filterTahun').value;
+            const filterBulan = document.getElementById('filterBulan').value;
+            const filterMinggu = document.getElementById('filterPeriodeMinggu').value;
+
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
+
+            // Filter data notulen yang sesuai dengan tahun, bulan, dan minggu
+            let matchedDates = new Set();
+            dataNotulen.forEach(n => {
+                if(!n || !n.tanggal) return;
+                let p = n.tanggal.split('-');
+                let tTahun = p[0];
+                let tBulan = p[1];
+                let tMinggu = n.periode;
+
+                let matchTahun = (filterTahun === 'ALL' || tTahun === filterTahun);
+                let matchBulan = (filterBulan === 'ALL' || tBulan === filterBulan);
+                let matchMinggu = (filterMinggu === 'ALL' || tMinggu === filterMinggu);
+
+                if(matchTahun && matchBulan && matchMinggu) {
+                    matchedDates.add(n.tanggal);
+                }
+            });
+
+            let sortedDates = Array.from(matchedDates).sort().reverse();
+            let htmlOptions = '<option value="ALL">Semua Tanggal</option>';
+            
+            sortedDates.forEach(dt => {
+                let formattedDt = dt;
+                try {
+                    let p = dt.split('-');
+                    formattedDt = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {}
+                htmlOptions += `<option value="${dt}">${formattedDt}</option>`;
+            });
+
+            selectTgl.innerHTML = htmlOptions;
+            
+            // Pertahankan nilai sebelumnya jika masih ada dalam daftar
+            if(sortedDates.includes(currentVal)) {
+                selectTgl.value = currentVal;
+            } else {
+                selectTgl.value = 'ALL';
+            }
+        }
+
+        function onFilterChange() {
+            updateDropdownTanggalSpesifik();
+            renderNotulen();
         }
 
         function isiDropdownLeaderDanNotulis() {
@@ -623,6 +688,7 @@
             const filterTahun = document.getElementById('filterTahun').value;
             const filterBulan = document.getElementById('filterBulan').value;
             const filterPeriodeMinggu = document.getElementById('filterPeriodeMinggu').value;
+            const filterTanggalSpesifik = document.getElementById('filterTanggalSpesifik').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
             let filteredData = dataNotulen.filter((n, idx) => {
@@ -631,9 +697,10 @@
                 let matchTahun = (filterTahun === 'ALL' || p[0] === filterTahun);
                 let matchBulan = (filterBulan === 'ALL' || p[1] === filterBulan);
                 let matchMinggu = (filterPeriodeMinggu === 'ALL' || n.periode === filterPeriodeMinggu);
+                let matchTanggal = (filterTanggalSpesifik === 'ALL' || n.tanggal === filterTanggalSpesifik);
                 let matchStatus = (filterStatus === 'ALL' || n.status === filterStatus);
                 n.originalIndex = idx;
-                return matchTahun && matchBulan && matchMinggu && matchStatus;
+                return matchTahun && matchBulan && matchMinggu && matchTanggal && matchStatus;
             });
 
             if(filteredData.length === 0) {
@@ -776,7 +843,6 @@
         function bukaModalSaveAs(groupKey) {
             initModulNotulen();
 
-            // Ambil data pemimpin & notulis lama dari groupKey jika ada untuk default
             let partsKey = groupKey.split('||');
             let defaultLeader = partsKey[4] || '';
             let defaultNotulis = partsKey[5] || '';
@@ -844,6 +910,7 @@
             });
 
             simpanKeStorage();
+            updateDropdownTanggalSpesifik();
             renderNotulen();
             isiDropdownTanggalLalu();
             
@@ -973,6 +1040,7 @@
                 } catch(e) {}
 
                 simpanKeStorage();
+                updateDropdownTanggalSpesifik();
                 renderNotulen();
                 isiDropdownTanggalLalu();
                 
@@ -994,6 +1062,7 @@
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
                 simpanKeStorage();
+                updateDropdownTanggalSpesifik();
                 renderNotulen();
                 isiDropdownTanggalLalu();
                 alert('Data berhasil dihapus.');

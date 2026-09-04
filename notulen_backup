@@ -273,14 +273,13 @@
                             <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 140px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
-                            <!-- PERUBAHAN UTAMA: Target Awal, Deadline, & Kalkulasi Deviasi/Durasi -->
                             <div class="row g-2 mb-2">
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-teal">Target Awal</label>
+                                    <label class="form-label small fw-bold text-teal">Target Awal (Mulai)</label>
                                     <input type="date" id="notulenTargetAwal" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-teal">Deadline Pekerjaan</label>
+                                    <label class="form-label small fw-bold text-teal">Deadline (Selesai)</label>
                                     <input type="date" id="notulenDeadline" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
                                 </div>
                             </div>
@@ -664,9 +663,13 @@
 
                 if(namaP) {
                     let bersihNama = namaP.trim();
-                    let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
-                    if(!uniqueMap.has(bersihNama)) {
-                        uniqueMap.set(bersihNama, identifier);
+                    // FILTER TAMBAHAN: Mencegah teks tanggal (misal yang berformat YYYY-MM-DD atau DD MMM YYYY) masuk sebagai nama PIC
+                    let isDateString = /^\d{2,4}[-\/]\d{2}[-\/]\d{2}$/.test(bersihNama) || /^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/.test(bersihNama);
+                    if(!isDateString && bersihNama.toLowerCase() !== 'tanggal' && bersihNama.length > 2) {
+                        let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
+                        if(!uniqueMap.has(bersihNama)) {
+                            uniqueMap.set(bersihNama, identifier);
+                        }
                     }
                 }
             });
@@ -880,7 +883,7 @@
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
                     '<div class="d-flex gap-2">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
-                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + \'', \'' + safeTanggal + \'', \'' + safeLokasi + \'', \'' + safeMedia + \'', \'' + safeLeader + \'', \'' + safeNotulis + \')">+ Tambah Topik</button>' +
+                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
                     '</div></div>' +
                     '<div class="card-body p-0"><div class="table-responsive table-scroll-container"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
@@ -912,7 +915,6 @@
                         }
                     } catch(e) {}
 
-                    // Hitung deviasi/durasi untuk ditampilkan di tabel
                     let durasiText = '-';
                     if(n.targetAwal && n.deadline) {
                         let diffDays = Math.round((new Date(n.deadline) - new Date(n.targetAwal)) / (1000 * 60 * 60 * 24)) + 1;

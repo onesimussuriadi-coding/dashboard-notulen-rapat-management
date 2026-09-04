@@ -6,6 +6,17 @@
     <title>Daftar Absen & Kehadiran Rapat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <style>
+        /* Pemanis khusus cetak PDF agar bersih dari tombol dan navbar */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            .table { width: 100% !important; border-collapse: collapse !important; }
+            .table th, .table td { border: 1px solid #dee2e6 !important; }
+        }
+    </style>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -29,6 +40,7 @@
                 personel: JSON.parse(localStorage.getItem('bss_personel')) || [],
                 jadwal: JSON.parse(localStorage.getItem('bss_jadwal')) || [],
                 absen: JSON.parse(localStorage.getItem('bss_absen')) || [],
+                absen_arsip: JSON.parse(localStorage.getItem('bss_absen_arsip')) || [],
                 notulen: JSON.parse(localStorage.getItem('bss_notulen')) || []
             };
 
@@ -45,10 +57,15 @@
                     localStorage.setItem('bss_absen', JSON.stringify(serverData.absen));
                     dataAbsen = serverData.absen;
                 }
+                if (serverData.absen_arsip) {
+                    localStorage.setItem('bss_absen_arsip', JSON.stringify(serverData.absen_arsip));
+                    dataAbsenArsip = serverData.absen_arsip;
+                }
                 if (serverData.jadwal) localStorage.setItem('bss_jadwal', JSON.stringify(serverData.jadwal));
                 if (serverData.notulen) localStorage.setItem('bss_notulen', JSON.stringify(serverData.notulen));
                 
                 if (typeof renderAbsen === 'function' && typeof isiDropdownMaster === 'function') {
+                    updateDropdownFilterTanggal();
                     renderAbsen();
                     isiDropdownMaster();
                 }
@@ -58,8 +75,8 @@
 </head>
 <body class="bg-light" onload="muatDataAbsen()">
 
-    <!-- NAVBAR KONSISTEN (PINDAH MODUL DENGAN MUDAH) -->
-    <nav class="navbar navbar-dark bg-success shadow-sm">
+    <!-- NAVBAR KONSISTEN -->
+    <nav class="navbar navbar-dark bg-success shadow-sm no-print">
         <div class="container-fluid px-4">
             <span class="navbar-brand mb-0 h1 fs-6">📝 Modul Daftar Absen & Kehadiran Rapat</span>
             <div class="d-flex gap-2">
@@ -72,15 +89,37 @@
     </nav>
 
     <div class="container my-5">
-        <div class="row mb-4 align-items-center">
+        <div class="row mb-4 align-items-center no-print">
             <div class="col">
                 <h3>Formulir Kehadiran Peserta Rapat</h3>
-                <p class="text-muted">Pilih nama personel terdaftar atau input manual untuk tamu/pihak ketiga secara real-time.</p>
+                <p class="text-muted mb-0">Pilih nama personel terdaftar atau input manual untuk tamu/pihak ketiga secara real-time.</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-dark me-2 fw-bold" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-warning me-2 fw-bold text-dark" onclick="syncDataToCloud()">🔄 Sinkron Cloud</button>
                 <button class="btn btn-success" onclick="bukaModalAbsen()">+ Isi Absen</button>
+            </div>
+        </div>
+
+        <!-- PANEL KONTROL ARSIP & FILTER TANGGAL RAPAT -->
+        <div class="card shadow-sm mb-4 bg-white border-0 no-print">
+            <div class="card-body py-3">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold mb-1">📅 Filter Tanggal Rapat (Aktif / Arsip):</label>
+                        <select id="filterTanggalAbsen" class="form-select form-select-sm" onchange="renderAbsen()">
+                            <option value="AKTIF">-- Tampilkan Daftar Absen Aktif --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 text-md-end">
+                        <div class="d-inline-flex gap-2 align-items-center">
+                            <select id="selectArsipTanggal" class="form-select form-select-sm" style="width: 200px;">
+                                <option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm fw-bold text-nowrap" onclick="arsipkanRapatTanggalIni()">💾 Simpan / Arsipkan Rapat</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -93,7 +132,7 @@
                                 <th>Waktu & Tanggal Rapat</th>
                                 <th>Nama Peserta & Jabatan</th>
                                 <th>Status & Keterangan</th>
-                                <th class="text-center">Aksi</th>
+                                <th class="text-center no-print">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="bodyTabelAbsen"></tbody>
@@ -149,11 +188,12 @@
         </div>
     </div>
 
-    <footer class="text-center py-4 text-muted"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Absensi</small></footer>
+    <footer class="text-center py-4 text-muted no-print"><small>&copy; 2026 PT Banggai Sentral Sulawesi - Modul Absensi</small></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         let dataAbsen = JSON.parse(localStorage.getItem('bss_absen')) || [];
+        let dataAbsenArsip = JSON.parse(localStorage.getItem('bss_absen_arsip')) || [];
         let dataPersonel = JSON.parse(localStorage.getItem('bss_personel')) || [
             { nama: "Ferry Tatimu", jabatan: "Direktur" },
             { nama: "Prayogo Sudana", jabatan: "General Manager" },
@@ -161,7 +201,11 @@
             { nama: "Elizabeth Nani Ekawati", jabatan: "Admin Operasional" }
         ];
 
-        function muatDataAbsen() { renderAbsen(); isiDropdownMaster(); }
+        function muatDataAbsen() { 
+            updateDropdownFilterTanggal();
+            renderAbsen(); 
+            isiDropdownMaster(); 
+        }
 
         function syncDataToCloud() {
             alert('Menyinkronkan data secara real-time ke Cloud...');
@@ -180,6 +224,90 @@
                 opt.textContent = `${p.nama} (${p.jabatan})`;
                 select.appendChild(opt);
             });
+        }
+
+        function updateDropdownFilterTanggal() {
+            const filterSelect = document.getElementById('filterTanggalAbsen');
+            const arsipSelect = document.getElementById('selectArsipTanggal');
+            if(!filterSelect || !arsipSelect) return;
+
+            let currentFilter = filterSelect.value;
+
+            // Kumpulkan tanggal unik dari data absen aktif & arsip
+            let tanggalSet = new Set();
+            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalSet.add(a.rawTanggal); });
+            dataAbsenArsip.forEach(ar => {
+                if(ar.tanggalRapat) tanggalSet.add(ar.tanggalRapat);
+            });
+
+            let sortedTanggal = Array.from(tanggalSet).sort().reverse();
+
+            // Isi Filter Utama
+            let filterHtml = '<option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>';
+            // Isi Dropdown Arsip Button
+            let arsipHtml = '<option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>';
+
+            sortedTanggal.forEach(tgl => {
+                let formatted = tgl;
+                try {
+                    const p = tgl.split('-');
+                    formatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {}
+
+                filterHtml += `<option value="${tgl}">📂 Arsip Rapat: ${formatted}</option>`;
+                arsipHtml += `<option value="${tgl}">${formatted}</option>`;
+            });
+
+            filterSelect.innerHTML = filterHtml;
+            arsipSelect.innerHTML = arsipHtml;
+
+            if(sortedTanggal.includes(currentFilter) || currentFilter === 'AKTIF') {
+                filterSelect.value = currentFilter;
+            }
+        }
+
+        function arsipkanRapatTanggalIni() {
+            const tglPilih = document.getElementById('selectArsipTanggal').value;
+            if(!tglPilih) {
+                alert('Silakan pilih tanggal rapat yang ingin diarsipkan/disimpan terlebih dahulu!');
+                return;
+            }
+
+            // Pisahkan data absen yang sesuai dengan tanggal tersebut
+            let indexSisa = [];
+            let itemArsip = [];
+
+            dataAbsen.forEach((a, idx) => {
+                if(a.rawTanggal === tglPilih) {
+                    itemArsip.push(a);
+                } else {
+                    indexSisa.push(a);
+                }
+            });
+
+            if(itemArsip.length === 0) {
+                alert('Tidak ditemukan data absen aktif untuk tanggal tersebut.');
+                return;
+            }
+
+            if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat ini? Data akan disimpan dan dibersihkan dari tabel aktif.`)) {
+                // Masukkan ke penyimpanan arsip
+                dataAbsenArsip.push({
+                    tanggalRapat: tglPilih,
+                    peserta: itemArsip
+                });
+
+                dataAbsen = indexSisa;
+
+                localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
+                localStorage.setItem('bss_absen_arsip', JSON.stringify(dataAbsenArsip));
+
+                updateDropdownFilterTanggal();
+                renderAbsen();
+                if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
+
+                alert('Rapat berhasil disimpan dan diarsipkan! Tabel aktif kini bersih untuk jadwal rapat baru.');
+            }
         }
 
         function bukaModalAbsen() {
@@ -213,19 +341,41 @@
             const tbody = document.getElementById('bodyTabelAbsen');
             if(!tbody) return;
             tbody.innerHTML = '';
-            if(dataAbsen.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Belum ada data kehadiran tercatat.</td></tr>`;
+
+            const filterVal = document.getElementById('filterTanggalAbsen').value;
+            let listTampil = [];
+
+            if(filterVal === 'AKTIF') {
+                listTampil = dataAbsen;
+            } else {
+                // Cari di data arsip
+                let foundArsip = dataAbsenArsip.find(ar => ar.tanggalRapat === filterVal);
+                if(foundArsip) {
+                    listTampil = foundArsip.peserta;
+                }
+            }
+
+            if(listTampil.length === 0) {
+                let pesanKosong = filterVal === 'AKTIF' ? 'Belum ada data kehadiran aktif tercatat.' : 'Tidak ada data pada arsip tanggal ini.';
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">${pesanKosong}</td></tr>`;
                 return;
             }
-            dataAbsen.forEach((a, index) => {
+
+            listTampil.forEach((a, index) => {
                 let badge = a.status === 'Hadir' ? 'bg-success' : a.status === 'Izin' ? 'bg-warning text-dark' : 'bg-danger';
                 const tr = document.createElement('tr');
+                
+                let aksiButton = filterVal === 'AKTIF' 
+                    ? `<button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>` 
+                    : `<span class="badge bg-secondary">Tersimpan (Arsip)</span>`;
+
                 tr.innerHTML = `<td><strong>${a.waktu}</strong></td>
                     <td><span class="fw-bold text-success">${a.nama}</span> <span class="text-muted">— ${a.jabatan}</span></td>
                     <td><span class="badge ${badge}">${a.status}</span> ${a.keterangan ? '<br><small class="text-muted">Ket: '+a.keterangan+'</small>' : ''}</td>
-                    <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button></td>`;
+                    <td class="text-center no-print">${aksiButton}</td>`;
                 tbody.appendChild(tr);
             });
+            
             localStorage.setItem('bss_absen', JSON.stringify(dataAbsen));
         }
 
@@ -249,7 +399,6 @@
             const status = document.getElementById('absenStatus').value;
             const keterangan = document.getElementById('absenKeterangan').value.trim();
             
-            // Format Tanggal (mendukung backdate) & Jam saat ini
             let tglFormatted = tanggalInput;
             try {
                 const p = tanggalInput.split('-');
@@ -260,7 +409,9 @@
             const jamString = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
             const waktuString = tglFormatted + ' | ' + jamString;
 
-            dataAbsen.unshift({ waktu: waktuString, nama, jabatan, status, keterangan });
+            dataAbsen.unshift({ rawTanggal: tanggalInput, waktu: waktuString, nama, jabatan, status, keterangan });
+            
+            updateDropdownFilterTanggal();
             renderAbsen();
             if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             bootstrap.Modal.getInstance(document.getElementById('modalAbsen')).hide();
@@ -269,6 +420,7 @@
         function hapusAbsen(index) {
             if(confirm('Hapus data kehadiran ini?')) {
                 dataAbsen.splice(index, 1);
+                updateDropdownFilterTanggal();
                 renderAbsen();
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
             }

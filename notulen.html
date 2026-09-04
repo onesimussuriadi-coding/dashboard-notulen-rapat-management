@@ -663,7 +663,6 @@
 
                 if(namaP) {
                     let bersihNama = namaP.trim();
-                    // FILTER TAMBAHAN: Mencegah teks tanggal (misal yang berformat YYYY-MM-DD atau DD MMM YYYY) masuk sebagai nama PIC
                     let isDateString = /^\d{2,4}[-\/]\d{2}[-\/]\d{2}$/.test(bersihNama) || /^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/.test(bersihNama);
                     if(!isDateString && bersihNama.toLowerCase() !== 'tanggal' && bersihNama.length > 2) {
                         let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
@@ -822,7 +821,7 @@
             return '<span class="text-secondary small" style="font-weight: normal;">' + teks + '</span>';
         }
 
-        function renderNotulen() {
+        function renderNotulen(targetRowIndex = null) {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
             container.innerHTML = '';
@@ -883,7 +882,7 @@
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
                     '<div class="d-flex gap-2">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
-                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
+                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + \'', \'' + safeLeader + \'', \'' + safeNotulis + \')">+ Tambah Topik</button>' +
                     '</div></div>' +
                     '<div class="card-body p-0"><div class="table-responsive table-scroll-container"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
@@ -925,7 +924,10 @@
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
-                    headerHtml += '<tr>' +
+                    let isTargetRow = (targetRowIndex !== null && n.originalIndex === targetRowIndex);
+                    let rowHighlightStyle = isTargetRow ? 'background-color: #fff3cd !important;' : '';
+
+                    headerHtml += '<tr id="row-item-' + n.originalIndex + '" style="' + rowHighlightStyle + '">' +
                         '<td class="text-center fw-bold text-secondary">' + (noUrut++) + '</td>' +
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + formattedPembahasanHTML + '</td>' +
@@ -945,6 +947,16 @@
                 headerHtml += '</tbody></table></div></div>';
                 cardDiv.innerHTML = headerHtml;
                 container.appendChild(cardDiv);
+            }
+
+            // PENYEMPURNAAN UTAMA: Otomatis gulir layar kembali ke baris yang baru saja diedit
+            if (targetRowIndex !== null) {
+                setTimeout(() => {
+                    let targetEl = document.getElementById('row-item-' + targetRowIndex);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 150);
             }
         }
 
@@ -1184,8 +1196,10 @@
 
                 const dataBaru = { periode, tanggal, lokasi, media, leader, notulis, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, targetAwal, deadline, status };
 
+                let targetSaveIndex = index;
                 if(index === -1) { 
                     dataNotulen.unshift(dataBaru); 
+                    targetSaveIndex = 0;
                 } else { 
                     dataNotulen[index] = dataBaru; 
                 }
@@ -1200,7 +1214,10 @@
 
                 simpanKeStorage();
                 updateDropdownTanggalSpesifik();
-                renderNotulen();
+                
+                // Teruskan index data agar layar otomatis kembali ke baris tersebut
+                renderNotulen(targetSaveIndex);
+                
                 isiDropdownTanggalLalu();
                 
                 let modalEl = document.getElementById('modalNotulen');
@@ -1210,7 +1227,6 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                alert('Data berhasil disimpan secara dinamis!');
             } catch (err) {
                 alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }

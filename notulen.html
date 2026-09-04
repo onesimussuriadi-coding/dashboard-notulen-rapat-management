@@ -522,9 +522,8 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN MUTLAK HIERARKI & UKURAN FONT:
-        // Mendeteksi nomor utama (1., 2.), sub-nomor (1.1, 4.1), maupun tingkat 3 (1.1.1, 1.4.1) secara dinamis,
-        // memberikan indentasi (menjorok ke dalam) yang proporsional, font standar (tidak tebal), dan ukuran lebih kecil setingkat.
+        // PENYESUAIAN MUTLAK: Seluruh angka penomoran menggunakan font-weight: normal (tidak tebal),
+        // tersusun rapi segaris dengan teks keterangannya, dan ukuran proporsional mengecil di sub-tingkatannya.
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             
@@ -532,17 +531,13 @@
             if (lines.length > 1) {
                 let htmlOut = '<div style="text-align: left;">';
                 lines.forEach(line => {
-                    // Deteksi format nomor seperti 1., 1.1, 1.1.1, 4.1, dsb.
                     let matchSub = line.match(/^(\d+(?:\.\d+)+[\.\)]?)\s+(.*)/) || line.match(/^(\d+[\.\)])\s+(.*)/);
                     if (matchSub) {
                         let numPart = matchSub[1];
                         let restPart = matchSub[2];
-                        
-                        // Hitung kedalaman titik untuk menentukan indentasi dan ukuran font
                         let depth = numPart.split('.').filter(Boolean).length - 1; 
-                        let padLeft = depth * 18; // Menjorok ke dalam sesuai tingkat hierarki
-                        let fSize = Math.max(82, 94 - (depth * 3)) + '%'; // Ukuran font mengecil proporsional
-                        let isBoldNum = (depth === 0); // Hanya nomor tingkat pertama (1, 2, dst.) yang tebal, sub di bawahnya standar
+                        let padLeft = depth * 16; 
+                        let fSize = Math.max(83, 94 - (depth * 3)) + '%'; 
 
                         let colonIdx = restPart.indexOf(':');
                         if (colonIdx !== -1 && depth >= 2) {
@@ -550,14 +545,14 @@
                             let valuePart = restPart.substring(colonIdx + 1).trim();
                             
                             htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-size: ${fSize};">` +
-                                       `<span style="min-width: 32px; font-weight: ${isBoldNum ? 'bold' : 'normal'};">${numPart}</span>` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
                                        `<span style="width: 110px; font-weight: normal;">${labelPart}</span>` +
-                                       `<span style="width: 15px; text-align: center;">:</span>` +
+                                       `<span style="width: 15px; text-align: center; font-weight: normal;">:</span>` +
                                        `<span style="flex: 1; font-weight: normal;">${valuePart}</span>` +
                                        `</div>`;
                         } else {
                             htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-size: ${fSize};">` +
-                                       `<span style="min-width: 32px; font-weight: ${isBoldNum ? 'bold' : 'normal'};">${numPart}</span>` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
                                        `<span style="flex: 1; font-weight: normal;">${restPart}</span>` +
                                        `</div>`;
                         }
@@ -581,7 +576,7 @@
                             let numP = matchNum[1];
                             let textP = matchNum[2];
                             htmlList += `<div style="display: flex; margin-top: 2px; font-weight: normal;">` +
-                                        `<span style="min-width: 24px; font-weight: bold;">${numP}</span>` +
+                                        `<span style="min-width: 24px; font-weight: normal;">${numP}</span>` +
                                         `<span style="flex: 1; font-weight: normal;">${textP}</span>` +
                                         `</div>`;
                         } else {

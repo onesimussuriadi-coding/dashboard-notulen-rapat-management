@@ -524,7 +524,7 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN KHUSUS: Mengatur sub-poin (4.1, 4.2) agar tidak bold/tebal dan ukurannya sedikit lebih kecil dari nomor induk
+        // PENYESUAIAN UTAMA: Mendukung hirarki bertingkat (1., 1.1, 1.1.1, dst.) secara vertikal, tidak tebal, dan ukuran font lebih kecil secara proporsional.
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
@@ -534,24 +534,29 @@
                     let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
                     parts.forEach(part => {
                         let cleanedPart = part.replace(/^\d+[\.\)]\s*/, '');
-                        let subRegex = /(\d+\.\d+)/g;
+                        // Deteksi jika di dalam teks terdapat pola sub (misal: 1.1, 4.1) atau sub-sub (1.1.1, 4.1.1)
+                        let subRegex = /(\b\d+\.\d+(?:\.\d+)*\b)/g;
                         if (subRegex.test(cleanedPart)) {
-                            let subParts = cleanedPart.split(/(?=\b\d+\.\d+\b)/).map(s => s.trim()).filter(Boolean);
+                            let subParts = cleanedPart.split(/(?=\b\d+\.\d+(?:\.\d+)*\b)/).map(s => s.trim()).filter(Boolean);
                             let mainText = subParts[0];
                             htmlList += '<li>' + mainText;
                             for (let i = 1; i < subParts.length; i++) {
                                 let subItemText = subParts[i];
-                                let matchNum = subItemText.match(/^(\d+\.\d+)\s*(.*)/);
+                                let matchNum = subItemText.match(/^(\d+\.\d+(?:\.\d+)*)\s*(.*)/);
                                 if (matchNum) {
                                     let subNum = matchNum[1];
                                     let subContent = matchNum[2];
-                                    // style="font-weight: normal; font-size: 92%;" membuat sub-poin tidak tebal dan ukurannya sedikit di bawah induknya
-                                    htmlList += `<div style="display: flex; margin-top: 3px; font-weight: normal; font-size: 92%;">` +
-                                                `<span style="min-width: 28px;">${subNum}</span>` +
+                                    // Hitung kedalaman titik untuk menentukan tingkat pengetatan (indentasi) dan ukuran font
+                                    let depth = subNum.split('.').length - 1; // misal 1.1 depth 1, 1.1.1 depth 2
+                                    let paddingLeft = depth * 18; 
+                                    let fontSize = Math.max(85, 94 - (depth * 3)) + '%';
+                                    
+                                    htmlList += `<div style="display: flex; margin-top: 3px; padding-left: ${paddingLeft}px; font-weight: normal; font-size: ${fontSize};">` +
+                                                `<span style="min-width: 32px; font-weight: bold;">${subNum}</span>` +
                                                 `<span style="flex: 1;">${subContent}</span>` +
                                                 `</div>`;
                                 } else {
-                                    htmlList += `<div style="margin-top: 3px; padding-left: 28px; font-weight: normal; font-size: 92%;">${subItemText}</div>`;
+                                    htmlList += `<div style="margin-top: 3px; padding-left: 18px; font-weight: normal; font-size: 91%;">${subItemText}</div>`;
                                 }
                             }
                             htmlList += '</li>';

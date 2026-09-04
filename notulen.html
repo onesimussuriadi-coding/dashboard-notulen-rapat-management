@@ -359,7 +359,6 @@
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Fungsi Pemimpin & Notulis tetap bersih seperti semula
         function isiDropdownLeaderDanNotulis() {
             const selectLeader = document.getElementById('notulenLeader');
             const selectNotulis = document.getElementById('notulenNotulis');
@@ -409,7 +408,6 @@
             selectNotulis.innerHTML = htmlNotulis;
         }
 
-        // Fungsi PIC / Penanggung Jawab dengan Filter Duplikasi Nama
         function renderPicCheckboxes(selectedValues = []) {
             const container = document.getElementById('containerPicCheckboxes');
             if(!container) return;
@@ -524,9 +522,37 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN UTAMA: Mendukung hirarki bertingkat (1., 1.1, 1.1.1, dst.) secara vertikal, tidak tebal, dan ukuran font lebih kecil secara proporsional.
+        // PENYESUAIAN MUTLAK: Mendeteksi pemisahan berdasarkan baris baru (\n) ATAU nomor bertingkat secara otomatis
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
+            
+            // Cek apakah ada baris baru (\n) dari hasil tombol Enter pengguna
+            let lines = teks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length > 1) {
+                let htmlOut = '<div style="text-align: left;">';
+                lines.forEach(line => {
+                    // Deteksi apakah baris ini adalah sub-nomor (misal: 1.1, 1.1.1, 4.1)
+                    let matchSub = line.match(/^(\d+(?:\.\d+)+[\.\)]?)\s+(.*)/) || line.match(/^(\d+[\.\)])\s+(.*)/);
+                    if (matchSub) {
+                        let numPart = matchSub[1];
+                        let textPart = matchSub[2];
+                        let depth = numPart.split('.').length - 1;
+                        let padLeft = depth * 18;
+                        let fSize = Math.max(84, 94 - (depth * 3)) + '%';
+                        
+                        htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-weight: normal; font-size: ${fSize};">` +
+                                   `<span style="min-width: 30px; font-weight: bold;">${numPart}</span>` +
+                                   `<span style="flex: 1;">${textPart}</span>` +
+                                   `</div>`;
+                    } else {
+                        htmlOut += `<div style="margin-top: 3px; font-weight: normal; font-size: 92%;">${line}</div>`;
+                    }
+                });
+                htmlOut += '</div>';
+                return htmlOut;
+            }
+
+            // Fallback jika diketik dalam satu baris panjang tanpa Enter
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
             if (regex.test(teks)) {
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
@@ -534,7 +560,6 @@
                     let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
                     parts.forEach(part => {
                         let cleanedPart = part.replace(/^\d+[\.\)]\s*/, '');
-                        // Deteksi jika di dalam teks terdapat pola sub (misal: 1.1, 4.1) atau sub-sub (1.1.1, 4.1.1)
                         let subRegex = /(\b\d+\.\d+(?:\.\d+)*\b)/g;
                         if (subRegex.test(cleanedPart)) {
                             let subParts = cleanedPart.split(/(?=\b\d+\.\d+(?:\.\d+)*\b)/).map(s => s.trim()).filter(Boolean);
@@ -546,8 +571,7 @@
                                 if (matchNum) {
                                     let subNum = matchNum[1];
                                     let subContent = matchNum[2];
-                                    // Hitung kedalaman titik untuk menentukan tingkat pengetatan (indentasi) dan ukuran font
-                                    let depth = subNum.split('.').length - 1; // misal 1.1 depth 1, 1.1.1 depth 2
+                                    let depth = subNum.split('.').length - 1;
                                     let paddingLeft = depth * 18; 
                                     let fontSize = Math.max(85, 94 - (depth * 3)) + '%';
                                     

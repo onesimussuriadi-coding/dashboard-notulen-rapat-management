@@ -27,7 +27,7 @@
         /* HEADER HIJAU IKUT STICKY DI BAWAH PANEL FILTER SAAT DI-SCROLL */
         .card-header-sticky {
             position: sticky;
-            top: 95px; /* Menyesuaikan tinggi panel filter di atasnya */
+            top: 95px;
             z-index: 20;
             background-color: #0f766e !important;
         }
@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <!-- FILTER PANEL (KEMBALI DITAMPILKAN DAN DIJADIKAN STICKY DI ATAS) -->
+        <!-- FILTER PANEL -->
         <div class="filter-sticky-container no-print mb-3">
             <div class="card shadow-sm bg-white border-0">
                 <div class="card-body py-3">
@@ -270,12 +270,23 @@
                     <div class="row">
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dari Master Personel)</label>
-                            <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;"></div>
+                            <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 140px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">Deadline Penyelesaian</label>
-                            <input type="date" id="notulenDeadline" class="form-control form-control-sm mb-2">
-                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-teal">Target Awal (Mulai)</label>
+                                    <input type="date" id="notulenTargetAwal" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-teal">Deadline (Selesai)</label>
+                                    <input type="date" id="notulenDeadline" class="form-control form-control-sm" onchange="hitungDurasiDeviasi()">
+                                </div>
+                            </div>
+                            <div class="p-2 mb-2 bg-light border rounded small text-secondary" id="infoDurasiDeviasi">
+                                ⏱️ Durasi: <strong>0 hari</strong> pelaksanaan
+                            </div>
+
                             <label class="form-label small fw-bold">Status Tindak Lanjut</label>
                             <select id="notulenStatus" class="form-select form-select-sm">
                                 <option value="Open">Open (Belum Selesai)</option>
@@ -652,9 +663,13 @@
 
                 if(namaP) {
                     let bersihNama = namaP.trim();
-                    let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
-                    if(!uniqueMap.has(bersihNama)) {
-                        uniqueMap.set(bersihNama, identifier);
+                    // FILTER TAMBAHAN: Mencegah teks tanggal (misal yang berformat YYYY-MM-DD atau DD MMM YYYY) masuk sebagai nama PIC
+                    let isDateString = /^\d{2,4}[-\/]\d{2}[-\/]\d{2}$/.test(bersihNama) || /^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/.test(bersihNama);
+                    if(!isDateString && bersihNama.toLowerCase() !== 'tanggal' && bersihNama.length > 2) {
+                        let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
+                        if(!uniqueMap.has(bersihNama)) {
+                            uniqueMap.set(bersihNama, identifier);
+                        }
                     }
                 }
             });
@@ -670,6 +685,28 @@
                 container.appendChild(div);
                 idx++;
             });
+        }
+
+        function hitungDurasiDeviasi() {
+            const tAwal = document.getElementById('notulenTargetAwal').value;
+            const tDeadline = document.getElementById('notulenDeadline').value;
+            const infoEl = document.getElementById('infoDurasiDeviasi');
+
+            if(!tAwal || !tDeadline) {
+                infoEl.innerHTML = '⏱️ Durasi: <strong>-</strong> (Lengkapi target awal & deadline)';
+                return;
+            }
+
+            let d1 = new Date(tAwal);
+            let d2 = new Date(tDeadline);
+            let diffTime = d2 - d1;
+            let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if(diffDays < 0) {
+                infoEl.innerHTML = `<span class="text-danger">⚠️ Peringatan: Deadline mendahului target awal (${diffDays} hari)!</span>`;
+            } else {
+                infoEl.innerHTML = `⏱️ Durasi Pelaksanaan: <strong>${diffDays + 1} hari</strong> (Target s.d Deadline)`;
+            }
         }
 
         function isiDropdownTanggalLalu() {
@@ -853,8 +890,8 @@
                     '<th style="width: 5%;">No.</th>' +
                     '<th style="width: 17%;">Topik Utama</th>' +
                     '<th style="width: 21%;">Pembahasan & Arahan</th>' +
-                    '<th style="width: 37%;">Tindak Lanjut</th>' +
-                    '<th style="width: 12%;">PIC & Deadline</th>' +
+                    '<th style="width: 35%;">Tindak Lanjut</th>' +
+                    '<th style="width: 14%;">Target & Deadline</th>' +
                     '<th style="width: 8%;" class="no-print">Aksi</th>' +
                     '</tr></thead><tbody>';
 
@@ -865,13 +902,24 @@
                     else if(n.status === 'Closing') badgeClass = 'bg-success';
                     else if(n.status === 'Info') badgeClass = 'bg-info text-dark';
 
-                    let deadFormatted = n.deadline || '-';
+                    let tAwalFmt = n.targetAwal || '-';
+                    let tDeadFmt = n.deadline || '-';
                     try {
+                        if(n.targetAwal) {
+                            let pa = n.targetAwal.split('-');
+                            tAwalFmt = new Date(pa[0], pa[1]-1, pa[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                        }
                         if(n.deadline) {
-                            let p2 = n.deadline.split('-');
-                            deadFormatted = new Date(p2[0], p2[1]-1, p2[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                            let pd = n.deadline.split('-');
+                            tDeadFmt = new Date(pd[0], pd[1]-1, pd[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                         }
                     } catch(e) {}
+
+                    let durasiText = '-';
+                    if(n.targetAwal && n.deadline) {
+                        let diffDays = Math.round((new Date(n.deadline) - new Date(n.targetAwal)) / (1000 * 60 * 60 * 24)) + 1;
+                        durasiText = `${diffDays} hari`;
+                    }
 
                     let formattedPembahasanHTML = formatPembahasan(n.pembahasan);
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
@@ -882,7 +930,12 @@
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + formattedPembahasanHTML + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
-                        '<td style="word-wrap: break-word;"><div class="small" style="font-size: 11.5px; line-height: 1.3;">' + picDisplay + '<br><span class="text-danger">Due: ' + deadFormatted + '</span><br><span class="badge ' + badgeClass + ' mt-1" style="font-size: 10px;">' + n.status + '</span></div></td>' +
+                        '<td style="word-wrap: break-word;"><div class="small" style="font-size: 11px; line-height: 1.3;">' +
+                        '👥 <strong>PIC:</strong> ' + picDisplay + '<br>' +
+                        '🎯 <strong>Start:</strong> ' + tAwalFmt + '<br>' +
+                        '⌛ <strong>Due:</strong> ' + tDeadFmt + '<br>' +
+                        '⏱️ <strong>Durasi:</strong> <span class="text-primary fw-bold">' + durasiText + '</span><br>' +
+                        '<span class="badge ' + badgeClass + ' mt-1" style="font-size: 10px;">' + n.status + '</span></div></td>' +
                         '<td class="text-center no-print" style="word-wrap: break-word;">' +
                         '<button class="btn btn-sm btn-outline-warning mb-1 px-1 w-100" style="font-size: 11px;" onclick="bukaModalEditNotulen(' + n.originalIndex + ')">Edit</button>' +
                         '<button class="btn btn-sm btn-outline-danger px-1 w-100" style="font-size: 11px;" onclick="hapusNotulen(' + n.originalIndex + ')">Hapus</button>' +
@@ -1004,6 +1057,7 @@
                     pembahasan: src.pembahasan,
                     tindakLanjut: src.tindakLanjut,
                     pic: src.pic,
+                    targetAwal: src.targetAwal,
                     deadline: src.deadline,
                     status: src.status
                 };
@@ -1029,8 +1083,10 @@
             document.getElementById('notulenTopikUtama').value = '';
             document.getElementById('notulenPembahasan').value = '';
             document.getElementById('notulenTindakLanjut').value = '';
+            document.getElementById('notulenTargetAwal').value = getTodayLocalDate();
             document.getElementById('notulenDeadline').value = getTodayLocalDate();
             document.getElementById('notulenStatus').value = 'Open';
+            hitungDurasiDeviasi();
             renderPicCheckboxes([]);
         }
 
@@ -1063,8 +1119,11 @@
             document.getElementById('notulenTopikUtama').value = n.topikUtama || '';
             document.getElementById('notulenPembahasan').value = n.pembahasan || '';
             document.getElementById('notulenTindakLanjut').value = n.tindakLanjut || '';
+            document.getElementById('notulenTargetAwal').value = n.targetAwal || getTodayLocalDate();
             document.getElementById('notulenDeadline').value = n.deadline || getTodayLocalDate();
             document.getElementById('notulenStatus').value = n.status || 'Open';
+
+            hitungDurasiDeviasi();
 
             let savedPics = Array.isArray(n.pic) ? n.pic : (n.pic ? [n.pic] : []);
             renderPicCheckboxes(savedPics);
@@ -1109,6 +1168,7 @@
                 const topikUtama = document.getElementById('notulenTopikUtama').value.trim();
                 const pembahasan = document.getElementById('notulenPembahasan').value.trim();
                 const tindakLanjut = document.getElementById('notulenTindakLanjut').value.trim();
+                const targetAwal = parseEdgeDate(document.getElementById('notulenTargetAwal').value);
                 const deadline = parseEdgeDate(document.getElementById('notulenDeadline').value);
                 const status = document.getElementById('notulenStatus').value;
 
@@ -1122,7 +1182,7 @@
                     return; 
                 }
 
-                const dataBaru = { periode, tanggal, lokasi, media, leader, notulis, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, deadline, status };
+                const dataBaru = { periode, tanggal, lokasi, media, leader, notulis, topikUtama, pembahasan, tindakLanjut, pic: selectedPics, targetAwal, deadline, status };
 
                 if(index === -1) { 
                     dataNotulen.unshift(dataBaru); 
@@ -1176,8 +1236,8 @@
 
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
                 '<head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head><body>' +
-                '<table border="1"><tr><th colspan="11" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
-                '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>PIC & Deadline</th><th>Status</th></tr>';
+                '<table border="1"><tr><th colspan="12" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
+                '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
 
             dataNotulen.forEach(item => {
                 let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
@@ -1191,7 +1251,8 @@
                     '<td>' + item.topikUtama + '</td>' +
                     '<td>' + (item.pembahasan || '-') + '</td>' +
                     '<td>' + (item.tindakLanjut || '-') + '</td>' +
-                    '<td>' + picStr + ' (Due: ' + (item.deadline || '-') + ')</td>' +
+                    '<td>' + (item.targetAwal || '-') + '</td>' +
+                    '<td>' + (item.deadline || '-') + '</td>' +
                     '<td>' + item.status + '</td></tr>';
             });
 
@@ -1226,7 +1287,7 @@
                     '<p><strong>Leader:</strong> ' + (item.leader || '-') + ' | <strong>Notulis:</strong> ' + (item.notulis || '-') + ' | <strong>Status:</strong> ' + item.status + '</p>' +
                     '<p><strong>Pembahasan:</strong> ' + (item.pembahasan || '-') + '</p>' +
                     '<p><strong>Tindak Lanjut:</strong> ' + (item.tindakLanjut || '-') + '</p>' +
-                    '<p><strong>PIC:</strong> ' + picStr + ' | <strong>Deadline:</strong> ' + (item.deadline || '-') + '</p></div>';
+                    '<p><strong>Target Awal:</strong> ' + (item.targetAwal || '-') + ' | <strong>Deadline:</strong> ' + (item.deadline || '-') + ' | <strong>PIC:</strong> ' + picStr + '</p></div>';
             });
 
             htmlContent += '</body></html>';

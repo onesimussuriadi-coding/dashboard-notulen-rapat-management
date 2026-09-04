@@ -112,8 +112,8 @@
                         </select>
                     </div>
                     <div class="col-md-8 text-md-end">
-                        <div class="d-inline-flex gap-2 align-items-center">
-                            <select id="selectArsipTanggal" class="form-select form-select-sm" style="width: 200px;">
+                        <div class="d-inline-flex gap-2 align-items-center justify-content-end w-100">
+                            <select id="selectArsipTanggal" class="form-select form-select-sm" style="max-width: 240px;">
                                 <option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>
                             </select>
                             <button class="btn btn-primary btn-sm fw-bold text-nowrap" onclick="arsipkanRapatTanggalIni()">💾 Simpan / Arsipkan Rapat</button>
@@ -232,36 +232,49 @@
             if(!filterSelect || !arsipSelect) return;
 
             let currentFilter = filterSelect.value;
+            let currentArsip = arsipSelect.value;
 
-            // Kumpulkan tanggal unik dari data absen aktif & arsip
-            let tanggalSet = new Set();
-            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalSet.add(a.rawTanggal); });
-            dataAbsenArsip.forEach(ar => {
-                if(ar.tanggalRapat) tanggalSet.add(ar.tanggalRapat);
-            });
+            // Kumpulkan tanggal unik dari data absen aktif saja untuk dropdown arsip
+            let tanggalAktifSet = new Set();
+            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalAktifSet.add(a.rawTanggal); });
 
-            let sortedTanggal = Array.from(tanggalSet).sort().reverse();
+            // Kumpulkan semua tanggal unik (aktif + arsip) untuk filter
+            let tanggalSemuaSet = new Set();
+            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalSemuaSet.add(a.rawTanggal); });
+            dataAbsenArsip.forEach(ar => { if(ar.tanggalRapat) tanggalSemuaSet.add(ar.tanggalRapat); });
 
-            // Isi Filter Utama
-            let filterHtml = '<option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>';
-            // Isi Dropdown Arsip Button
+            let sortedAktif = Array.from(tanggalAktifSet).sort().reverse();
+            let sortedSemua = Array.from(tanggalSemuaSet).sort().reverse();
+
+            // 1. Isi Dropdown Arsip (Hanya menampilkan tanggal yang ada di absen aktif)
             let arsipHtml = '<option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>';
+            sortedAktif.forEach(tgl => {
+                let formatted = tgl;
+                try {
+                    const p = tgl.split('-');
+                    formatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {}
+                arsipHtml += `<option value="${tgl}">${formatted}</option>`;
+            });
+            arsipSelect.innerHTML = arsipHtml;
+            if(sortedAktif.includes(currentArsip)) arsipSelect.value = currentArsip;
 
-            sortedTanggal.forEach(tgl => {
+            // 2. Isi Filter Utama
+            let filterHtml = '<option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>';
+            sortedSemua.forEach(tgl => {
                 let formatted = tgl;
                 try {
                     const p = tgl.split('-');
                     formatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                 } catch(e) {}
 
-                filterHtml += `<option value="${tgl}">📂 Arsip Rapat: ${formatted}</option>`;
-                arsipHtml += `<option value="${tgl}">${formatted}</option>`;
+                let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === tgl);
+                let statusLabel = isArsiped ? '📁 [Arsip]' : '🟢 [Aktif]';
+                filterHtml += `<option value="${tgl}">${statusLabel} Rapat: ${formatted}</option>`;
             });
 
             filterSelect.innerHTML = filterHtml;
-            arsipSelect.innerHTML = arsipHtml;
-
-            if(sortedTanggal.includes(currentFilter) || currentFilter === 'AKTIF') {
+            if(sortedSemua.includes(currentFilter) || currentFilter === 'AKTIF') {
                 filterSelect.value = currentFilter;
             }
         }
@@ -269,15 +282,14 @@
         function arsipkanRapatTanggalIni() {
             const tglPilih = document.getElementById('selectArsipTanggal').value;
             if(!tglPilih) {
-                alert('Silakan pilih tanggal rapat yang ingin diarsipkan/disimpan terlebih dahulu!');
+                alert('Silakan pilih tanggal rapat yang ingin diarsipkan/disimpan terlebih dahulu pada dropdown di sebelah tombol!');
                 return;
             }
 
-            // Pisahkan data absen yang sesuai dengan tanggal tersebut
             let indexSisa = [];
             let itemArsip = [];
 
-            dataAbsen.forEach((a, idx) => {
+            dataAbsen.forEach((a) => {
                 if(a.rawTanggal === tglPilih) {
                     itemArsip.push(a);
                 } else {
@@ -291,7 +303,6 @@
             }
 
             if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat ini? Data akan disimpan dan dibersihkan dari tabel aktif.`)) {
-                // Masukkan ke penyimpanan arsip
                 dataAbsenArsip.push({
                     tanggalRapat: tglPilih,
                     peserta: itemArsip
@@ -348,7 +359,6 @@
             if(filterVal === 'AKTIF') {
                 listTampil = dataAbsen;
             } else {
-                // Cari di data arsip
                 let foundArsip = dataAbsenArsip.find(ar => ar.tanggalRapat === filterVal);
                 if(foundArsip) {
                     listTampil = foundArsip.peserta;
@@ -365,7 +375,8 @@
                 let badge = a.status === 'Hadir' ? 'bg-success' : a.status === 'Izin' ? 'bg-warning text-dark' : 'bg-danger';
                 const tr = document.createElement('tr');
                 
-                let aksiButton = filterVal === 'AKTIF' 
+                let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === a.rawTanggal);
+                let aksiButton = !isArsiped 
                     ? `<button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>` 
                     : `<span class="badge bg-secondary">Tersimpan (Arsip)</span>`;
 

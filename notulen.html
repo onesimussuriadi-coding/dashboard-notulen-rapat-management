@@ -48,11 +48,26 @@
             position: relative;
         }
 
+        /* KOP SURAT KHUSUS CETAK PDF */
+        .print-header-kop { display: none; }
+
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; }
-            .card { border: none !important; box-shadow: none !important; }
+            body { background: white !important; font-family: Arial, sans-serif; }
+            .card { border: none !important; box-shadow: none !important; margin-bottom: 10px !important; }
             .table-scroll-container { max-height: none !important; overflow: visible !important; }
+            
+            /* Tampilkan Kop Surat Saat Cetak */
+            .print-header-kop {
+                display: block !important;
+                text-align: center;
+                border-bottom: 2px solid #0d9488;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            
+            /* Sembunyikan tombol Save As & Tambah Topik di Header Tabel saat Cetak */
+            .btn-action-group-print { display: none !important; }
         }
     </style>
 </head>
@@ -72,6 +87,14 @@
     </nav>
 
     <div class="container-fluid px-4 my-4">
+        <!-- KOP SURAT CETAK PDF -->
+        <div class="print-header-kop">
+            <h2 style="margin: 0; color: #134e4a; font-size: 20px; font-weight: bold; text-transform: uppercase;">PT. Bangun Sentral Sulawesi</h2>
+            <p style="margin: 2px 0; font-size: 13px; color: #555; font-style: italic;">Jenderal Kontraktor and Supplier</p>
+            <hr style="border: 0.5px solid #0d9488; width: 60%; margin: 8px auto;">
+            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Rapat Tinjauan Manajemen</h4>
+        </div>
+
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
                 <h3>Action Items</h3>
@@ -821,7 +844,6 @@
             return '<span class="text-secondary small" style="font-weight: normal;">' + teks + '</span>';
         }
 
-        // PENYEMPURNAAN 1: Tambahkan parameter targetRowIndex
         function renderNotulen(targetRowIndex = null) {
             const container = document.getElementById('containerNotulen');
             if(!container) return;
@@ -881,7 +903,7 @@
                 let headerHtml = '<div class="card-header card-header-sticky text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
-                    '<div class="d-flex gap-2">' +
+                    '<div class="d-flex gap-2 btn-action-group-print">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
                     '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
                     '</div></div>' +
@@ -925,7 +947,6 @@
                     let formattedTindakLanjutHTML = formatTindakLanjut(n.tindakLanjut);
                     let picDisplay = Array.isArray(n.pic) ? n.pic.join(', ') : (n.pic || '-');
 
-                    // Berikan ID unik pada baris tabel agar mudah dilacak
                     let isTargetRow = (targetRowIndex !== null && n.originalIndex === targetRowIndex);
                     let rowHighlightStyle = isTargetRow ? 'background-color: #fff3cd !important;' : '';
 
@@ -951,7 +972,6 @@
                 container.appendChild(cardDiv);
             }
 
-            // PENYEMPURNAAN 2: Mengunci dan menggulir layar otomatis ke baris yang diedit
             if (targetRowIndex !== null) {
                 setTimeout(() => {
                     let targetEl = document.getElementById('row-item-' + targetRowIndex);
@@ -1216,10 +1236,7 @@
 
                 simpanKeStorage();
                 updateDropdownTanggalSpesifik();
-                
-                // PENYEMPURNAAN 3: Kirim index baris yang disimpan agar tampilan tetap terkunci di sana
                 renderNotulen(targetSaveIndex);
-                
                 isiDropdownTanggalLalu();
                 
                 let modalEl = document.getElementById('modalNotulen');
@@ -1254,7 +1271,7 @@
 
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
                 '<head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head><body>' +
-                '<table border="1"><tr><th colspan="12" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT BANGGAI SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
+                '<table border="1"><tr><th colspan="12" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
                 '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
 
             dataNotulen.forEach(item => {
@@ -1294,7 +1311,7 @@
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
                 '<head><meta charset="utf-8"><title>Laporan Notulen Rapat</title></head>' +
                 '<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">' +
-                '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT BANGGAI SENTRAL SULAWESI</h2>' +
+                '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT. BANGUN SENTRAL SULAWESI</h2>' +
                 '<h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3><hr style="border: 1px solid #0d9488;">';
 
             dataNotulen.forEach((item, idx) => {

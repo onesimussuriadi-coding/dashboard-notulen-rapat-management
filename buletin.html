@@ -56,7 +56,7 @@
             <div>
                 <a href="index.html" class="btn btn-outline-light btn-sm me-2">← Visi & Misi</a>
                 <button class="btn btn-outline-warning text-white btn-sm me-2 fw-bold" onclick="authAdminBuletin()" id="btnAdminMode">⚙️ Mode Admin / Edit</button>
-                <button class="btn btn-warning text-dark btn-sm fw-bold" onclick="cekPasswordDashboard()">🔐 Masuk Dashboard Rapat</button>
+                <button class="btn btn-warning text-dark btn-sm fw-bold" onclick="cekPasswordDashboard()">🔐 Masuk Ruangan Rapat</button>
             </div>
         </div>
     </nav>
@@ -163,13 +163,13 @@
             </div>
         </div>
 
-        <!-- TOMBOL LANJUT KE DASHBOARD RAPAT (DIPROTEKSI PASSWORD) -->
+        <!-- TOMBOL MASUK RUANGAN RAPAT BERDASARKAN PASSWORD -->
         <div class="card shadow-sm border-0 text-center p-4 bg-white">
-            <h5 class="fw-bold text-dark mb-2">Akses Khusus Manajemen & PIC Rapat</h5>
-            <p class="text-muted small mb-3">Modul Jadwal, Daftar Absen, serta Notulen & Tindak Lanjut memerlukan Password Akses Internal.</p>
+            <h5 class="fw-bold text-dark mb-2">Akses Masuk Ruangan Departemen & Manajemen</h5>
+            <p class="text-muted small mb-3">Masukkan password bagian Anda (HRD, Finance, Logistik, HSE, Ops, Maintenance, RTM, atau Top Management) untuk langsung masuk.</p>
             <div>
                 <button class="btn btn-teal btn-lg fw-bold px-5 shadow-sm" onclick="cekPasswordDashboard()">
-                    🔐 Masuk ke Dashboard Rapat →
+                    🔐 Masuk ke Ruangan Rapat →
                 </button>
             </div>
         </div>
@@ -318,16 +318,41 @@
         }
 
         function cekPasswordDashboard() {
-            let passwordInput = prompt("Masukkan Password Akses Dashboard Rapat:");
-            let passwordResmi = "bss2026"; 
-
+            let passwordInput = prompt("Masukkan Password Akses (Contoh: hrd123, finance123, topmanagement123, dll):");
             if (passwordInput === null) return;
 
-            if (passwordInput === passwordResmi) {
-                alert("Password benar! Mengarahkan ke Dashboard Rapat...");
-                window.location.href = "notulen.html";
+            let pass = passwordInput.trim();
+
+            // Sistem Akses Cerdas Langsung ke Ruangan Masing-Masing
+            if (pass === 'hrd123') {
+                sessionStorage.setItem('bss_hrd_auth', 'true');
+                window.location.href = 'notulen-hrd.html';
+            } else if (pass === 'finance123') {
+                sessionStorage.setItem('bss_finance_auth', 'true');
+                window.location.href = 'notulen-finance.html';
+            } else if (pass === 'logistik123') {
+                sessionStorage.setItem('bss_logistik_auth', 'true');
+                window.location.href = 'notulen-logistik.html';
+            } else if (pass === 'hse123') {
+                sessionStorage.setItem('bss_hse_auth', 'true');
+                window.location.href = 'notulen-hse.html';
+            } else if (pass === 'opsgeneral123') {
+                sessionStorage.setItem('bss_opsgeneral_auth', 'true');
+                window.location.href = 'notulen-ops-general.html';
+            } else if (pass === 'opskonstruksi123') {
+                sessionStorage.setItem('bss_opskonstruksi_auth', 'true');
+                window.location.href = 'notulen-ops-konstruksi.html';
+            } else if (pass === 'maintenance123') {
+                sessionStorage.setItem('bss_maintenance_auth', 'true');
+                window.location.href = 'notulen-maintenance.html';
+            } else if (pass === 'admin' || pass === 'bss2026') {
+                sessionStorage.setItem('bss_rtm_auth', 'true');
+                window.location.href = 'notulen.html'; // Rapat Tinjauan Manajemen (RTM) Antar Manajer
+            } else if (pass === 'topmanagement123') {
+                sessionStorage.setItem('bss_topmanagement_auth', 'true');
+                window.location.href = 'notulen-topmanagement.html'; // Pusat Pengawasan & Rapat Eksekutif
             } else {
-                alert("Password salah! Akses ditolak.");
+                alert("Password salah atau tidak dikenali! Periksa kembali kode akses Anda.");
             }
         }
     </script>

@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-light" onload="initModulNotulen()">
+<body class="bg-light" onload="cekAutentikasiNotulen()">
 
     <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
@@ -30,7 +30,7 @@
                 <a href="jadwal.html" class="btn btn-outline-light btn-sm">📅 Jadwal Rapat</a>
                 <a href="absen.html" class="btn btn-outline-light btn-sm">📝 Daftar Absen</a>
                 <a href="notulen.html" class="btn btn-light btn-sm fw-bold text-teal">📁 Notulen Rapat</a>
-                <a href="buletin.html" class="btn btn-outline-warning btn-sm fw-bold">← Buletin Utama</a>
+                <a href="visimisi.html" class="btn btn-outline-warning btn-sm fw-bold">← Visi Misi / Buletin</a>
             </div>
         </div>
     </nav>
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <!-- FILTER PANEL TAMBAHAN DROPDOWN TANGGAL RAPAT -->
+        <!-- FILTER PANEL -->
         <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body py-3">
                 <div class="row g-3">
@@ -102,6 +102,33 @@
         <div class="card shadow-sm mb-5 border-0">
             <div class="card-body p-0">
                 <div id="containerNotulen"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PASSWORD KHUSUS MASUK NOTULEN RAPAT -->
+    <div class="modal fade" id="modalAuthNotulen" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-teal-custom text-white py-3">
+                    <h5 class="modal-title fs-6">🔐 Akses Terbatas - Ruang Meeting Management</h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <span class="fs-1">🏢</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Anda akan masuk ke ruang meeting management</h6>
+                    <p class="text-muted small mb-4">Silakan masukkan password untuk mengakses modul Notulen & Tindak Lanjut Rapat.</p>
+                    
+                    <div class="px-4">
+                        <input type="password" id="inputNotulenPassword" class="form-control form-control-lg text-center" placeholder="••••••••" onkeypress="handleNotulenPasswordKeypress(event)">
+                        <div id="authErrorMsg" class="text-danger small mt-2" style="display: none;">Password salah! Silakan coba lagi.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2 justify-content-center">
+                    <a href="visimisi.html" class="btn btn-secondary btn-sm px-4">Kembali</a>
+                    <button type="button" class="btn btn-teal btn-sm px-4 fw-bold" onclick="verifikasiPasswordNotulen()">Masuk Ruangan</button>
+                </div>
             </div>
         </div>
     </div>
@@ -312,6 +339,59 @@
         let dataJadwal = [];
         let dataPersonel = [];
 
+        // FUNGSI CEK AUTENTIKASI SAAT HALAMAN DIBUKA
+        function cekAutentikasiNotulen() {
+            // Cek apakah sudah login di sesi ini
+            let isAuth = sessionStorage.getItem('bss_notulen_auth');
+            if(isAuth === 'true') {
+                // Jika sudah login, langsung muat modul notulen
+                initModulNotulen();
+            } else {
+                // Jika belum, tampilkan modal password
+                let modalEl = document.getElementById('modalAuthNotulen');
+                let myModal = new bootstrap.Modal(modalEl);
+                myModal.show();
+                setTimeout(() => {
+                    const passInput = document.getElementById('inputNotulenPassword');
+                    if(passInput) passInput.focus();
+                }, 300);
+            }
+        }
+
+        function handleNotulenPasswordKeypress(event) {
+            if(event.key === 'Enter') {
+                verifikasiPasswordNotulen();
+            }
+        }
+
+        function verifikasiPasswordNotulen() {
+            const passwordInput = document.getElementById('inputNotulenPassword').value;
+            const errorMsg = document.getElementById('authErrorMsg');
+            
+            // Password khusus untuk masuk ruang notulen rapat (dapat diganti sesuai keinginan)
+            const correctPassword = "admin"; 
+
+            if(passwordInput === correctPassword) {
+                // Simpan status sesi agar tidak perlu input password terus menerus selama tab browser aktif
+                sessionStorage.setItem('bss_notulen_auth', 'true');
+
+                let modalEl = document.getElementById('modalAuthNotulen');
+                let modalObj = bootstrap.Modal.getInstance(modalEl);
+                if(modalObj) modalObj.hide();
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                
+                // Mulai muat data notulen
+                initModulNotulen();
+            } else {
+                if(errorMsg) errorMsg.style.display = 'block';
+                const passInputEl = document.getElementById('inputNotulenPassword');
+                passInputEl.value = '';
+                passInputEl.focus();
+            }
+        }
+
         function getTodayLocalDate() {
             const d = new Date();
             const year = d.getFullYear();
@@ -387,7 +467,6 @@
             localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
         }
 
-        // Memperbarui opsi tanggal rapat spesifik di dropdown berdasarkan tahun, bulan, & minggu yang dipilih
         function updateDropdownTanggalSpesifik() {
             const selectTgl = document.getElementById('filterTanggalSpesifik');
             if(!selectTgl) return;
@@ -399,7 +478,6 @@
 
             if(!Array.isArray(dataNotulen)) dataNotulen = [];
 
-            // Filter data notulen yang sesuai dengan tahun, bulan, dan minggu
             let matchedDates = new Set();
             dataNotulen.forEach(n => {
                 if(!n || !n.tanggal) return;
@@ -431,7 +509,6 @@
 
             selectTgl.innerHTML = htmlOptions;
             
-            // Pertahankan nilai sebelumnya jika masih ada dalam daftar
             if(sortedDates.includes(currentVal)) {
                 selectTgl.value = currentVal;
             } else {
@@ -789,8 +866,6 @@
         }
 
         function bukaModalNotulenBaru() {
-            initModulNotulen();
-
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
@@ -812,8 +887,6 @@
         }
 
         function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader, notulis) {
-            initModulNotulen();
-
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
@@ -841,8 +914,6 @@
         }
 
         function bukaModalSaveAs(groupKey) {
-            initModulNotulen();
-
             let partsKey = groupKey.split('||');
             let defaultLeader = partsKey[4] || '';
             let defaultNotulis = partsKey[5] || '';
@@ -934,8 +1005,6 @@
         }
 
         function bukaModalEditNotulen(index) {
-            initModulNotulen();
-
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';

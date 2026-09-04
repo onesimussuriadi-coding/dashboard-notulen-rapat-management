@@ -6,217 +6,205 @@
     <title>Dashboard Utama Notulen & Tindak Lanjut - PT. Bangun Sentral Sulawesi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body { background-color: #f8f9fa; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         .bg-teal-custom { background-color: #134e4a !important; }
-        .bg-teal-header { background-color: #0f766e !important; }
         .btn-teal { background-color: #0d9488; color: white; border: none; }
         .btn-teal:hover { background-color: #0f766e; color: white; }
-        .card-menu {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        
+        /* Optimasi Tampilan 1 Layar Penuh (Compact Mode) */
+        .main-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px 20px; }
+        .card-compact {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
             border-left: 4px solid #0d9488;
+            border-radius: 8px;
         }
-        .card-menu:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        .card-compact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
         }
-        .card-rtm {
-            border-left: 4px solid #0284c7 !important;
-            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
-        }
-        .card-top-mgmt {
-            border-left: 4px solid #f59e0b !important;
-            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
-        }
+        .card-rtm-compact { border-left: 4px solid #0284c7 !important; background-color: #f0f9ff; }
+        .card-top-compact { border-left: 4px solid #f59e0b !important; background-color: #fffbeb; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- Navbar Utama -->
-    <nav class="navbar navbar-dark bg-teal-custom shadow-sm">
-        <div class="container-fluid px-4">
-            <span class="navbar-brand mb-0 h1 fs-5">🏢 PT. BANGUN SENTRAL SULAWESI — Central Management</span>
+    <!-- Navbar Ramping -->
+    <nav class="navbar navbar-dark bg-teal-custom py-1 shadow-sm">
+        <div class="container-fluid px-3">
+            <span class="navbar-brand mb-0 h1 fs-6">🏢 PT. BANGUN SENTRAL SULAWESI — Central Management Display</span>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white small">📅 <span id="currentDateDisplay"></span></span>
-                <button class="btn btn-outline-light btn-sm" onclick="logoutSesi()">🔒 Keluar Sesi</button>
+                <button class="btn btn-outline-light btn-sm py-0 px-2" style="font-size: 12px;" onclick="logoutSesi()">🔒 Keluar</button>
             </div>
         </div>
     </nav>
 
-    <!-- Konten Utama Dashboard -->
-    <div class="container py-5">
+    <!-- Konten Utama 1 Layar Tanpa Scroll -->
+    <div class="container-fluid main-container">
         
-        <!-- Header Sambutan -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="p-4 bg-white rounded shadow-sm border-0">
-                    <h2 class="text-teal fw-bold" style="color: #134e4a;">Selamat Datang di Panel Dashboard Notulen Rapat</h2>
-                    <p class="text-muted mb-0">Pilih modul departemen, Rapat Tinjauan Manajemen (RTM), atau pusat pengawasan eksekutif di bawah ini untuk mengelola catatan rapat perusahaan.</p>
-                </div>
+        <!-- Header Ringkas -->
+        <div class="row mb-2">
+            <div class="col-12 text-center">
+                <h5 class="fw-bold text-teal mb-0" style="color: #134e4a; font-size: 18px;">Pusat Panel Pemantauan & Notulen Rapat Perusahaan</h5>
+                <p class="text-muted small mb-1" style="font-size: 12px;">Pilih modul di bawah untuk akses langsung tanpa geser layar.</p>
             </div>
         </div>
 
-        <!-- Kartu Khusus Akses Top Management -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow-sm card-top-mgmt border-0 p-3">
-                    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center">
-                        <div class="d-flex align-items-center mb-3 mb-md-0">
-                            <span class="fs-1 me-3">👑</span>
+        <!-- Baris Khusus Akses Top Management (Ramping) -->
+        <div class="row mb-2 justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-sm card-top-compact border-0 py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="fs-4 me-2">👑</span>
                             <div>
-                                <h4 class="card-title fw-bold text-dark mb-1">Pusat Pengawasan & Rapat Top Management</h4>
-                                <p class="text-muted small mb-0">Modul khusus Direksi untuk mengadakan rapat internal sekaligus mengawasi seluruh action items dari RTM & departemen. (Pass: <code>topmanagement123</code>)</p>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">Pusat Pengawasan & Rapat Top Management</h6>
+                                <span class="text-muted" style="font-size: 11px;">Konsolidasi lintas divisi & Rapat Direksi (Pass: <code>topmanagement123</code>)</span>
                             </div>
                         </div>
-                        <a href="notulen-topmanagement.html" class="btn btn-warning fw-bold text-dark px-4 py-2">👑 Buka Panel Top Management</a>
+                        <a href="notulen-topmanagement.html" class="btn btn-warning btn-sm fw-bold text-dark px-3" style="font-size: 12px;">👑 Buka Panel Eksekutif</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Grid Menu Modul -->
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <!-- Grid 4 Kolom untuk 8 Modul (RTM + 7 Departemen) -->
+        <div class="row row-cols-1 row-cols-md-4 g-2 justify-content-center">
             
-            <!-- 0. Rapat Tinjauan Manajemen (RTM) -->
+            <!-- 0. RTM -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-rtm border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">📊</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Rapat Tinjauan Manajemen (RTM)</h5>
-                                <span class="badge bg-info text-dark mt-1 small">Koordinasi Antar Manajer</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact card-rtm-compact border-0 p-2">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">📊</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Rapat Tinjauan Manajemen (RTM)</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Notulen koordinasi gabungan antar kepala bagian / manajer departemen untuk evaluasi operasional lintas divisi.</p>
-                        <a href="notulen.html" class="btn btn-outline-primary btn-sm fw-bold mt-3">📂 Buka Modul RTM</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-info text-dark" style="font-size: 9px;">Antar Manajer</span>
+                            <a href="notulen.html" class="btn btn-outline-primary btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 1. HRD -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">👥</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Departemen HRD</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: hrd123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">👥</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Departemen HRD</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Pengelolaan rapat internal sumber daya manusia, absensi, rekrutmen, dan kebijakan personel perusahaan.</p>
-                        <a href="notulen-hrd.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul HRD</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: hrd123</span>
+                            <a href="notulen-hrd.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. Finance / Keuangan -->
+            <!-- 2. Keuangan -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">💰</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Departemen Keuangan</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: finance123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">💰</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Departemen Keuangan</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Pencatatan arah kebijakan anggaran, cashflow, laporan keuangan, proforma invoice, dan penagihan proyek.</p>
-                        <a href="notulen-finance.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul Keuangan</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: finance123</span>
+                            <a href="notulen-finance.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 3. Logistik -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">📦</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Departemen Logistik</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: logistik123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">📦</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Departemen Logistik</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Koordinasi pengiriman unit, inventaris gudang, pengadaan material, serta armada transportasi operasional.</p>
-                        <a href="notulen-logistik.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul Logistik</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: logistik123</span>
+                            <a href="notulen-logistik.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 4. HSE -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">🦺</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Departemen HSE</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: hse123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">🦺</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Departemen HSE</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Pengawasan keselamatan kerja, kesehatan lingkungan, kelayakan alat berat, dan mitigasi risiko K3 proyek.</p>
-                        <a href="notulen-hse.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul HSE</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: hse123</span>
+                            <a href="notulen-hse.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 5. Operasional Jenderal Service -->
+            <!-- 5. Ops General -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">🛠️</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Ops Jenderal Service</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: opsgeneral123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">🛠️</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Ops Jenderal Service</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Koordinasi layanan umum dan pemeliharaan fasilitas kantor dengan fokus utama pada pelayanan kepada klien yang maksimal.</p>
-                        <a href="notulen-ops-general.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul Ops General</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: opsgeneral123</span>
+                            <a href="notulen-ops-general.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 6. Operasional Konstruksi -->
+            <!-- 6. Ops Konstruksi -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">🏗️</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Ops Konstruksi</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: opskonstruksi123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">🏗️</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Ops Konstruksi</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Manajemen proyek konstruksi lapangan dan penjadwalan progress pembangunan dengan fokus pada pelayanan kepada klien yang maksimal.</p>
-                        <a href="notulen-ops-konstruksi.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul Ops Konstruksi</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: opskonstruksi123</span>
+                            <a href="notulen-ops-konstruksi.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 7. Maintenance -->
             <div class="col">
-                <div class="card h-100 shadow-sm card-menu border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="fs-2 me-3">⚙️</span>
-                            <div>
-                                <h5 class="card-title fw-bold text-dark mb-0">Departemen Maintenance</h5>
-                                <span class="badge bg-secondary mt-1 small">Pass: maintenance123</span>
-                            </div>
+                <div class="card h-100 shadow-sm card-compact border-0 p-2 bg-white">
+                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-5 me-2">⚙️</span>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Departemen Maintenance</h6>
                         </div>
-                        <p class="card-text text-muted small flex-grow-1">Perawatan rutin mesin, perbaikan unit alat berat, dan penjadwalan servis preventif untuk kehandalan operasional.</p>
-                        <a href="notulen-maintenance.html" class="btn btn-teal btn-sm fw-bold mt-3">📂 Buka Modul Maintenance</a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-secondary" style="font-size: 9px;">Pass: maintenance123</span>
+                            <a href="notulen-maintenance.html" class="btn btn-teal btn-sm py-0 px-2 fw-bold" style="font-size: 11px;">Buka ➔</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Footer Info -->
-        <div class="row mt-5">
-            <div class="col-md-12 text-center text-muted small">
-                <p>PT. Bangun Sentral Sulawesi © 2026 — Corporate Project Management & Operational Data System</p>
+        <!-- Footer Sangat Ringkas -->
+        <div class="row mt-2">
+            <div class="col-12 text-center text-muted" style="font-size: 11px;">
+                PT. Bangun Sentral Sulawesi © 2026 — Display Mode Active
             </div>
         </div>
 
@@ -228,9 +216,8 @@
         document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('id-ID', options);
 
         function logoutSesi() {
-            if(confirm('Apakah Anda ingin membersihkan seluruh sesi login departemen dan manajemen pada browser ini?')) {
+            if(confirm('Bersihkan seluruh sesi login browser?')) {
                 sessionStorage.clear();
-                alert('Sesi berhasil dibersihkan. Setiap modul akan meminta password ulang saat diakses.');
                 location.reload();
             }
         }

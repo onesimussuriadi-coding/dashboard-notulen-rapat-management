@@ -142,17 +142,18 @@
         </div>
     </div>
 
-    <!-- MODAL ABSEN DENGAN PILIHAN TANGGAL BACKDATE -->
+    <!-- MODAL ABSEN (TAMBAH / EDIT) -->
     <div class="modal fade" id="modalAbsen" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Formulir Pengisian Absen Online</h5>
+                    <h5 class="modal-title" id="modalTitleAbsen">Formulir Pengisian Absen Online</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" id="editIndexAbsen" value="-1">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Tanggal Rapat / Kehadiran (Bisa Backdate):</label>
+                        <label class="form-label fw-bold">Tanggal Rapat / Kehadiran:</label>
                         <input type="date" id="absenTanggal" class="form-control">
                     </div>
                     <div class="mb-3">
@@ -202,11 +203,10 @@
         ];
 
         function muatDataAbsen() { 
-            // Pastikan setiap data lama yang belum punya rawTanggal diekstrak dari teks waktu
             dataAbsen.forEach(a => {
                 if(!a.rawTanggal && a.waktu) {
                     let bagianTgl = a.waktu.split('|')[0].trim();
-                    a.rawTanggal = bagianTgl; // Simpan teks tanggal sebagai acuan
+                    a.rawTanggal = bagianTgl;
                 }
             });
             updateDropdownFilterTanggal();
@@ -241,14 +241,12 @@
             let currentFilter = filterSelect.value;
             let currentArsip = arsipSelect.value;
 
-            // Kumpulkan tanggal unik dari data absen aktif
             let tanggalAktifSet = new Set();
             dataAbsen.forEach(a => {
                 let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
                 if(tglKey) tanggalAktifSet.add(tglKey);
             });
 
-            // Kumpulkan semua tanggal unik (aktif + arsip)
             let tanggalSemuaSet = new Set();
             dataAbsen.forEach(a => {
                 let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
@@ -261,7 +259,6 @@
             let listAktif = Array.from(tanggalAktifSet);
             let listSemua = Array.from(tanggalSemuaSet);
 
-            // 1. Isi Dropdown Arsip
             let arsipHtml = '<option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>';
             listAktif.forEach(tgl => {
                 arsipHtml += `<option value="${tgl}">${tgl}</option>`;
@@ -269,7 +266,6 @@
             arsipSelect.innerHTML = arsipHtml;
             if(listAktif.includes(currentArsip)) arsipSelect.value = currentArsip;
 
-            // 2. Isi Filter Utama
             let filterHtml = '<option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>';
             listSemua.forEach(tgl => {
                 let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === tgl);
@@ -307,7 +303,7 @@
                 return;
             }
 
-            if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat (${tglPilih})? Data akan disimpan dan dibersihkan dari tabel aktif.`)) {
+            if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat (${tglPilih})? Data akan dikunci dan dibersihkan dari tabel aktif.`)) {
                 dataAbsenArsip.push({
                     tanggalRapat: tglPilih,
                     peserta: itemArsip
@@ -322,11 +318,13 @@
                 renderAbsen();
                 if(typeof window.simpanKeFirebaseCloud === 'function') window.simpanKeFirebaseCloud();
 
-                alert('Rapat berhasil disimpan dan diarsipkan! Tabel aktif kini bersih untuk jadwal rapat baru.');
+                alert('Rapat berhasil disimpan dan dikunci dalam arsip!');
             }
         }
 
         function bukaModalAbsen() {
+            document.getElementById('editIndexAbsen').value = '-1';
+            document.getElementById('modalTitleAbsen').innerText = 'Formulir Pengisian Absen Online';
             document.getElementById('absenTanggal').value = new Date().toISOString().split('T')[0];
             document.getElementById('absenNama').value = '';
             document.getElementById('absenJabatan').value = '';
@@ -334,6 +332,46 @@
             document.getElementById('absenStatus').value = 'Hadir';
             document.getElementById('absenKeterangan').value = '';
             document.getElementById('divKeterangan').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('modalAbsen')).show();
+        }
+
+        function bukaModalEditAbsen(index) {
+            const a = dataAbsen[index];
+            if(!a) return;
+
+            document.getElementById('editIndexAbsen').value = index;
+            document.getElementById('modalTitleAbsen').innerText = 'Edit Data Kehadiran';
+            
+            // Coba set tanggal jika formatnya valid
+            document.getElementById('absenTanggal').value = new Date().toISOString().split('T')[0]; // Default hari ini jika parsing manual
+            
+            const selectNama = document.getElementById('absenNama');
+            let foundInMaster = false;
+            for(let i=0; i<selectNama.options.length; i++) {
+                if(selectNama.options[i].value === a.nama) {
+                    selectNama.selectedIndex = i;
+                    foundInMaster = true;
+                    break;
+                }
+            }
+
+            if(!foundInMaster) {
+                selectNama.value = 'MANUAL_TAMU';
+                document.getElementById('divInputManual').style.display = 'block';
+                document.getElementById('manualNama').value = a.nama;
+                document.getElementById('manualJabatan').value = a.jabatan;
+                document.getElementById('absenJabatan').value = a.jabatan;
+                document.getElementById('absenJabatan').readOnly = false;
+            } else {
+                document.getElementById('divInputManual').style.display = 'none';
+                document.getElementById('absenJabatan').value = a.jabatan;
+                document.getElementById('absenJabatan').readOnly = true;
+            }
+
+            document.getElementById('absenStatus').value = a.status;
+            document.getElementById('absenKeterangan').value = a.keterangan || '';
+            document.getElementById('divKeterangan').style.display = a.status === 'Hadir' ? 'none' : 'block';
+
             new bootstrap.Modal(document.getElementById('modalAbsen')).show();
         }
 
@@ -382,9 +420,17 @@
                 
                 let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
                 let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === tglKey);
-                let aksiButton = !isArsiped 
-                    ? `<button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>` 
-                    : `<span class="badge bg-secondary">Tersimpan (Arsip)</span>`;
+                
+                // TOMBOL AKSI: Bisa Edit & Hapus JIKA MASIH AKTIF. Jika sudah diarsip terkunci permanen.
+                let aksiButton = '';
+                if(!isArsiped) {
+                    aksiButton = `
+                        <button class="btn btn-sm btn-outline-warning me-1 mb-1" onclick="bukaModalEditAbsen(${index})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger mb-1" onclick="hapusAbsen(${index})">Hapus</button>
+                    `;
+                } else {
+                    aksiButton = `<span class="badge bg-secondary">Tersimpan (Arsip)</span>`;
+                }
 
                 tr.innerHTML = `<td><strong>${a.waktu}</strong></td>
                     <td><span class="fw-bold text-success">${a.nama}</span> <span class="text-muted">— ${a.jabatan}</span></td>
@@ -397,6 +443,7 @@
         }
 
         function simpanAbsen() {
+            const editIndex = parseInt(document.getElementById('editIndexAbsen').value);
             const tanggalInput = document.getElementById('absenTanggal').value;
             const selectNama = document.getElementById('absenNama').value;
             let nama = selectNama, jabatan = document.getElementById('absenJabatan').value;
@@ -426,7 +473,13 @@
             const jamString = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
             const waktuString = tglFormatted + ' | ' + jamString;
 
-            dataAbsen.unshift({ rawTanggal: tglFormatted, waktu: waktuString, nama, jabatan, status, keterangan });
+            if(editIndex === -1) {
+                // Tambah baru
+                dataAbsen.unshift({ rawTanggal: tglFormatted, waktu: waktuString, nama, jabatan, status, keterangan });
+            } else {
+                // Update data yang diedit
+                dataAbsen[editIndex] = { rawTanggal: tglFormatted, waktu: waktuString, nama, jabatan, status, keterangan };
+            }
             
             updateDropdownFilterTanggal();
             renderAbsen();

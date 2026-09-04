@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Terintegrasi Utama - PT. Bangun Sentral Sulawesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --teal-dark: #134e4a;
+            --teal-header: #0f766e;
+            --teal-btn: #0d9488;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR KIRI */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background-color: #ffffff;
+            border-right: 1px solid #dee2e6;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar-brand {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-menu-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* KONTEN UTAMA DI KANAN */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        .company-header-card {
+            background-color: var(--teal-dark);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn-teal { background-color: var(--teal-btn); color: white; border: none; }
+        .btn-teal:hover { background-color: var(--teal-header); color: white; }
+
+        .menu-item-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        .menu-item-link:hover, .menu-item-link.active {
+            background-color: #e6fffa;
+            color: var(--teal-header);
+            font-weight: bold;
+        }
+
+        iframe {
+            width: 100%;
+            height: 750px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body onload="initDashboard()">
+
+    <!-- SIDEBAR NAVIGASI UTAMA -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            📁 Manajemen Akun & Hak Akses
+            <div class="text-muted small fw-normal mt-1" id="infoRoleLogin">Role: Memuat...</div>
+        </div>
+
+        <div class="mb-4">
+            <button class="btn btn-success btn-sm w-100 fw-bold py-2 mb-3" onclick="logoutSistem()">🚪 Keluar / Logout Sistem</button>
+        </div>
+
+        <div class="sidebar-menu-title">Navigasi Dashboard Utama</div>
+        <div class="text-muted small mb-3">
+            🕒 Waktu Sistem (WITA):<br>
+            <strong id="waktuSistem" class="text-dark">-</strong>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Pilih Modul / Level Rapat:</label>
+            <select id="selectModulUtama" class="form-select form-select-sm fw-bold text-teal" onchange="gantiModulTampilan()">
+                <option value="home">🏠 Beranda / Informasi Utama</option>
+                <optgroup label="📂 Rapat Tingkat Departemen">
+                    <option value="notulen-hrd.html">👤 Rapat Departemen HRD</option>
+                    <option value="notulen-finance.html" disabled>💰 Rapat Departemen Keuangan (Segera)</option>
+                    <option value="notulen-ops.html" disabled>⚙️ Rapat Departemen Operasional (Segera)</option>
+                </optgroup>
+                <optgroup label="📊 Rapat Manajemen & Top Management">
+                    <option value="notulen.html">📋 Rapat Manajemen (Umum)</option>
+                    <option value="notulen-topmanagement.html" disabled>👑 Rapat Top Management (Akses Khusus)</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="sidebar-menu-title mt-2">Pilih Menu Cepat:</div>
+        <div class="flex-grow-1 overflow-auto">
+            <a href="#" class="menu-item-link active" onclick="muatHalaman('home'); return false;">📌 Ringkasan Sistem</a>
+            <a href="notulen-hrd.html" target="iframeModul" class="menu-item-link">👤 Buka Modul HRD (Full)</a>
+            <a href="notulen.html" target="iframeModul" class="menu-item-link">📋 Buka Modul Manajemen (Full)</a>
+            <a href="visimisi.html" target="iframeModul" class="menu-item-link">📖 Lihat Visi, Misi & Buletin</a>
+        </div>
+
+        <div class="mt-auto pt-3 border-top text-center text-muted" style="font-size: 11px;">
+            PT. Bangun Sentral Sulawesi &copy; 2026
+        </div>
+    </div>
+
+    <!-- KONTEN UTAMA DI SEBELAH KANAN -->
+    <div class="main-content">
+        <div class="company-header-card">
+            <h3 class="mb-1 fw-bold text-uppercase" style="letter-spacing: 1px;">PT. Bangun Sentral Sulawesi</h3>
+            <p class="mb-0 small text-light opacity-75">Jenderal Contractor and Suppliers | Dashboard Terintegrasi Utama</p>
+        </div>
+
+        <!-- AREA TAMPILAN DINAMIS (BISA MENAMPILKAN MODUL DALAM IFRAME ATAU KARTU BERANDA) -->
+        <div id="containerTampilanModul">
+            <!-- Tampilan Beranda Default -->
+            <div class="card border-0 shadow-sm p-4 text-center">
+                <div class="card-body">
+                    <h4 class="fw-bold text-teal mb-3">Selamat Datang di Pusat Kendali Rapat Terintegrasi</h4>
+                    <p class="text-muted mb-4">Silakan pilih modul departemen atau rapat manajemen pada menu pilihan di sebelah kiri untuk mulai mengelola dan memantau dokumen rapat secara real-time.</p>
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-md-4">
+                            <div class="card border shadow-sm p-3 h-100">
+                                <h5 class="fs-6 fw-bold">👤 Departemen HRD</h5>
+                                <p class="small text-muted">Akses khusus data internal dan tindak lanjut HRD.</p>
+                                <a href="notulen-hrd.html" class="btn btn-teal btn-sm mt-auto">Buka Modul HRD</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border shadow-sm p-3 h-100">
+                                <h5 class="fs-6 fw-bold">📋 Rapat Manajemen</h5>
+                                <p class="small text-muted">Forum rekapitulasi gabungan antar departemen.</p>
+                                <a href="notulen.html" class="btn btn-teal btn-sm mt-auto">Buka Manajemen</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function initDashboard() {
+            updateWaktuWITA();
+            setInterval(updateWaktuWITA, 1000);
+
+            // Cek role dari session
+            let role = sessionStorage.getItem('bss_user_role') || 'Standard User';
+            document.getElementById('infoRoleLogin').innerText = 'Akses: ' + role;
+        }
+
+        function updateWaktuWITA() {
+            const now = new Date();
+            // Format waktu WITA (UTC+8)
+            const options = { timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            let formatter = new Intl.DateTimeFormat('id-ID', options);
+            let parts = formatter.formatToParts(now);
+            let d={}, t={};
+            parts.forEach(p => {
+                if(p.type==='day' || p.type==='month' || p.type==='year') d[p.type]=p.value;
+                if(p.type==='hour' || p.type==='minute' || p.type==='second') t[p.type]=p.value;
+            });
+            if(d.day) {
+                document.getElementById('waktuSistem').innerText = `${d.day} Sep ${d.year}, ${t.hour}:${t.minute}:${t.second}`;
+            }
+        }
+
+        function gantiModulTampilan() {
+            const selectVal = document.getElementById('selectModulUtama').value;
+            const container = document.getElementById('containerTampilanModul');
+
+            if(selectVal === 'home') {
+                container.innerHTML = `<div class="card border-0 shadow-sm p-4 text-center">
+                    <div class="card-body">
+                        <h4 class="fw-bold text-teal mb-3">Selamat Datang di Pusat Kendali Rapat Terintegrasi</h4>
+                        <p class="text-muted mb-4">Silakan pilih modul departemen atau rapat manajemen pada menu pilihan di sebelah kiri.</p>
+                    </div>
+                </div>`;
+            } else {
+                // Muat file HTML terkait ke dalam iframe agar tampil rapi di dalam dashboard
+                container.innerHTML = `<iframe src="${selectVal}" name="iframeModul"></iframe>`;
+            }
+        }
+
+        function logoutSistem() {
+            if(confirm('Keluar dari sistem dashboard terintegrasi?')) {
+                sessionStorage.clear();
+                window.location.href = 'visimisi.html';
+            }
+        }
+    </script>
+</body>
+</html>

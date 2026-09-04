@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-light" onload="muatDataNotulenOnline()">
+<body class="bg-light" onload="initModulNotulen()">
 
     <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
@@ -39,10 +39,10 @@
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
                 <h3>Action Items</h3>
-                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline, dan sinkronisasi Cloud.</p>
+                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline secara dinamis.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="muatDataNotulenOnline(true)">🔄 Sinkron Cloud</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Sinkronisasi Data</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -50,12 +50,13 @@
             </div>
         </div>
 
+        <!-- FILTER PANEL TAMBAHAN DROPDOWN TANGGAL RAPAT -->
         <div class="card shadow-sm mb-4 bg-white border-0 no-print">
             <div class="card-body py-3">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Tahun</label>
-                        <select id="filterTahun" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterTahun" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL">Semua Tahun (All)</option>
                             <option value="2026" selected>2026</option>
                             <option value="2027">2027</option>
@@ -63,16 +64,16 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-bold mb-1">Pilih Bulan</label>
-                        <select id="filterBulan" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterBulan" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL">Semua Bulan (All)</option>
                             <option value="08">Agustus</option>
                             <option value="09" selected>September</option>
                             <option value="10">Oktober</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold mb-1">Filter Periode Minggu</label>
-                        <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="renderNotulen()">
+                        <select id="filterPeriodeMinggu" class="form-select form-select-sm" onchange="onFilterChange()">
                             <option value="ALL" selected>Semua Minggu</option>
                             <option value="Minggu ke-1">Minggu ke-1</option>
                             <option value="Minggu ke-2">Minggu ke-2</option>
@@ -80,7 +81,13 @@
                             <option value="Minggu ke-4">Minggu ke-4</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold mb-1 text-teal">📅 Pilih Tanggal Rapat</label>
+                        <select id="filterTanggalSpesifik" class="form-select form-select-sm" onchange="renderNotulen()">
+                            <option value="ALL" selected>Semua Tanggal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold mb-1">Status Tindak Lanjut</label>
                         <select id="filterStatus" class="form-select form-select-sm" onchange="renderNotulen()">
                             <option value="ALL">Semua Status Aktif</option>
@@ -165,12 +172,19 @@
                             </div>
                         </div>
 
-                        <div class="mb-2">
-                            <label class="form-label small fw-bold">Pemimpin & Notulis (Dari Jadwal Rapat)</label>
-                            <select id="notulenLeader" class="form-select form-select-sm" onchange="pilihLeaderDariJadwal(this)">
-                                <option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>
-                            </select>
-                            <input type="hidden" id="notulenNotulis" value="">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
+                                <select id="notulenLeader" class="form-select form-select-sm">
+                                    <option value="">-- Pilih Pemimpin Rapat --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
+                                <select id="notulenNotulis" class="form-select form-select-sm">
+                                    <option value="">-- Pilih Notulis Rapat --</option>
+                                </select>
+                            </div>
                         </div>
                         <hr class="my-3">
                     </div>
@@ -190,7 +204,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">PIC / Penanggung Jawab</label>
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dari Master Personel)</label>
                             <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 120px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -208,7 +222,7 @@
                 </div>
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan ke Cloud</button>
+                    <button type="button" class="btn btn-teal btn-sm" onclick="simpanNotulenOnline()">Simpan Data</button>
                 </div>
             </div>
         </div>
@@ -216,7 +230,7 @@
 
     <!-- Modal Save As -->
     <div class="modal fade" id="modalSaveAs" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-teal-custom text-white py-2">
                     <h5 class="modal-title fs-6">Simpan Sebagai (Save As) / Salin Rapat</h5>
@@ -226,48 +240,62 @@
                     <input type="hidden" id="saveAsSourceKey" value="">
                     <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru.</p>
                     
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
-                        <select id="saveAsPeriode" class="form-select form-select-sm">
-                            <option value="Minggu ke-1">Minggu ke-1</option>
-                            <option value="Minggu ke-2">Minggu ke-2</option>
-                            <option value="Minggu ke-3">Minggu ke-3</option>
-                            <option value="Minggu ke-4">Minggu ke-4</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Periode Minggu Baru</label>
+                            <select id="saveAsPeriode" class="form-select form-select-sm">
+                                <option value="Minggu ke-1">Minggu ke-1</option>
+                                <option value="Minggu ke-2">Minggu ke-2</option>
+                                <option value="Minggu ke-3">Minggu ke-3</option>
+                                <option value="Minggu ke-4">Minggu ke-4</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
+                            <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
+                        </div>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Target Tanggal Rapat Baru</label>
-                        <input type="date" id="saveAsTanggal" class="form-control form-control-sm">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
-                        <select id="saveAsLokasi" class="form-select form-select-sm">
-                            <option value="Kantor Utama">Kantor Utama</option>
-                            <option value="Kantor Pasar Tua">Kantor Pasar Tua</option>
-                            <option value="Kantor Soekarno">Kantor Soekarno</option>
-                            <option value="Kantor Surabaya">Kantor Surabaya</option>
-                            <option value="Kantor Jakarta">Kantor Jakarta</option>
-                            <option value="Opsional">Opsional / Lainnya</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
-                        <div class="d-flex gap-3 mt-1">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
-                                <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
-                                <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Lokasi Tempat Rapat Baru</label>
+                            <select id="saveAsLokasi" class="form-select form-select-sm">
+                                <option value="Kantor Utama">Kantor Utama</option>
+                                <option value="Kantor Pasar Tua">Kantor Pasar Tua</option>
+                                <option value="Kantor Soekarno">Kantor Soekarno</option>
+                                <option value="Kantor Surabaya">Kantor Surabaya</option>
+                                <option value="Kantor Jakarta">Kantor Jakarta</option>
+                                <option value="Opsional">Opsional / Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Media Peserta Rapat Baru</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOffline" value="Offline">
+                                    <label class="form-check-label small" for="saveAsMediaOffline">Offline</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveAsMediaOnline" value="Online">
+                                    <label class="form-check-label small" for="saveAsMediaOnline">Online</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Pemimpin & Notulis Baru</label>
-                        <select id="saveAsLeader" class="form-select form-select-sm">
-                            <option value="">-- Pilih Pemimpin & Notulis dari Jadwal --</option>
-                        </select>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
+                            <select id="saveAsLeader" class="form-select form-select-sm">
+                                <option value="">-- Pilih Pemimpin Rapat --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
+                            <select id="saveAsNotulis" class="form-select form-select-sm">
+                                <option value="">-- Pilih Notulis Rapat --</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer py-2">
@@ -280,8 +308,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxK670zUIQkWlPs_5s7-M0nRoawa0gHOzVO0zK8gONQW07rzvsPattukpkdgaVRsFg/exec";
-        
         let dataNotulen = [];
         let dataJadwal = [];
         let dataPersonel = [];
@@ -305,105 +331,172 @@
             return val;
         }
 
-        function muatDataNotulenOnline(showNotification = false) {
-            if(showNotification) alert('Menghubungkan ke Cloud...');
+        function initModulNotulen(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan ulang data secara mendalam...');
             
-            let localCache = localStorage.getItem('bss_notulen_data');
-            if(localCache) {
+            let savedNotulen = localStorage.getItem('bss_notulen_data') || localStorage.getItem('notulen_data');
+            if(savedNotulen) {
+                try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
+            }
+
+            dataJadwal = [];
+            dataPersonel = [];
+            let allKeys = Object.keys(localStorage);
+            
+            for(let k of allKeys) {
+                let val = localStorage.getItem(k);
                 try {
-                    dataNotulen = JSON.parse(localCache);
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
+                    let parsed = JSON.parse(val);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        let kLower = k.toLowerCase();
+                        if(kLower.includes('jadwal') || kLower.includes('rapat')) {
+                            dataJadwal = dataJadwal.concat(parsed);
+                        }
+                        if(kLower.includes('personel') || kLower.includes('absen') || kLower.includes('karyawan') || kLower.includes('master') || kLower.includes('peserta')) {
+                            dataPersonel = dataPersonel.concat(parsed);
+                        }
+                    }
                 } catch(e) {}
             }
 
-            fetch(WEB_APP_URL + "?action=load&t=" + new Date().getTime(), { cache: "no-store" })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.personel && Array.isArray(data.personel)) {
-                        dataPersonel = data.personel;
-                    }
-                    if (data.jadwal && Array.isArray(data.jadwal)) {
-                        dataJadwal = data.jadwal;
-                    }
-                    if (data.notulen && Array.isArray(data.notulen) && data.notulen.length > 0) {
-                        dataNotulen = data.notulen;
-                        localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
-                    }
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                    isiDropdownLeaderJadwal();
-                    renderPicCheckboxes();
-                    if(showNotification) alert('Sinkronisasi Cloud Berhasil!');
-                })
-                .catch(err => {
-                    renderNotulen();
-                    isiDropdownLeaderJadwal();
-                    renderPicCheckboxes();
-                });
-        }
-
-        function pushDataToCloudServer() {
-            const payload = {
-                personel: Array.isArray(dataPersonel) ? dataPersonel : [],
-                jadwal: Array.isArray(dataJadwal) ? dataJadwal : [],
-                absen: [],
-                notulen: Array.isArray(dataNotulen) ? dataNotulen : []
-            };
-            
-            localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
-
-            return fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "save", payload: payload })
-            }).catch(err => {
-                console.error("Gagal simpan ke cloud:", err);
-            });
-        }
-
-        function isiDropdownLeaderJadwal() {
-            const select = document.getElementById('notulenLeader');
-            const saveAsLeaderSelect = document.getElementById('saveAsLeader');
-            
-            let currentJadwal = Array.isArray(dataJadwal) && dataJadwal.length > 0 ? dataJadwal : [
-                { periode: "Minggu ke-1", tanggal: "2026-09-03", leader: "Onesimus Suriadi", notulis: "Yanuar M. Wiranata", lokasi: "Kantor Pasar Tua" },
-                { periode: "Minggu ke-2", tanggal: "2026-09-10", leader: "I Made Vridianto", notulis: "Ruwaeda Magga", lokasi: "Kantor Utama" },
-                { periode: "Minggu ke-4", tanggal: "2026-08-28", leader: "Richard Renaldy Bukamo", notulis: "Onesimus Suriadi", lokasi: "Kantor Utama" }
-            ];
-            
-            let optionsHtml = '<option value="">-- Pilih Pemimpin & Notulis dari Jadwal Rapat --</option>';
-            currentJadwal.forEach((j) => {
-                let namaLeader = j.leader || j.namaLeader || '-';
-                let namaNotulis = j.notulis || j.namaNotulis || '-';
-                let textDisplay = `${j.periode} (${j.tanggal}) — Leader: ${namaLeader} | Notulis: ${namaNotulis}`;
-                optionsHtml += `<option value="${namaLeader}" data-notulis="${namaNotulis}">${textDisplay}</option>`;
-            });
-            
-            if(select) select.innerHTML = optionsHtml;
-            if(saveAsLeaderSelect) saveAsLeaderSelect.innerHTML = optionsHtml;
-        }
-
-        function pilihLeaderDariJadwal(select) {
-            const selectedOption = select.options[select.selectedIndex];
-            const selectedNamaLeader = select.value;
-            if(selectedNamaLeader === "") return;
-
-            let notulisVal = selectedOption.getAttribute('data-notulis') || '';
-            document.getElementById('notulenNotulis').value = notulisVal;
-
-            let currentJadwal = Array.isArray(dataJadwal) ? dataJadwal : [];
-            const j = currentJadwal.find(item => (item.leader || item.namaLeader) === selectedNamaLeader);
-            if(j) {
-                if(j.periode) document.getElementById('notulenPeriode').value = j.periode;
-                if(j.tanggal) document.getElementById('notulenTanggal').value = j.tanggal;
-                if(j.lokasi) {
-                    let lokSelect = document.getElementById('notulenLokasi');
-                    for(let i=0; i<lokSelect.options.length; i++) {
-                        if(lokSelect.options[i].value === j.lokasi) { lokSelect.selectedIndex = i; break; }
-                    }
+            if(dataPersonel.length === 0) {
+                for(let k of allKeys) {
+                    try {
+                        let parsed = JSON.parse(localStorage.getItem(k));
+                        if(Array.isArray(parsed)) {
+                            let hasName = parsed.some(item => item && (item.nama || item.namaLengkap || item.name));
+                            if(hasName) {
+                                dataPersonel = parsed;
+                                break;
+                            }
+                        }
+                    } catch(e) {}
                 }
             }
+
+            updateDropdownTanggalSpesifik();
+            renderNotulen();
+            isiDropdownTanggalLalu();
+            isiDropdownLeaderDanNotulis();
+            renderPicCheckboxes();
+
+            if(showNotification) alert('Sinkronisasi tuntas! Silakan cek dropdown dan pilihan PIC.');
+        }
+
+        function simpanKeStorage() {
+            localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
+        }
+
+        // Memperbarui opsi tanggal rapat spesifik di dropdown berdasarkan tahun, bulan, & minggu yang dipilih
+        function updateDropdownTanggalSpesifik() {
+            const selectTgl = document.getElementById('filterTanggalSpesifik');
+            if(!selectTgl) return;
+
+            let currentVal = selectTgl.value;
+            const filterTahun = document.getElementById('filterTahun').value;
+            const filterBulan = document.getElementById('filterBulan').value;
+            const filterMinggu = document.getElementById('filterPeriodeMinggu').value;
+
+            if(!Array.isArray(dataNotulen)) dataNotulen = [];
+
+            // Filter data notulen yang sesuai dengan tahun, bulan, dan minggu
+            let matchedDates = new Set();
+            dataNotulen.forEach(n => {
+                if(!n || !n.tanggal) return;
+                let p = n.tanggal.split('-');
+                let tTahun = p[0];
+                let tBulan = p[1];
+                let tMinggu = n.periode;
+
+                let matchTahun = (filterTahun === 'ALL' || tTahun === filterTahun);
+                let matchBulan = (filterBulan === 'ALL' || tBulan === filterBulan);
+                let matchMinggu = (filterMinggu === 'ALL' || tMinggu === filterMinggu);
+
+                if(matchTahun && matchBulan && matchMinggu) {
+                    matchedDates.add(n.tanggal);
+                }
+            });
+
+            let sortedDates = Array.from(matchedDates).sort().reverse();
+            let htmlOptions = '<option value="ALL">Semua Tanggal</option>';
+            
+            sortedDates.forEach(dt => {
+                let formattedDt = dt;
+                try {
+                    let p = dt.split('-');
+                    formattedDt = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {}
+                htmlOptions += `<option value="${dt}">${formattedDt}</option>`;
+            });
+
+            selectTgl.innerHTML = htmlOptions;
+            
+            // Pertahankan nilai sebelumnya jika masih ada dalam daftar
+            if(sortedDates.includes(currentVal)) {
+                selectTgl.value = currentVal;
+            } else {
+                selectTgl.value = 'ALL';
+            }
+        }
+
+        function onFilterChange() {
+            updateDropdownTanggalSpesifik();
+            renderNotulen();
+        }
+
+        function isiDropdownLeaderDanNotulis() {
+            const selectLeader = document.getElementById('notulenLeader');
+            const selectNotulis = document.getElementById('notulenNotulis');
+            const saveAsLeader = document.getElementById('saveAsLeader');
+            const saveAsNotulis = document.getElementById('saveAsNotulis');
+            
+            if(!selectLeader || !selectNotulis) return;
+
+            let leadersSet = new Set();
+            let notulisSet = new Set();
+
+            let rawJadwalData = [];
+            if(Array.isArray(dataJadwal) && dataJadwal.length > 0) {
+                rawJadwalData = dataJadwal;
+            } else {
+                for(let i=0; i<localStorage.length; i++) {
+                    let k = localStorage.key(i);
+                    try {
+                        let parsed = JSON.parse(localStorage.getItem(k));
+                        if(Array.isArray(parsed)) rawJadwalData = rawJadwalData.concat(parsed);
+                    } catch(e) {}
+                }
+            }
+
+            rawJadwalData.forEach(j => {
+                if(!j || typeof j !== 'object') return;
+                
+                let l = j.leader || j.namaLeader || j.pemimpin || j.namaPemimpin;
+                if(l && typeof l === 'string') {
+                    let bersihL = l.split('(')[0].trim();
+                    if(bersihL) leadersSet.add(bersihL);
+                }
+
+                let n = j.notulis || j.namaNotulis || j.notulen || j.namaNotulen;
+                if(n && typeof n === 'string') {
+                    let bersihN = n.split('(')[0].trim();
+                    if(bersihN) notulisSet.add(bersihN);
+                }
+            });
+
+            let htmlLeader = '<option value="">-- Pilih Pemimpin Rapat --</option>';
+            leadersSet.forEach(l => { htmlLeader += `<option value="${l}">${l}</option>`; });
+            if(leadersSet.size === 0) htmlLeader += '<option value="" disabled>-- Belum ada data pemimpin --</option>';
+            
+            selectLeader.innerHTML = htmlLeader;
+            if(saveAsLeader) saveAsLeader.innerHTML = htmlLeader;
+
+            let htmlNotulis = '<option value="">-- Pilih Notulis --</option>';
+            notulisSet.forEach(n => { htmlNotulis += `<option value="${n}">${n}</option>`; });
+            if(notulisSet.size === 0) htmlNotulis += '<option value="" disabled>-- Belum ada data notulis --</option>';
+            
+            selectNotulis.innerHTML = htmlNotulis;
+            if(saveAsNotulis) saveAsNotulis.innerHTML = htmlNotulis;
         }
 
         function renderPicCheckboxes(selectedValues = []) {
@@ -411,29 +504,64 @@
             if(!container) return;
             container.innerHTML = '';
             
-            let listPersonel = Array.isArray(dataPersonel) && dataPersonel.length > 0 ? dataPersonel : [
-                { nama: "Ferry Tatimu", jabatan: "Direktur" },
-                { nama: "Prayogo Sudana", jabatan: "General Manager" },
-                { nama: "Gannie Tatimu", jabatan: "Wakil General Manager" },
-                { nama: "Wahyu Suryono", jabatan: "Management Representative" },
-                { nama: "Surini", jabatan: "Manager Akuntansi dan Keuangan" },
-                { nama: "Ronald Tamberongan", jabatan: "Manager Maintenance" },
-                { nama: "Sahrul Lasimpala", jabatan: "Manager Logistic" },
-                { nama: "Richard Renaldy Bukamo", jabatan: "Manager HRD" },
-                { nama: "Onesimus Suriadi", jabatan: "Manager General Services" },
-                { nama: "I Made Vridianto", jabatan: "Manager HSE" },
-                { nama: "I Kadek Widarma", jabatan: "Manager Konstruksi" },
-                { nama: "Yanuar M. Wiranata", jabatan: "Supervisor General Services" }
-            ];
+            let listPersonel = [];
+            if(Array.isArray(dataPersonel) && dataPersonel.length > 0) {
+                listPersonel = dataPersonel;
+            } else {
+                for(let i=0; i<localStorage.length; i++) {
+                    let k = localStorage.key(i);
+                    try {
+                        let parsed = JSON.parse(localStorage.getItem(k));
+                        if(Array.isArray(parsed)) {
+                            let hasName = parsed.some(item => item && (item.nama || item.namaLengkap || item.name));
+                            if(hasName) listPersonel = listPersonel.concat(parsed);
+                        }
+                    } catch(e) {}
+                }
+            }
 
-            listPersonel.forEach((p, idx) => {
-                let identifier = p.nama + ' — ' + p.jabatan;
-                let isChecked = selectedValues.includes(identifier) ? 'checked' : '';
+            if (listPersonel.length === 0) {
+                container.innerHTML = '<div class="text-danger small p-1">⚠️ Belum ada master personel terdeteksi. Silakan input data di modul Absen/Personel.</div>';
+                return;
+            }
+
+            let uniqueMap = new Map();
+            listPersonel.forEach((p) => {
+                let namaP = '';
+                let jabatanP = '';
+
+                if (typeof p === 'string') {
+                    namaP = p;
+                } else if (typeof p === 'object' && p !== null) {
+                    namaP = p.nama || p.namaLengkap || p.name || p.namaPegawai || '';
+                    jabatanP = p.jabatan || p.posisi || p.role || p.title || '';
+                    
+                    if (!namaP) {
+                        let vals = Object.values(p).filter(v => typeof v === 'string' && v.trim().length > 1);
+                        namaP = vals[0] || '';
+                        jabatanP = vals[1] || '';
+                    }
+                }
+
+                if(namaP) {
+                    let bersihNama = namaP.trim();
+                    let identifier = jabatanP ? `${bersihNama} — ${jabatanP.trim()}` : bersihNama;
+                    if(!uniqueMap.has(bersihNama)) {
+                        uniqueMap.set(bersihNama, identifier);
+                    }
+                }
+            });
+
+            let idx = 0;
+            uniqueMap.forEach((identifier) => {
+                let isChecked = (Array.isArray(selectedValues) && selectedValues.includes(identifier)) ? 'checked' : '';
+                
                 let div = document.createElement('div');
                 div.className = 'form-check mb-1';
                 div.innerHTML = `<input class="form-check-input pic-checkbox" type="checkbox" value="${identifier}" id="picCheck_${idx}" ${isChecked}>
                     <label class="form-check-label small" for="picCheck_${idx}">${identifier}</label>`;
                 container.appendChild(div);
+                idx++;
             });
         }
 
@@ -487,17 +615,67 @@
 
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
+            
+            let lines = teks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length > 1) {
+                let htmlOut = '<div style="text-align: left;">';
+                lines.forEach(line => {
+                    let matchSub = line.match(/^(\d+(?:\.\d+)+[\.\)]?)\s+(.*)/) || line.match(/^(\d+[\.\)])\s+(.*)/);
+                    if (matchSub) {
+                        let numPart = matchSub[1];
+                        let restPart = matchSub[2];
+                        let depth = numPart.split('.').filter(Boolean).length - 1; 
+                        let padLeft = depth * 16; 
+                        let fSize = Math.max(83, 94 - (depth * 3)) + '%'; 
+
+                        let colonIdx = restPart.indexOf(':');
+                        if (colonIdx !== -1 && depth >= 2) {
+                            let labelPart = restPart.substring(0, colonIdx).trim();
+                            let valuePart = restPart.substring(colonIdx + 1).trim();
+                            
+                            htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-size: ${fSize};">` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
+                                       `<span style="width: 110px; font-weight: normal;">${labelPart}</span>` +
+                                       `<span style="width: 15px; text-align: center; font-weight: normal;">:</span>` +
+                                       `<span style="flex: 1; font-weight: normal;">${valuePart}</span>` +
+                                       `</div>`;
+                        } else {
+                            htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-size: ${fSize};">` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
+                                       `<span style="flex: 1; font-weight: normal;">${restPart}</span>` +
+                                       `</div>`;
+                        }
+                    } else {
+                        htmlOut += `<div style="margin-top: 3px; font-weight: normal; font-size: 92%;">${line}</div>`;
+                    }
+                });
+                htmlOut += '</div>';
+                return htmlOut;
+            }
+
             let regex = /(?:^|\s+)(\d+[\.\)])\s*/g;
             if (regex.test(teks)) {
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
-                    let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
-                    parts.forEach(part => { htmlList += '<li>' + part.replace(/^\d+[\.\)]\s*/, '') + '</li>'; });
-                    htmlList += '</ol>';
+                    let htmlList = '<div class="text-secondary small" style="text-align: left;">';
+                    parts.forEach(part => {
+                        let matchNum = part.match(/^(\d+[\.\)])\s*(.*)/);
+                        if (matchNum) {
+                            let numP = matchNum[1];
+                            let textP = matchNum[2];
+                            htmlList += `<div style="display: flex; margin-top: 2px; font-weight: normal;">` +
+                                        `<span style="min-width: 24px; font-weight: normal;">${numP}</span>` +
+                                        `<span style="flex: 1; font-weight: normal;">${textP}</span>` +
+                                        `</div>`;
+                        } else {
+                            htmlList += `<div style="font-weight: normal;">${part}</div>`;
+                        }
+                    });
+                    htmlList += '</div>';
                     return htmlList;
                 }
             }
-            return '<span class="text-secondary small">' + teks + '</span>';
+            return '<span class="text-secondary small" style="font-weight: normal;">' + teks + '</span>';
         }
 
         function renderNotulen() {
@@ -510,6 +688,7 @@
             const filterTahun = document.getElementById('filterTahun').value;
             const filterBulan = document.getElementById('filterBulan').value;
             const filterPeriodeMinggu = document.getElementById('filterPeriodeMinggu').value;
+            const filterTanggalSpesifik = document.getElementById('filterTanggalSpesifik').value;
             const filterStatus = document.getElementById('filterStatus').value;
 
             let filteredData = dataNotulen.filter((n, idx) => {
@@ -518,13 +697,14 @@
                 let matchTahun = (filterTahun === 'ALL' || p[0] === filterTahun);
                 let matchBulan = (filterBulan === 'ALL' || p[1] === filterBulan);
                 let matchMinggu = (filterPeriodeMinggu === 'ALL' || n.periode === filterPeriodeMinggu);
+                let matchTanggal = (filterTanggalSpesifik === 'ALL' || n.tanggal === filterTanggalSpesifik);
                 let matchStatus = (filterStatus === 'ALL' || n.status === filterStatus);
                 n.originalIndex = idx;
-                return matchTahun && matchBulan && matchMinggu && matchStatus;
+                return matchTahun && matchBulan && matchMinggu && matchTanggal && matchStatus;
             });
 
             if(filteredData.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter atau di Cloud Server.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter.</div>';
                 return;
             }
 
@@ -552,13 +732,14 @@
                 let safeLokasi = lokasi.replace(/'/g, "\\'");
                 let safeMedia = media.replace(/'/g, "\\'");
                 let safeLeader = (leader || '-').replace(/'/g, "\\'");
+                let safeNotulis = (notulis || '-').replace(/'/g, "\\'");
 
                 let headerHtml = '<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
-                    '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + (leader || '-') + ' | ✍️ <strong>Notulis:</strong> ' + (notulis || '-') + '</div></div>' +
+                    '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
                     '<div class="d-flex gap-2">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
-                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\')">+ Tambah Topik</button>' +
+                    '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
                     '</div></div>' +
                     '<div class="card-body p-0"><div class="table-responsive"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
@@ -594,7 +775,7 @@
                         '<td style="word-wrap: break-word;"><strong>' + (n.topikUtama || '-') + '</strong></td>' +
                         '<td style="word-wrap: break-word;">' + formattedPembahasanHTML + '</td>' +
                         '<td style="word-wrap: break-word;">' + formattedTindakLanjutHTML + '</td>' +
-                        '<td style="word-wrap: break-word;">' + picDisplay + '<br><small class="text-danger">Due: ' + deadFormatted + '</small><br><span class="badge ' + badgeClass + ' mt-1">' + n.status + '</span></td>' +
+                        '<td style="word-wrap: break-word;"><div class="small" style="font-size: 11.5px; line-height: 1.3;">' + picDisplay + '<br><span class="text-danger">Due: ' + deadFormatted + '</span><br><span class="badge ' + badgeClass + ' mt-1" style="font-size: 10px;">' + n.status + '</span></div></td>' +
                         '<td class="text-center no-print" style="word-wrap: break-word;">' +
                         '<button class="btn btn-sm btn-outline-warning mb-1 px-1 w-100" style="font-size: 11px;" onclick="bukaModalEditNotulen(' + n.originalIndex + ')">Edit</button>' +
                         '<button class="btn btn-sm btn-outline-danger px-1 w-100" style="font-size: 11px;" onclick="hapusNotulen(' + n.originalIndex + ')">Hapus</button>' +
@@ -608,6 +789,8 @@
         }
 
         function bukaModalNotulenBaru() {
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
@@ -619,10 +802,7 @@
             document.getElementById('mediaOffline').checked = false;
             document.getElementById('mediaOnline').checked = false;
             
-            isiDropdownLeaderJadwal();
-            document.getElementById('notulenLeader').selectedIndex = 0;
-            document.getElementById('notulenNotulis').value = '';
-            
+            isiDropdownLeaderDanNotulis();
             resetFormInti();
             isiDropdownTanggalLalu();
             
@@ -631,7 +811,9 @@
             myModal.show();
         }
 
-        function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader) {
+        function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader, notulis) {
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
@@ -647,7 +829,10 @@
 
             document.getElementById('mediaOffline').checked = media.includes('Offline');
             document.getElementById('mediaOnline').checked = media.includes('Online');
+            
+            isiDropdownLeaderDanNotulis();
             document.getElementById('notulenLeader').value = leader;
+            document.getElementById('notulenNotulis').value = notulis;
 
             resetFormInti();
             let modalEl = document.getElementById('modalNotulen');
@@ -656,12 +841,21 @@
         }
 
         function bukaModalSaveAs(groupKey) {
+            initModulNotulen();
+
+            let partsKey = groupKey.split('||');
+            let defaultLeader = partsKey[4] || '';
+            let defaultNotulis = partsKey[5] || '';
+
             document.getElementById('saveAsSourceKey').value = groupKey;
             document.getElementById('saveAsTanggal').value = getTodayLocalDate();
             document.getElementById('saveAsMediaOffline').checked = false;
             document.getElementById('saveAsMediaOnline').checked = false;
-            isiDropdownLeaderJadwal();
-            document.getElementById('saveAsLeader').selectedIndex = 0;
+            
+            isiDropdownLeaderDanNotulis();
+            if(defaultLeader && defaultLeader !== '-') document.getElementById('saveAsLeader').value = defaultLeader;
+            if(defaultNotulis && defaultNotulis !== '-') document.getElementById('saveAsNotulis').value = defaultNotulis;
+
             let modalEl = document.getElementById('modalSaveAs');
             let myModal = new bootstrap.Modal(modalEl);
             myModal.show();
@@ -678,9 +872,8 @@
             if(document.getElementById('saveAsMediaOnline').checked) mediaList.push('Online');
             let targetMedia = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
-            let leaderSelect = document.getElementById('saveAsLeader');
-            let targetLeader = leaderSelect.value ? leaderSelect.value : '-';
-            let targetNotulis = leaderSelect.options[leaderSelect.selectedIndex]?.getAttribute('data-notulis') || '-';
+            let targetLeader = document.getElementById('saveAsLeader').value || '-';
+            let targetNotulis = document.getElementById('saveAsNotulis').value || '-';
 
             if(!targetTanggal) {
                 alert('Tentukan tanggal rapat baru terlebih dahulu!');
@@ -716,10 +909,10 @@
                 dataNotulen.unshift(clonedItem);
             });
 
-            pushDataToCloudServer().then(() => {
-                renderNotulen();
-                isiDropdownTanggalLalu();
-            });
+            simpanKeStorage();
+            updateDropdownTanggalSpesifik();
+            renderNotulen();
+            isiDropdownTanggalLalu();
             
             let modalEl = document.getElementById('modalSaveAs');
             let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -727,6 +920,8 @@
             document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
+            
+            alert('Rapat berhasil disalin ke periode baru beserta identitas Pemimpin & Notulis!');
         }
 
         function resetFormInti() {
@@ -739,6 +934,8 @@
         }
 
         function bukaModalEditNotulen(index) {
+            initModulNotulen();
+
             document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';
@@ -760,7 +957,7 @@
             document.getElementById('mediaOffline').checked = mediaArr.includes('Offline');
             document.getElementById('mediaOnline').checked = mediaArr.includes('Online');
             
-            isiDropdownLeaderJadwal();
+            isiDropdownLeaderDanNotulis();
             document.getElementById('notulenLeader').value = n.leader || '';
             document.getElementById('notulenNotulis').value = n.notulis || '';
 
@@ -796,19 +993,6 @@
                     media = itemLama.media || 'Offline';
                     leader = itemLama.leader || '-';
                     notulis = itemLama.notulis || '-';
-                } else if (mode === 'tambah_topik') {
-                    periode = document.getElementById('notulenPeriode').value;
-                    tanggal = rawTglRapat;
-                    lokasi = document.getElementById('notulenLokasi').value;
-                    
-                    let mediaList = [];
-                    if(document.getElementById('mediaOffline').checked) mediaList.push('Offline');
-                    if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
-                    media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
-
-                    let leaderSelect = document.getElementById('notulenLeader');
-                    leader = leaderSelect.value ? leaderSelect.value : '-';
-                    notulis = document.getElementById('notulenNotulis').value || '-';
                 } else {
                     periode = document.getElementById('notulenPeriode').value;
                     tanggal = rawTglRapat;
@@ -819,8 +1003,7 @@
                     if(document.getElementById('mediaOnline').checked) mediaList.push('Online');
                     media = mediaList.length > 0 ? mediaList.join(', ') : 'Offline';
 
-                    let leaderSelect = document.getElementById('notulenLeader');
-                    leader = leaderSelect.value ? leaderSelect.value : '-';
+                    leader = document.getElementById('notulenLeader').value || '-';
                     notulis = document.getElementById('notulenNotulis').value || '-';
                 }
 
@@ -856,10 +1039,10 @@
                     }
                 } catch(e) {}
 
-                pushDataToCloudServer().then(() => {
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                });
+                simpanKeStorage();
+                updateDropdownTanggalSpesifik();
+                renderNotulen();
+                isiDropdownTanggalLalu();
                 
                 let modalEl = document.getElementById('modalNotulen');
                 let modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -868,7 +1051,7 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                alert('Data berhasil disimpan secara aman dan permanen!');
+                alert('Data berhasil disimpan secara dinamis!');
             } catch (err) {
                 alert('Terjadi kesalahan saat menyimpan: ' + err.message);
             }
@@ -878,10 +1061,10 @@
             if(confirm('Hapus notulen ini secara permanen?')) {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
-                pushDataToCloudServer().then(() => {
-                    renderNotulen();
-                    isiDropdownTanggalLalu();
-                });
+                simpanKeStorage();
+                updateDropdownTanggalSpesifik();
+                renderNotulen();
+                isiDropdownTanggalLalu();
                 alert('Data berhasil dihapus.');
             }
         }

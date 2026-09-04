@@ -522,28 +522,42 @@
             return '<span>' + teks + '</span>';
         }
 
-        // PENYESUAIAN MUTLAK: Mendeteksi pemisahan berdasarkan baris baru (\n) ATAU nomor bertingkat secara otomatis
+        // PENYESUAIAN MUTLAK KEDUA POIN:
+        // 1. Tanpa bold (semua teks isi & nomor tingkat tiga normal/tidak bold).
+        // 2. Susunan baris vertikal tingkat ketiga rata dan rapi sejajar titik dua (:).
         function formatTindakLanjut(teks) {
             if (!teks) return '-';
             
-            // Cek apakah ada baris baru (\n) dari hasil tombol Enter pengguna
             let lines = teks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
             if (lines.length > 1) {
                 let htmlOut = '<div style="text-align: left;">';
                 lines.forEach(line => {
-                    // Deteksi apakah baris ini adalah sub-nomor (misal: 1.1, 1.1.1, 4.1)
                     let matchSub = line.match(/^(\d+(?:\.\d+)+[\.\)]?)\s+(.*)/) || line.match(/^(\d+[\.\)])\s+(.*)/);
                     if (matchSub) {
                         let numPart = matchSub[1];
-                        let textPart = matchSub[2];
+                        let restPart = matchSub[2];
                         let depth = numPart.split('.').length - 1;
-                        let padLeft = depth * 18;
+                        let padLeft = depth * 16;
                         let fSize = Math.max(84, 94 - (depth * 3)) + '%';
                         
-                        htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-weight: normal; font-size: ${fSize};">` +
-                                   `<span style="min-width: 30px; font-weight: bold;">${numPart}</span>` +
-                                   `<span style="flex: 1;">${textPart}</span>` +
-                                   `</div>`;
+                        // Periksa apakah ada pola pemisah titik dua (:) untuk merapikan label dan isi
+                        let colonIdx = restPart.indexOf(':');
+                        if (colonIdx !== -1 && depth >= 2) {
+                            let labelPart = restPart.substring(0, colonIdx).trim();
+                            let valuePart = restPart.substring(colonIdx + 1).trim();
+                            
+                            htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-weight: normal; font-size: ${fSize};">` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
+                                       `<span style="width: 110px; font-weight: normal;">${labelPart}</span>` +
+                                       `<span style="width: 15px; text-align: center;">:</span>` +
+                                       `<span style="flex: 1; font-weight: normal;">${valuePart}</span>` +
+                                       `</div>`;
+                        } else {
+                            htmlOut += `<div style="display: flex; margin-top: 3px; padding-left: ${padLeft}px; font-weight: normal; font-size: ${fSize};">` +
+                                       `<span style="min-width: 32px; font-weight: normal;">${numPart}</span>` +
+                                       `<span style="flex: 1; font-weight: normal;">${restPart}</span>` +
+                                       `</div>`;
+                        }
                     } else {
                         htmlOut += `<div style="margin-top: 3px; font-weight: normal; font-size: 92%;">${line}</div>`;
                     }
@@ -557,42 +571,25 @@
             if (regex.test(teks)) {
                 let parts = teks.split(/(?=\d+[\.\)]\s)/).map(p => p.trim()).filter(Boolean);
                 if (parts.length > 1) {
-                    let htmlList = '<ol class="ps-3 mb-0 text-secondary small" style="text-align: left;">';
+                    let htmlList = '<div class="text-secondary small" style="text-align: left;">';
                     parts.forEach(part => {
-                        let cleanedPart = part.replace(/^\d+[\.\)]\s*/, '');
-                        let subRegex = /(\b\d+\.\d+(?:\.\d+)*\b)/g;
-                        if (subRegex.test(cleanedPart)) {
-                            let subParts = cleanedPart.split(/(?=\b\d+\.\d+(?:\.\d+)*\b)/).map(s => s.trim()).filter(Boolean);
-                            let mainText = subParts[0];
-                            htmlList += '<li>' + mainText;
-                            for (let i = 1; i < subParts.length; i++) {
-                                let subItemText = subParts[i];
-                                let matchNum = subItemText.match(/^(\d+\.\d+(?:\.\d+)*)\s*(.*)/);
-                                if (matchNum) {
-                                    let subNum = matchNum[1];
-                                    let subContent = matchNum[2];
-                                    let depth = subNum.split('.').length - 1;
-                                    let paddingLeft = depth * 18; 
-                                    let fontSize = Math.max(85, 94 - (depth * 3)) + '%';
-                                    
-                                    htmlList += `<div style="display: flex; margin-top: 3px; padding-left: ${paddingLeft}px; font-weight: normal; font-size: ${fontSize};">` +
-                                                `<span style="min-width: 32px; font-weight: bold;">${subNum}</span>` +
-                                                `<span style="flex: 1;">${subContent}</span>` +
-                                                `</div>`;
-                                } else {
-                                    htmlList += `<div style="margin-top: 3px; padding-left: 18px; font-weight: normal; font-size: 91%;">${subItemText}</div>`;
-                                }
-                            }
-                            htmlList += '</li>';
+                        let matchNum = part.match(/^(\d+[\.\)])\s*(.*)/);
+                        if (matchNum) {
+                            let numP = matchNum[1];
+                            let textP = matchNum[2];
+                            htmlList += `<div style="display: flex; margin-top: 2px; font-weight: normal;">` +
+                                        `<span style="min-width: 24px; font-weight: normal;">${numP}</span>` +
+                                        `<span style="flex: 1; font-weight: normal;">${textP}</span>` +
+                                        `</div>`;
                         } else {
-                            htmlList += '<li>' + cleanedPart + '</li>';
+                            htmlList += `<div style="font-weight: normal;">${part}</div>`;
                         }
                     });
-                    htmlList += '</ol>';
+                    htmlList += '</div>';
                     return htmlList;
                 }
             }
-            return '<span class="text-secondary small">' + teks + '</span>';
+            return '<span class="text-secondary small" style="font-weight: normal;">' + teks + '</span>';
         }
 
         function renderNotulen() {

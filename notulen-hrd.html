@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modul Notulen & Tindak Lanjut Rapat</title>
+    <title>Modul Notulen & Tindak Lanjut - Departemen HRD</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .bg-teal-custom { background-color: #134e4a !important; }
@@ -71,16 +71,14 @@
         }
     </style>
 </head>
-<body class="bg-light" onload="cekAutentikasiNotulen()">
+<body class="bg-light" onload="cekAutentikasiNotulenHRD()">
 
     <!-- NAVBAR KONSISTEN -->
     <nav class="navbar navbar-dark bg-teal-custom shadow-sm no-print">
         <div class="container-fluid px-4">
-            <span class="navbar-brand mb-0 h1 fs-6">📁 Modul Notulen & Tindak Lanjut Rapat</span>
+            <span class="navbar-brand mb-0 h1 fs-6">📁 Modul Notulen — Departemen HRD</span>
             <div class="d-flex gap-2">
-                <a href="jadwal.html" class="btn btn-outline-light btn-sm">📅 Jadwal Rapat</a>
-                <a href="absen.html" class="btn btn-outline-light btn-sm">📝 Daftar Absen</a>
-                <a href="notulen.html" class="btn btn-light btn-sm fw-bold text-teal">📁 Notulen Rapat</a>
+                <a href="notulen-hrd.html" class="btn btn-light btn-sm fw-bold text-teal">📁 Notulen HRD</a>
                 <a href="visimisi.html" class="btn btn-outline-warning btn-sm fw-bold">← Visi Misi / Buletin</a>
             </div>
         </div>
@@ -92,16 +90,16 @@
             <h2 style="margin: 0; color: #134e4a; font-size: 20px; font-weight: bold; text-transform: uppercase;">PT. Bangun Sentral Sulawesi</h2>
             <p style="margin: 2px 0; font-size: 13px; color: #555; font-style: italic;">Jenderal Kontraktor and Supplier</p>
             <hr style="border: 0.5px solid #0d9488; width: 60%; margin: 8px auto;">
-            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Rapat Tinjauan Manajemen</h4>
+            <h4 style="margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #333;">Rapat Departemen HRD</h4>
         </div>
 
         <div class="row mb-3 align-items-center no-print">
             <div class="col">
-                <h3>Action Items</h3>
-                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline secara dinamis.</p>
+                <h3>Action Items — Departemen HRD</h3>
+                <p class="text-muted small mb-0">Pengelompokan per periode rapat, lokasi, media online/offline khusus internal HRD.</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulen(true)">🔄 Sinkronisasi Data</button>
+                <button class="btn btn-warning btn-sm me-2 fw-bold text-dark" onclick="initModulNotulenHRD(true)">🔄 Sinkronisasi Data</button>
                 <button class="btn btn-outline-dark btn-sm me-2" onclick="window.print()">🖨️ Cetak / Preview PDF</button>
                 <button class="btn btn-success btn-sm me-2" onclick="downloadAllExcel()">📊 Excel</button>
                 <button class="btn btn-primary btn-sm me-2" onclick="downloadAllWord()">📄 Word</button>
@@ -167,28 +165,28 @@
         </div>
     </div>
 
-    <!-- MODAL PASSWORD KHUSUS MASUK NOTULEN RAPAT -->
-    <div class="modal fade" id="modalAuthNotulen" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <!-- MODAL PASSWORD KHUSUS HRD -->
+    <div class="modal fade" id="modalAuthNotulenHRD" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-teal-custom text-white py-3">
-                    <h5 class="modal-title fs-6">🔐 Akses Terbatas - Ruang Meeting Management</h5>
+                    <h5 class="modal-title fs-6">🔐 Akses Terbatas - Departemen HRD</h5>
                 </div>
                 <div class="modal-body text-center py-4">
                     <div class="mb-3">
-                        <span class="fs-1">🏢</span>
+                        <span class="fs-1">👤👥</span>
                     </div>
-                    <h6 class="fw-bold text-dark mb-2">Anda akan masuk ke ruang meeting management</h6>
-                    <p class="text-muted small mb-4">Silakan masukkan password untuk mengakses modul Notulen & Tindak Lanjut Rapat.</p>
+                    <h6 class="fw-bold text-dark mb-2">Modul Internal Departemen HRD</h6>
+                    <p class="text-muted small mb-4">Silakan masukkan password HRD untuk mengakses data rapat internal.</p>
                     
                     <div class="px-4">
-                        <input type="password" id="inputNotulenPassword" class="form-control form-control-lg text-center" placeholder="••••••••" onkeypress="handleNotulenPasswordKeypress(event)">
-                        <div id="authErrorMsg" class="text-danger small mt-2" style="display: none;">Password salah! Silakan coba lagi.</div>
+                        <input type="password" id="inputNotulenPasswordHRD" class="form-control form-control-lg text-center" placeholder="••••••••" onkeypress="handlePasswordKeypress(event)">
+                        <div id="authErrorMsg" class="text-danger small mt-2" style="display: none;">Password salah! (Default: hrd123)</div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2 justify-content-center">
                     <a href="visimisi.html" class="btn btn-secondary btn-sm px-4">Kembali</a>
-                    <button type="button" class="btn btn-teal btn-sm px-4 fw-bold" onclick="verifikasiPasswordNotulen()">Masuk Ruangan</button>
+                    <button type="button" class="btn btn-teal btn-sm px-4 fw-bold" onclick="verifikasiPasswordHRD()">Masuk Ruangan</button>
                 </div>
             </div>
         </div>
@@ -199,7 +197,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-teal-custom text-white">
-                    <h5 class="modal-title" id="modalTitleNotulen">Form Notulen & Tindak Lanjut Rapat</h5>
+                    <h5 class="modal-title" id="modalTitleNotulen">Form Notulen & Tindak Lanjut Rapat HRD</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -262,13 +260,13 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-2">
-                                <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
+                                <label class="form-label small fw-bold text-teal">👤 Pimpinan Rapat HRD</label>
                                 <select id="notulenLeader" class="form-select form-select-sm">
                                     <option value="">-- Pilih Pemimpin Rapat --</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
+                                <label class="form-label small fw-bold text-teal">✍️ Notulis HRD</label>
                                 <select id="notulenNotulis" class="form-select form-select-sm">
                                     <option value="">-- Pilih Notulis Rapat --</option>
                                 </select>
@@ -292,7 +290,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold">PIC / Penanggung Jawab (Dari Master Personel)</label>
+                            <label class="form-label small fw-bold">PIC / Penanggung Jawab</label>
                             <div id="containerPicCheckboxes" class="border rounded p-2 bg-white" style="height: 140px; overflow-y: auto;"></div>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -337,7 +335,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="saveAsSourceKey" value="">
-                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat ini ke periode baru.</p>
+                    <p class="small text-muted mb-3">Menduplikasi seluruh topik rapat HRD ini ke periode baru.</p>
                     
                     <div class="row">
                         <div class="col-md-6 mb-2">
@@ -384,13 +382,13 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold text-teal">👤 Pilih Pemimpin Rapat (Dari Jadwal)</label>
+                            <label class="form-label small fw-bold text-teal">👤 Pimpinan Rapat HRD</label>
                             <select id="saveAsLeader" class="form-select form-select-sm">
                                 <option value="">-- Pilih Pemimpin Rapat --</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-2">
-                            <label class="form-label small fw-bold text-teal">✍️ Pilih Notulis (Dari Jadwal)</label>
+                            <label class="form-label small fw-bold text-teal">✍️ Notulis HRD</label>
                             <select id="saveAsNotulis" class="form-select form-select-sm">
                                 <option value="">-- Pilih Notulis Rapat --</option>
                             </select>
@@ -411,46 +409,46 @@
         let dataJadwal = [];
         let dataPersonel = [];
 
-        function cekAutentikasiNotulen() {
-            let isAuth = sessionStorage.getItem('bss_notulen_auth');
+        function cekAutentikasiNotulenHRD() {
+            let isAuth = sessionStorage.getItem('bss_hrd_auth');
             if(isAuth === 'true') {
-                initModulNotulen();
+                initModulNotulenHRD();
             } else {
-                let modalEl = document.getElementById('modalAuthNotulen');
+                let modalEl = document.getElementById('modalAuthNotulenHRD');
                 let myModal = new bootstrap.Modal(modalEl);
                 myModal.show();
                 setTimeout(() => {
-                    const passInput = document.getElementById('inputNotulenPassword');
+                    const passInput = document.getElementById('inputNotulenPasswordHRD');
                     if(passInput) passInput.focus();
                 }, 300);
             }
         }
 
-        function handleNotulenPasswordKeypress(event) {
+        function handlePasswordKeypress(event) {
             if(event.key === 'Enter') {
-                verifikasiPasswordNotulen();
+                verifikasiPasswordHRD();
             }
         }
 
-        function verifikasiPasswordNotulen() {
-            const passwordInput = document.getElementById('inputNotulenPassword').value;
+        function verifikasiPasswordHRD() {
+            const passwordInput = document.getElementById('inputNotulenPasswordHRD').value;
             const errorMsg = document.getElementById('authErrorMsg');
-            const correctPassword = "admin"; 
+            const correctPassword = "hrd123"; // Password khusus HRD
 
             if(passwordInput === correctPassword) {
-                sessionStorage.setItem('bss_notulen_auth', 'true');
+                sessionStorage.setItem('bss_hrd_auth', 'true');
 
-                let modalEl = document.getElementById('modalAuthNotulen');
+                let modalEl = document.getElementById('modalAuthNotulenHRD');
                 let modalObj = bootstrap.Modal.getInstance(modalEl);
                 if(modalObj) modalObj.hide();
                 document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                initModulNotulen();
+                initModulNotulenHRD();
             } else {
                 if(errorMsg) errorMsg.style.display = 'block';
-                const passInputEl = document.getElementById('inputNotulenPassword');
+                const passInputEl = document.getElementById('inputNotulenPasswordHRD');
                 passInputEl.value = '';
                 passInputEl.focus();
             }
@@ -475,12 +473,15 @@
             return val;
         }
 
-        function initModulNotulen(showNotification = false) {
-            if(showNotification) alert('Menyinkronkan ulang data secara mendalam...');
+        function initModulNotulenHRD(showNotification = false) {
+            if(showNotification) alert('Menyinkronkan ulang data departemen HRD...');
             
-            let savedNotulen = localStorage.getItem('bss_notulen_data') || localStorage.getItem('notulen_data');
+            // KUNCI PENYIMPANAN TERISOLASI KHUSUS HRD
+            let savedNotulen = localStorage.getItem('bss_notulen_hrd_data');
             if(savedNotulen) {
                 try { dataNotulen = JSON.parse(savedNotulen); } catch(e) { dataNotulen = []; }
+            } else {
+                dataNotulen = [];
             }
 
             dataJadwal = [];
@@ -503,32 +504,18 @@
                 } catch(e) {}
             }
 
-            if(dataPersonel.length === 0) {
-                for(let k of allKeys) {
-                    try {
-                        let parsed = JSON.parse(localStorage.getItem(k));
-                        if(Array.isArray(parsed)) {
-                            let hasName = parsed.some(item => item && (item.nama || item.namaLengkap || item.name));
-                            if(hasName) {
-                                dataPersonel = parsed;
-                                break;
-                            }
-                        }
-                    } catch(e) {}
-                }
-            }
-
             updateDropdownTanggalSpesifik();
             renderNotulen();
             isiDropdownTanggalLalu();
             isiDropdownLeaderDanNotulis();
             renderPicCheckboxes();
 
-            if(showNotification) alert('Sinkronisasi tuntas! Silakan cek dropdown dan pilihan PIC.');
+            if(showNotification) alert('Sinkronisasi HRD tuntas!');
         }
 
         function simpanKeStorage() {
-            localStorage.setItem('bss_notulen_data', JSON.stringify(dataNotulen));
+            // MENYIMPAN KE KUNCI TERISOLASI HRD
+            localStorage.setItem('bss_notulen_hrd_data', JSON.stringify(dataNotulen));
         }
 
         function updateDropdownTanggalSpesifik() {
@@ -870,7 +857,7 @@
             });
 
             if(filteredData.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen yang sesuai dengan filter.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-muted">Belum ada data notulen HRD yang sesuai dengan filter.</div>';
                 return;
             }
 
@@ -983,7 +970,7 @@
         }
 
         function bukaModalNotulenBaru() {
-            document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru';
+            document.getElementById('modalTitleNotulen').innerText = 'Buat Notulen Baru (HRD)';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'baru';
             document.getElementById('wrapperMetadataRapat').style.display = 'block';
@@ -1004,7 +991,7 @@
         }
 
         function bukaModalTambahTopik(periode, tanggal, lokasi, media, leader, notulis) {
-            document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik untuk Rapat: ' + periode + ' (' + tanggal + ')';
+            document.getElementById('modalTitleNotulen').innerText = 'Tambah Topik HRD: ' + periode + ' (' + tanggal + ')';
             document.getElementById('editIndexNotulen').value = '-1';
             document.getElementById('modeFormNotulen').value = 'tambah_topik';
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
@@ -1110,7 +1097,7 @@
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             
-            alert('Rapat berhasil disalin ke periode baru beserta identitas Pemimpin & Notulis!');
+            alert('Rapat HRD berhasil disalin ke periode baru!');
         }
 
         function resetFormInti() {
@@ -1125,7 +1112,7 @@
         }
 
         function bukaModalEditNotulen(index) {
-            document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat';
+            document.getElementById('modalTitleNotulen').innerText = 'Edit Notulen Rapat HRD';
             document.getElementById('editIndexNotulen').value = index;
             document.getElementById('modeFormNotulen').value = 'edit';
             document.getElementById('wrapperMetadataRapat').style.display = 'none';
@@ -1252,7 +1239,7 @@
         }
 
         function hapusNotulen(index) {
-            if(confirm('Hapus notulen ini secara permanen?')) {
+            if(confirm('Hapus notulen HRD ini secara permanen?')) {
                 if(!Array.isArray(dataNotulen)) dataNotulen = [];
                 dataNotulen.splice(index, 1);
                 simpanKeStorage();
@@ -1265,17 +1252,16 @@
 
         function downloadAllExcel() {
             if (!Array.isArray(dataNotulen) || dataNotulen.length === 0) {
-                alert('Belum ada data notulen untuk diunduh.');
+                alert('Belum ada data notulen HRD untuk diunduh.');
                 return;
             }
 
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
-                '<head><meta charset="utf-8"><title>Rekap Notulen Rapat BSS</title></head><body>' +
-                '<table border="1"><tr><th colspan="12" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - REKAP NOTULEN & ACTION ITEMS</th></tr>' +
+                '<head><meta charset="utf-8"><title>Rekap Notulen HRD BSS</title></head><body>' +
+                '<table border="1"><tr><th colspan="12" style="background-color:#0d9488; color:white; font-size:16px; text-align:center;">PT. BANGUN SENTRAL SULAWESI - RAPAT DEPARTEMEN HRD</th></tr>' +
                 '<tr style="background-color:#f2f2f2;"><th>Periode</th><th>Tanggal</th><th>Lokasi</th><th>Media</th><th>Leader</th><th>Notulis</th><th>Topik Utama</th><th>Pembahasan</th><th>Tindak Lanjut</th><th>Target Awal</th><th>Deadline</th><th>Status</th></tr>';
 
             dataNotulen.forEach(item => {
-                let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
                 htmlContent += '<tr>' +
                     '<td>' + item.periode + '</td>' +
                     '<td>' + item.tanggal + '</td>' +
@@ -1296,7 +1282,7 @@
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = 'Rekap_Notulen_BSS.xls';
+            a.download = 'Rekap_Notulen_HRD.xls';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1304,15 +1290,15 @@
 
         function downloadAllWord() {
             if (!Array.isArray(dataNotulen) || dataNotulen.length === 0) {
-                alert('Belum ada data notulen untuk diunduh.');
+                alert('Belum ada data notulen HRD untuk diunduh.');
                 return;
             }
 
             let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-                '<head><meta charset="utf-8"><title>Laporan Notulen Rapat</title></head>' +
+                '<head><meta charset="utf-8"><title>Laporan Notulen HRD</title></head>' +
                 '<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">' +
                 '<h2 style="color: #0d9488; text-align: center; margin-bottom: 0;">PT. BANGUN SENTRAL SULAWESI</h2>' +
-                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN REKAPITULASI NOTULEN & TINDAK LANJUT RAPAT</h3><hr style="border: 1px solid #0d9488;">';
+                '<h3 style="text-align: center; margin-top: 5px;">LAPORAN RAPAT DEPARTEMEN HRD</h3><hr style="border: 1px solid #0d9488;">';
 
             dataNotulen.forEach((item, idx) => {
                 let picStr = Array.isArray(item.pic) ? item.pic.join(', ') : (item.pic || '-');
@@ -1330,7 +1316,7 @@
             let url = URL.createObjectURL(blob);
             let a_elem = document.createElement('a');
             a_elem.href = url;
-            a_elem.download = 'Laporan_Notulen_BSS.doc';
+            a_elem.download = 'Laporan_Notulen_HRD.doc';
             document.body.appendChild(a_elem);
             a_elem.click();
             document.body.removeChild(a_elem);

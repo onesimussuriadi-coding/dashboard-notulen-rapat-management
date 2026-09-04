@@ -13,10 +13,35 @@
         .btn-outline-teal { color: #0d9488; border-color: #0d9488; }
         .btn-outline-teal:hover { background-color: #0d9488; color: white; }
 
+        /* KOREKSI POSISI: HEADER HIJAU TETAP MENEMPEL DI ATAS SAAT DI-SCROLL */
+        .card-header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #0f766e !important;
+        }
+
+        /* KOREKSI POSISI: KEPALA TABEL (NO, TOPIK, DLL) MENEMPEL TEPAT DI BAWAH HEADER HIJAU */
+        .table-scroll-container thead th {
+            position: sticky;
+            top: 65px; /* Menyesuaikan tinggi header hijau */
+            z-index: 10;
+            background-color: #f8f9fa !important;
+            box-shadow: inset 0 -2px 0 #dee2e6;
+        }
+
+        /* BINGKAI SCROLL VERTIKAL UNTUK ISI TABEL NOTULEN */
+        .table-scroll-container {
+            max-height: 420px; /* Batasi tinggi agar rapi dan tidak memakan halaman */
+            overflow-y: auto;
+            position: relative;
+        }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; }
             .card { border: none !important; box-shadow: none !important; }
+            .table-scroll-container { max-height: none !important; overflow: visible !important; }
         }
     </style>
 </head>
@@ -339,15 +364,11 @@
         let dataJadwal = [];
         let dataPersonel = [];
 
-        // FUNGSI CEK AUTENTIKASI SAAT HALAMAN DIBUKA
         function cekAutentikasiNotulen() {
-            // Cek apakah sudah login di sesi ini
             let isAuth = sessionStorage.getItem('bss_notulen_auth');
             if(isAuth === 'true') {
-                // Jika sudah login, langsung muat modul notulen
                 initModulNotulen();
             } else {
-                // Jika belum, tampilkan modal password
                 let modalEl = document.getElementById('modalAuthNotulen');
                 let myModal = new bootstrap.Modal(modalEl);
                 myModal.show();
@@ -367,12 +388,9 @@
         function verifikasiPasswordNotulen() {
             const passwordInput = document.getElementById('inputNotulenPassword').value;
             const errorMsg = document.getElementById('authErrorMsg');
-            
-            // Password khusus untuk masuk ruang notulen rapat (dapat diganti sesuai keinginan)
             const correctPassword = "admin"; 
 
             if(passwordInput === correctPassword) {
-                // Simpan status sesi agar tidak perlu input password terus menerus selama tab browser aktif
                 sessionStorage.setItem('bss_notulen_auth', 'true');
 
                 let modalEl = document.getElementById('modalAuthNotulen');
@@ -382,7 +400,6 @@
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 
-                // Mulai muat data notulen
                 initModulNotulen();
             } else {
                 if(errorMsg) errorMsg.style.display = 'block';
@@ -811,14 +828,16 @@
                 let safeLeader = (leader || '-').replace(/'/g, "\\'");
                 let safeNotulis = (notulis || '-').replace(/'/g, "\\'");
 
-                let headerHtml = '<div class="card-header bg-teal-header text-white py-2 d-flex justify-content-between align-items-center">' +
+                // HEADER HIJAU MENGGUNAKAN KELAS card-header-sticky AGAR TETAP DIAM DI ATAS SAAT DI-SCROLL
+                let headerHtml = '<div class="card-header card-header-sticky text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
                     '<div class="d-flex gap-2">' +
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
                     '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
                     '</div></div>' +
-                    '<div class="card-body p-0"><div class="table-responsive"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
+                    // PEMBUNGKUS DENGAN KELAS table-scroll-container UNTUK BILAH GESER VERTIKAL
+                    '<div class="card-body p-0"><div class="table-responsive table-scroll-container"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
                     '<th style="width: 5%;">No.</th>' +
                     '<th style="width: 17%;">Topik Utama</th>' +

@@ -108,12 +108,12 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-bold mb-1">📅 Filter Tanggal Rapat (Aktif / Arsip):</label>
                         <select id="filterTanggalAbsen" class="form-select form-select-sm" onchange="renderAbsen()">
-                            <option value="AKTIF">-- Tampilkan Daftar Absen Aktif --</option>
+                            <option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>
                         </select>
                     </div>
                     <div class="col-md-8 text-md-end">
                         <div class="d-inline-flex gap-2 align-items-center justify-content-end w-100">
-                            <select id="selectArsipTanggal" class="form-select form-select-sm" style="max-width: 240px;">
+                            <select id="selectArsipTanggal" class="form-select form-select-sm" style="max-width: 250px;">
                                 <option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>
                             </select>
                             <button class="btn btn-primary btn-sm fw-bold text-nowrap" onclick="arsipkanRapatTanggalIni()">💾 Simpan / Arsipkan Rapat</button>
@@ -202,6 +202,13 @@
         ];
 
         function muatDataAbsen() { 
+            // Pastikan setiap data lama yang belum punya rawTanggal diekstrak dari teks waktu
+            dataAbsen.forEach(a => {
+                if(!a.rawTanggal && a.waktu) {
+                    let bagianTgl = a.waktu.split('|')[0].trim();
+                    a.rawTanggal = bagianTgl; // Simpan teks tanggal sebagai acuan
+                }
+            });
             updateDropdownFilterTanggal();
             renderAbsen(); 
             isiDropdownMaster(); 
@@ -234,47 +241,44 @@
             let currentFilter = filterSelect.value;
             let currentArsip = arsipSelect.value;
 
-            // Kumpulkan tanggal unik dari data absen aktif saja untuk dropdown arsip
+            // Kumpulkan tanggal unik dari data absen aktif
             let tanggalAktifSet = new Set();
-            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalAktifSet.add(a.rawTanggal); });
+            dataAbsen.forEach(a => {
+                let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
+                if(tglKey) tanggalAktifSet.add(tglKey);
+            });
 
-            // Kumpulkan semua tanggal unik (aktif + arsip) untuk filter
+            // Kumpulkan semua tanggal unik (aktif + arsip)
             let tanggalSemuaSet = new Set();
-            dataAbsen.forEach(a => { if(a.rawTanggal) tanggalSemuaSet.add(a.rawTanggal); });
-            dataAbsenArsip.forEach(ar => { if(ar.tanggalRapat) tanggalSemuaSet.add(ar.tanggalRapat); });
+            dataAbsen.forEach(a => {
+                let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
+                if(tglKey) tanggalSemuaSet.add(tglKey);
+            });
+            dataAbsenArsip.forEach(ar => {
+                if(ar.tanggalRapat) tanggalSemuaSet.add(ar.tanggalRapat);
+            });
 
-            let sortedAktif = Array.from(tanggalAktifSet).sort().reverse();
-            let sortedSemua = Array.from(tanggalSemuaSet).sort().reverse();
+            let listAktif = Array.from(tanggalAktifSet);
+            let listSemua = Array.from(tanggalSemuaSet);
 
-            // 1. Isi Dropdown Arsip (Hanya menampilkan tanggal yang ada di absen aktif)
+            // 1. Isi Dropdown Arsip
             let arsipHtml = '<option value="">-- Pilih Tanggal untuk Disimpan/Arsip --</option>';
-            sortedAktif.forEach(tgl => {
-                let formatted = tgl;
-                try {
-                    const p = tgl.split('-');
-                    formatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                } catch(e) {}
-                arsipHtml += `<option value="${tgl}">${formatted}</option>`;
+            listAktif.forEach(tgl => {
+                arsipHtml += `<option value="${tgl}">${tgl}</option>`;
             });
             arsipSelect.innerHTML = arsipHtml;
-            if(sortedAktif.includes(currentArsip)) arsipSelect.value = currentArsip;
+            if(listAktif.includes(currentArsip)) arsipSelect.value = currentArsip;
 
             // 2. Isi Filter Utama
             let filterHtml = '<option value="AKTIF">-- Tampilkan Daftar Absen Aktif (Baru) --</option>';
-            sortedSemua.forEach(tgl => {
-                let formatted = tgl;
-                try {
-                    const p = tgl.split('-');
-                    formatted = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                } catch(e) {}
-
+            listSemua.forEach(tgl => {
                 let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === tgl);
                 let statusLabel = isArsiped ? '📁 [Arsip]' : '🟢 [Aktif]';
-                filterHtml += `<option value="${tgl}">${statusLabel} Rapat: ${formatted}</option>`;
+                filterHtml += `<option value="${tgl}">${statusLabel} Rapat: ${tgl}</option>`;
             });
 
             filterSelect.innerHTML = filterHtml;
-            if(sortedSemua.includes(currentFilter) || currentFilter === 'AKTIF') {
+            if(listSemua.includes(currentFilter) || currentFilter === 'AKTIF') {
                 filterSelect.value = currentFilter;
             }
         }
@@ -282,7 +286,7 @@
         function arsipkanRapatTanggalIni() {
             const tglPilih = document.getElementById('selectArsipTanggal').value;
             if(!tglPilih) {
-                alert('Silakan pilih tanggal rapat yang ingin diarsipkan/disimpan terlebih dahulu pada dropdown di sebelah tombol!');
+                alert('Silakan pilih tanggal rapat yang ingin diarsipkan pada dropdown di sebelah tombol terlebih dahulu!');
                 return;
             }
 
@@ -290,7 +294,8 @@
             let itemArsip = [];
 
             dataAbsen.forEach((a) => {
-                if(a.rawTanggal === tglPilih) {
+                let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
+                if(tglKey === tglPilih) {
                     itemArsip.push(a);
                 } else {
                     indexSisa.push(a);
@@ -302,7 +307,7 @@
                 return;
             }
 
-            if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat ini? Data akan disimpan dan dibersihkan dari tabel aktif.`)) {
+            if(confirm(`Arsip ${itemArsip.length} data kehadiran untuk tanggal rapat (${tglPilih})? Data akan disimpan dan dibersihkan dari tabel aktif.`)) {
                 dataAbsenArsip.push({
                     tanggalRapat: tglPilih,
                     peserta: itemArsip
@@ -375,7 +380,8 @@
                 let badge = a.status === 'Hadir' ? 'bg-success' : a.status === 'Izin' ? 'bg-warning text-dark' : 'bg-danger';
                 const tr = document.createElement('tr');
                 
-                let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === a.rawTanggal);
+                let tglKey = a.rawTanggal || (a.waktu ? a.waktu.split('|')[0].trim() : '');
+                let isArsiped = dataAbsenArsip.some(ar => ar.tanggalRapat === tglKey);
                 let aksiButton = !isArsiped 
                     ? `<button class="btn btn-sm btn-outline-danger" onclick="hapusAbsen(${index})">Hapus</button>` 
                     : `<span class="badge bg-secondary">Tersimpan (Arsip)</span>`;
@@ -420,7 +426,7 @@
             const jamString = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
             const waktuString = tglFormatted + ' | ' + jamString;
 
-            dataAbsen.unshift({ rawTanggal: tanggalInput, waktu: waktuString, nama, jabatan, status, keterangan });
+            dataAbsen.unshift({ rawTanggal: tglFormatted, waktu: waktuString, nama, jabatan, status, keterangan });
             
             updateDropdownFilterTanggal();
             renderAbsen();

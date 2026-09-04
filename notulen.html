@@ -21,13 +21,13 @@
             background-color: #0f766e !important;
         }
 
-        /* KOREKSI POSISI: KEPALA TABEL (NO, TOPIK, DLL) MENEMPEL TEPAT DI BAWAH HEADER HIJAU */
+        /* KOREKSI POSISI: KEPALA TABEL MENEMPEL TEPAT DI BAWAH HEADER HIJAU */
         .table-scroll-container thead th {
             position: sticky;
-            top: 65px; /* Menyesuaikan tinggi header hijau */
+            top: 0; /* DIKOREKSI: Mengubah 65px menjadi 0 agar menempel persis di atas kontainer tabel */
             z-index: 10;
             background-color: #f8f9fa !important;
-            box-shadow: inset 0 -2px 0 #dee2e6;
+            box-shadow: inset 0 -2px 0 #dee2e6, 0 1px 2px rgba(0,0,0,0.05); /* Sedikit bayangan agar rapi saat scroll */
         }
 
         /* BINGKAI SCROLL VERTIKAL UNTUK ISI TABEL NOTULEN */
@@ -75,8 +75,8 @@
             </div>
         </div>
 
-        <!-- FILTER PANEL -->
-        <div class="card shadow-sm mb-4 bg-white border-0 no-print">
+        <!-- FILTER PANEL (KOREKSI: Ditambahkan class 'd-none' agar tersembunyi dan posisinya digantikan oleh header tabel biru sesuai instruksi) -->
+        <div class="card shadow-sm mb-4 bg-white border-0 no-print d-none">
             <div class="card-body py-3">
                 <div class="row g-3">
                     <div class="col-md-3">
@@ -828,7 +828,6 @@
                 let safeLeader = (leader || '-').replace(/'/g, "\\'");
                 let safeNotulis = (notulis || '-').replace(/'/g, "\\'");
 
-                // HEADER HIJAU MENGGUNAKAN KELAS card-header-sticky AGAR TETAP DIAM DI ATAS SAAT DI-SCROLL
                 let headerHtml = '<div class="card-header card-header-sticky text-white py-2 d-flex justify-content-between align-items-center">' +
                     '<div><h5 class="mb-0 fs-6">📅 ' + periode + ' — Tanggal: ' + tglFormatted + '</h5>' +
                     '<div class="small mt-1 text-light opacity-75">📍 <strong>Lokasi:</strong> ' + lokasi + ' | 💻 <strong>Media:</strong> ' + media + ' | 👤 <strong>Leader:</strong> ' + leader + ' | ✍️ <strong>Notulis:</strong> ' + notulis + '</div></div>' +
@@ -836,7 +835,6 @@
                     '<button class="btn btn-sm btn-warning text-dark fw-bold" onclick="bukaModalSaveAs(\'' + key + '\')">📋 Save As / Salin Rapat</button>' +
                     '<button class="btn btn-sm btn-light text-dark fw-bold" onclick="bukaModalTambahTopik(\'' + safePeriode + '\', \'' + safeTanggal + '\', \'' + safeLokasi + '\', \'' + safeMedia + '\', \'' + safeLeader + '\', \'' + safeNotulis + '\')">+ Tambah Topik</button>' +
                     '</div></div>' +
-                    // PEMBUNGKUS DENGAN KELAS table-scroll-container UNTUK BILAH GESER VERTIKAL
                     '<div class="card-body p-0"><div class="table-responsive table-scroll-container"><table class="table table-bordered table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">' +
                     '<thead class="table-light text-center"><tr>' +
                     '<th style="width: 5%;">No.</th>' +

@@ -308,6 +308,10 @@
             const tbody = document.getElementById('bodyTabelJadwal');
             if(!tbody) return;
             tbody.innerHTML = '';
+
+            // URUTKAN JADWAL: Dari Tanggal Terdekat / Akan Datang (Terbaru) ke Tanggal Lama (Descending)
+            dataJadwal.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
             dataJadwal.forEach((j, index) => {
                 let tglF = j.tanggal;
                 try { const p = j.tanggal.split('-'); tglF = new Date(p[0], p[1]-1, p[2]).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e){}
